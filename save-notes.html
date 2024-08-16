@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Блокнот</title>
+    <link rel="stylesheet" href="/assets/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="main">
+        
+        <div class="navigation-bar">
+            <button class="menu-button" onclick="toggleMenu()">≣ Меню</button>
+            <div class="dropdown">
+                <div class="dropdown-content">
+                    <ul class="content">
+                        <li><a href="/index.html" class="note-handler">Место для заметок</a></li>
+                        <li><a href="/save-notes.html" class="saved-notes">Сохраненные заметки</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="list-of-notes">
+            <button class="update-info" onclick="getJson()">Обновить список</button>
+            <p class="name">Список дел:</p>
+            <div id="list">
+                <ul id="notes"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="/assets/script.js"></script>
+    <script src="/assets/note_script.js"></script>
+</body>
+
+</html>

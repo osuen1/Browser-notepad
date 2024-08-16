@@ -1,0 +1,102 @@
+body {
+    font-family: "Roboto", sans-serif;
+}
+
+.main {
+    width: 100%;
+    height: 600px
+}
+
+.navigation-bar {
+    display: inline-block;
+    width: 300px;
+    height: 70px;
+    position: relative;
+    text-align: left;
+}
+
+.menu-button {
+    border: none;
+    text-align: left;
+    padding-left: 0px;
+    font-size: 30px;
+    background-color: #fff;
+}
+
+.dropdown {
+    position: fixed;
+    top: 0;
+    left: -250px; /* Изначально скрыто за левым краем экрана */
+    width: 250px;
+    height: 100%;
+    background-color: #f9f9f9;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    transition: left 0.3s ease;
+}
+
+.drop-menu, a {
+    display: inline-block;
+    color: black;
+    padding: 16px;
+    text-decoration: none;
+    display: block;
+    border-bottom: 1px solid #ddd;
+}
+
+.dropdown-content {
+    text-align: center;
+}
+
+.content {
+    list-style: none;
+    padding-left: 0px;
+    margin: 0 auto;
+}
+
+.show {
+    left: 0; /* Выдвигается слева */
+}
+
+.container-handler {
+    display: inline-block;
+    width: 100%;
+    height: 70%;
+    text-align: center;
+}
+
+.hello {
+    font-size: large;
+}
+
+#notepad {
+    width: 708px;
+    height: 256px;
+    resize: none;
+    border-radius: 30px;
+    padding: 20px;
+}
+
+.send {
+    border: 3px solid green;
+}
+
+.save-info {
+    text-align: center;
+}
+
+#save {
+    width: 100px;
+    height: 50px;
+    border-radius: 20px;
+    border: none;
+}
+
+.update-info {
+    width: 100px;
+    height: 50px;
+}
+
+.chb {
+    text-decoration: line-through;
+}
