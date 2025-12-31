@@ -8,6 +8,8 @@ import (
 	"os"
 )
 
+// Надо добавить базу данных и куки для сохранения данных
+
 type Note struct { // парсим приходящий от js json
 	Date     string `json:"Date"`
 	TextNote string `json:"Info"`

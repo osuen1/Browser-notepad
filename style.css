@@ -1,0 +1,150 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* фон страницы */
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f1e0c9;           /* общий бежевый фон */
+  position: relative;
+}
+
+/* картинка на заднем плане (ту, что у тебя) можно поставить сюда */
+.page-bg {
+  position: fixed;
+  inset: 0;
+  background: url("/images/кот.jpg") center/cover no-repeat;
+  z-index: -1;
+}
+
+/* карточка */
+.login-card {
+  width: 420px;
+  background: #f6f6f8;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+}
+
+/* верхняя картинка */
+.login-illustration {
+  height: 190px;
+  background: url("/images/кот.jpg") center/cover no-repeat;
+}
+
+/* нижняя часть */
+.login-content {
+  padding: 32px 42px 30px;
+}
+
+/* заголовок */
+.login-content h1 {
+  font-size: 24px;
+  margin-bottom: 22px;
+}
+
+/* инпуты */
+.input {
+  width: 100%;
+  height: 44px;
+  border-radius: 22px;
+  border: none;
+  margin-bottom: 14px;
+  padding: 0 18px;
+  background: #fbaec1;       /* розовый как на макете */
+  color: #fff;
+  font-size: 14px;
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* строка с переключателем и ссылкой */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  margin: 8px 0 18px;
+}
+
+/* переключатель */
+.toggle {
+  position: relative;
+  width: 40px;
+  height: 18px;
+  margin-right: 6px;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: #4b1d73;       /* фиолетовый фон */
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.2s ease;
+}
+
+/* состояние checked */
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+.remember {
+  margin-left: 4px;
+}
+
+/* ссылка "forgot password" */
+.forgot {
+  margin-left: auto;
+  text-decoration: none;
+  color: #000;
+}
+
+/* кнопка Login */
+.btn {
+  width: 100%;
+  height: 42px;
+  border-radius: 21px;
+  border: none;
+  background: #783a98;       /* фиолетовый */
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+/* Create Account как текстовая кнопка */
+.link-btn {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+  color: #000;
+}
