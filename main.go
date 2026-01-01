@@ -15,8 +15,18 @@ type Note struct { // парсим приходящий от js json
 	TextNote string `json:"Info"`
 }
 
+type Login_info struct { // парсим приходящий от js json
+	Login    string `json:"Login"`
+	Password string `json:"Password"`
+}
+
 type ArrayInfo struct { // создаем структуру, которая создает срез для временного хранения информации (будет заменено базой данных)
 	data []string
+}
+
+type Login_array struct {
+	data_login []string
+	data_password []string
 }
 
 var tmpl = template.Must(template.ParseFiles("index.html"))
@@ -25,6 +35,8 @@ var log_page = template.Must(template.ParseFiles("login.html"))
 
 var data Note // создаем data для хранения передачи информации с одной функции на другую (временно)
 var info ArrayInfo // создаем элемент структуры (массив, состоящий из data.TextNote)
+var data_test Login_info
+var log_info Login_array
 
 func indexHandler(w http.ResponseWriter, r *http.Request) { // отрисовка главной страницы блокнота (с полем вводе новой заметки)
 	if r.Method == http.MethodGet {
@@ -62,9 +74,23 @@ func noteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка
 	http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 }
 
+// добавить шифрование
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		log_page.Execute(w, nil)
+	}
+
+	if r.Method == http.MethodPost {
+		decoder := json.NewDecoder(r.Body) // декодируем JSON с клиента
+		if err := decoder.Decode(&data_test); err != nil { // записываем данные из JSON в структуру login_info
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		
+		log_info.data_login = append(log_info.data_login, data_test.Login)
+		log_info.data_password = append(log_info.data_password, data_test.Password)
+
+		fmt.Printf("Received JSON: %+v\n %+v\n", log_info.data_login,log_info.data_password)
 	}
 }
 

@@ -18,8 +18,8 @@
     <!-- Логин форма -->
     <div class="login-container">
         <h2>Login</h2>
-        <input type="text" class="input-field" placeholder="Username">
-        <input type="password" class="input-field" placeholder="Password">
+        <input type="text" id="username" class="input-field" placeholder="Username">
+        <input type="password" id="password" class="input-field" placeholder="Password">
 
         <div class="remember-forgot">
             <label class="remember-label">
@@ -29,14 +29,15 @@
                 </div>
                 remember me
             </label>
-            <a href="#" class="forgot-link">forgot password</a>
+            <a href="create-account.html" class="forgot-link">forgot password</a>
         </div>
 
-        <button class="login-btn">Login</button>
+        <button id="loginBtn" class="login-btn", onclick="login()">Login</button>
         <div class="create-account">
             Create Account <a href="#">here</a>
         </div>
     </div>
+    <script src="assets/login-script.js"></script>
 </body>
 
 </html>
