@@ -2,42 +2,39 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="page-bg"></div>
+    <!-- Фоновая графика -->
+    <div class="background-art">
+        <div class="sun"></div>
+        <div class="mountain"></div>
+    </div>
 
-    <div class="login-card">
-        <div class="login-illustration">
-            <img src="/images/кот.jpg" alt="">
+    <!-- Логин форма -->
+    <div class="login-container">
+        <h2>Login</h2>
+        <input type="text" class="input-field" placeholder="Username">
+        <input type="password" class="input-field" placeholder="Password">
+
+        <div class="remember-forgot">
+            <label class="remember-label">
+                <div class="toggle-switch">
+                    <input type="checkbox" id="remember">
+                    <span class="slider"></span>
+                </div>
+                remember me
+            </label>
+            <a href="#" class="forgot-link">forgot password</a>
         </div>
 
-        <div class="login-content">
-            <h1>Login</h1>
-
-            <form>
-                <input type="text" placeholder="Username" class="input" />
-                <input type="password" placeholder="Password" class="input" />
-
-                <div class="row">
-                    <label class="toggle">
-                        <input type="checkbox" />
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <span class="remember">remember me</span>
-
-                    <a href="#" class="forgot">forgot password</a>
-                </div>
-
-                <button type="submit" class="btn">Login</button>
-
-                <button type="button" class="link-btn">
-                    Create Account
-                </button>
-            </form>
+        <button class="login-btn">Login</button>
+        <div class="create-account">
+            Create Account <a href="#">here</a>
         </div>
     </div>
 </body>
