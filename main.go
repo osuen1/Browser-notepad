@@ -20,7 +20,8 @@ type ArrayInfo struct { // создаем структуру, которая с�
 }
 
 var tmpl = template.Must(template.ParseFiles("index.html"))
-var nh = template.Must(template.ParseFiles("save-notes.html"))
+var note_page = template.Must(template.ParseFiles("save-notes.html"))
+var log_page = template.Must(template.ParseFiles("login.html"))
 
 var data Note // создаем data для хранения передачи информации с одной функции на другую (временно)
 var info ArrayInfo // создаем элемент структуры (массив, состоящий из data.TextNote)
@@ -53,12 +54,18 @@ func noteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка
 			}
 
 		} else { // Если клиент запрашивает HTML
-			nh.Execute(w, nil)
+			note_page.Execute(w, nil)
 		}
 		return
 	}
 
 	http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		log_page.Execute(w, nil)
+	}
 }
 
 func main() {
@@ -74,6 +81,7 @@ func main() {
 	mux.Handle("/assets/", http.StripPrefix("/assets/", fs)) // переходим к файлу с css
 	mux.HandleFunc("/", indexHandler) // вызываем функцию indexHandler, которая отрисовывает главную страницу, и устанавливаем ец путь "/"
 	mux.HandleFunc("/save-notes.html", noteHandler) // вызываем функцию noteHandler, которая отрисовывает вторичную страницу, и устанавливаем ец путь /save-notes.html
+	mux.HandleFunc("/login.html", loginHandler) // вызываем функцию loginHandler, которая отрисовывает страницу авторизации, и устанавливаем ец путь "/login.html
 
 	http.ListenAndServe(":"+port, mux) // запускаем сервер, начиная слушать 3030 порт localhost'а
 }
