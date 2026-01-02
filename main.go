@@ -29,9 +29,9 @@ type Login_array struct {
 	data_password []string
 }
 
-var tmpl = template.Must(template.ParseFiles("index.html"))
-var note_page = template.Must(template.ParseFiles("save-notes.html"))
-var log_page = template.Must(template.ParseFiles("login.html"))
+var tmpl = template.Must(template.ParseFiles("templates/index.html"))
+var note_page = template.Must(template.ParseFiles("templates/save-notes.html"))
+var log_page = template.Must(template.ParseFiles("templates/login.html"))
 
 var data Note // создаем data для хранения передачи информации с одной функции на другую (временно)
 var info ArrayInfo // создаем элемент структуры (массив, состоящий из data.TextNote)
