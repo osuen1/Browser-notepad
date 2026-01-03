@@ -9,6 +9,8 @@ import (
 	"os"
 
 	"github.com/gorilla/sessions"
+
+	"server/db"
 )
 
 // Надо добавить базу данных и куки для сохранения данных
@@ -125,6 +127,8 @@ func registerHandler(w http.ResponseWriter, r *http.Request)  {
 }
 
 func main() {
+	db.Db_connect() // подключение к базе данных
+
 	port := os.Getenv("PORT") // устанавливаем порт
 	if port == "" {
 		port = "3030"
