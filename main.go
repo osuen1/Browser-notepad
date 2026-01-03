@@ -39,7 +39,6 @@ type Server struct {
 	cookie_handler  *sessions.CookieStore
 }
 
-
 var tmpl = template.Must(template.ParseFiles("templates/index.html"))
 var note_page = template.Must(template.ParseFiles("templates/save-notes.html"))
 var log_page = template.Must(template.ParseFiles("templates/login.html"))
@@ -110,6 +109,19 @@ func registerHandler(w http.ResponseWriter, r *http.Request)  {
 	if r.Method == http.MethodGet {
 		register_page.Execute(w, nil)
 	}
+
+	if r.Method == http.MethodPost {
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&data_test); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		log_info.data_login = append(log_info.data_login, data_test.Login)
+		log_info.data_password = append(log_info.data_password, data_test.Password)
+
+		fmt.Printf("Received JSON: %+v\n %+v\n", log_info.data_login,log_info.data_password)
+	}
 }
 
 func main() {
@@ -128,5 +140,6 @@ func main() {
 	mux.HandleFunc("/login.html", loginHandler) // вызываем функцию loginHandler, которая отрисовывает страницу авторизации, и устанавливаем ец путь "/login.html
 	mux.HandleFunc("/register.html", registerHandler)
 
+	fmt.Print("Сервер запущен на порту: ", port)
 	http.ListenAndServe(":"+port, mux) // запускаем сервер, начиная слушать 3030 порт localhost'а
 }

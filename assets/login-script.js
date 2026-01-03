@@ -1,10 +1,5 @@
 // Добавить шифрование пароля/логина
 
-// let input = document.querySelector('input'); // получаем элемент input
-// if (input.value) {
-//     input.backgtoundColor = 'red'; // если в input что-то введено, то меняем цвет фона на красный
-// };
-
 function login() {
     let login = document.getElementById("username");
     let password = document.getElementById("password");
