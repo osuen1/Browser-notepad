@@ -1,0 +1,131 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #f0e0c9;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Фоновая графика (как в логине) */
+.background-art {
+    position: absolute;
+    top: -100px;
+    left: -150px;
+    width: 120%;
+    height: 120%;
+    z-index: -1;
+}
+
+.mountain {
+    position: absolute;
+    bottom: -50px;
+    left: -100px;
+    width: 150%;
+    height: 60%;
+    background: linear-gradient(135deg, #333 40%, #5a4a42 100%);
+    clip-path: polygon(0% 100%, 30% 60%, 50% 80%, 70% 50%, 100% 100%);
+    transform: rotate(-5deg);
+}
+
+.sun {
+    position: absolute;
+    top: -80px;
+    right: 20%;
+    width: 200px;
+    height: 200px;
+    background: #e97b5a;
+    border-radius: 50%;
+    box-shadow: 0 0 30px rgba(233, 123, 90, 0.5);
+}
+
+/* Блок регистрации */
+.register-container {
+    background: white;
+    width: 460px;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    position: relative;
+    z-index: 10;
+}
+
+.register-container h2 {
+    margin-bottom: 30px;
+    font-weight: bold;
+    color: #222;
+    text-align: left;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #555;
+}
+
+.input-field {
+    width: 100%;
+    padding: 12px 20px;
+    border-radius: 25px;
+    border: 2px solid #ccc;
+    background-color: #f9f9f9;
+    color: #333;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #7a4da5;
+    background-color: white;
+    box-shadow: 0 0 0 2px rgba(122, 77, 165, 0.2);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: flex-start;
+    margin: 25px 0;
+    gap: 8px;
+    font-size: 13px;
+    text-align: left;
+}
+
+.checkbox-group input {
+    margin-top: 3px;
+}
+
+.checkbox-group label {
+    color: #555;
+}
+
+.register-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #7a4da5;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+.register-btn:hover {
+    background-color: #6a4090;
+}
