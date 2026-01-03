@@ -1,16 +1,21 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/sessions"
 )
 
 // Надо добавить базу данных и куки для сохранения данных
 
 type Note struct { // парсим приходящий от js json
+	ID       int    `json:"ID"`
+	User_id  int    `json:"User_id"`
 	Date     string `json:"Date"`
 	TextNote string `json:"Info"`
 }
@@ -20,18 +25,25 @@ type Login_info struct { // парсим приходящий от js json
 	Password string `json:"Password"`
 }
 
-type ArrayInfo struct { // создаем структуру, которая создает срез для временного хранения информации (будет заменено базой данных)
-	data []string
-}
-
 type Login_array struct {
 	data_login []string
 	data_password []string
 }
 
+type ArrayInfo struct { // создаем структуру, которая создает срез для временного хранения информации (будет заменено базой данных)
+	data []string
+}
+
+type Server struct {
+	db 			    *sql.DB
+	cookie_handler  *sessions.CookieStore
+}
+
+
 var tmpl = template.Must(template.ParseFiles("templates/index.html"))
 var note_page = template.Must(template.ParseFiles("templates/save-notes.html"))
 var log_page = template.Must(template.ParseFiles("templates/login.html"))
+var register_page = template.Must(template.ParseFiles("templates/register.html"))
 
 var data Note // создаем data для хранения передачи информации с одной функции на другую (временно)
 var info ArrayInfo // создаем элемент структуры (массив, состоящий из data.TextNote)
@@ -94,6 +106,12 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func registerHandler(w http.ResponseWriter, r *http.Request)  {
+	if r.Method == http.MethodGet {
+		register_page.Execute(w, nil)
+	}
+}
+
 func main() {
 	port := os.Getenv("PORT") // устанавливаем порт
 	if port == "" {
@@ -108,6 +126,7 @@ func main() {
 	mux.HandleFunc("/", indexHandler) // вызываем функцию indexHandler, которая отрисовывает главную страницу, и устанавливаем ец путь "/"
 	mux.HandleFunc("/save-notes.html", noteHandler) // вызываем функцию noteHandler, которая отрисовывает вторичную страницу, и устанавливаем ец путь /save-notes.html
 	mux.HandleFunc("/login.html", loginHandler) // вызываем функцию loginHandler, которая отрисовывает страницу авторизации, и устанавливаем ец путь "/login.html
+	mux.HandleFunc("/register.html", registerHandler)
 
 	http.ListenAndServe(":"+port, mux) // запускаем сервер, начиная слушать 3030 порт localhost'а
 }
