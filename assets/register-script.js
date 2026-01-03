@@ -46,4 +46,6 @@ function register() {
     xhr.setRequestHeader("Content-Type", "application/json");
 
     xhr.send(json)
+
+    window.location.replace("/")
 }

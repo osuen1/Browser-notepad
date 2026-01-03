@@ -1,14 +1,16 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
 	"os"
 
+	// "context"
+
 	"github.com/gorilla/sessions"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"server/db"
 )
@@ -37,7 +39,7 @@ type ArrayInfo struct { // создаем структуру, которая с�
 }
 
 type Server struct {
-	db 			    *sql.DB
+	db 			    *pgxpool.Pool
 	cookie_handler  *sessions.CookieStore
 }
 
@@ -50,6 +52,13 @@ var data Note // создаем data для хранения передачи и
 var info ArrayInfo // создаем элемент структуры (массив, состоящий из data.TextNote)
 var data_test Login_info
 var log_info Login_array
+var server Server
+
+func openDB() {
+	if server.db == nil {
+		server.db = db.Db_connect()
+	}
+}
 
 func indexHandler(w http.ResponseWriter, r *http.Request) { // отрисовка главной страницы блокнота (с полем вводе новой заметки)
 	if r.Method == http.MethodGet {
@@ -107,7 +116,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func registerHandler(w http.ResponseWriter, r *http.Request)  {
+func registerHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		register_page.Execute(w, nil)
 	}
@@ -122,17 +131,17 @@ func registerHandler(w http.ResponseWriter, r *http.Request)  {
 		log_info.data_login = append(log_info.data_login, data_test.Login)
 		log_info.data_password = append(log_info.data_password, data_test.Password)
 
-		fmt.Printf("Received JSON: %+v\n %+v\n", log_info.data_login,log_info.data_password)
+		db.Add_user(server.db, data_test.Login, data_test.Password)
 	}
 }
 
 func main() {
-	db.Db_connect() // подключение к базе данных
-
 	port := os.Getenv("PORT") // устанавливаем порт
 	if port == "" {
 		port = "3030"
 	}
+
+	openDB()
 
 	fs := http.FileServer(http.Dir("assets")) // находим файлы со стилями и внутренней логикой страниц
 
@@ -144,6 +153,6 @@ func main() {
 	mux.HandleFunc("/login.html", loginHandler) // вызываем функцию loginHandler, которая отрисовывает страницу авторизации, и устанавливаем ец путь "/login.html
 	mux.HandleFunc("/register.html", registerHandler)
 
-	fmt.Print("Сервер запущен на порту: ", port)
+	fmt.Print("Сервер запущен на порту: ", port, "\n")
 	http.ListenAndServe(":"+port, mux) // запускаем сервер, начиная слушать 3030 порт localhost'а
 }
