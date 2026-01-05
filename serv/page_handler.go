@@ -49,6 +49,12 @@ var data_test Login_info
 var log_info Login_array
 var server Server
 
+func openDB() {
+	if server.db == nil {
+		server.db = db.Db_connect()
+	}
+}
+
 func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовка главной страницы блокнота (с полем вводе новой заметки)
 	if r.Method == http.MethodGet {
 		tmpl.Execute(w, nil) // передача HTML документа клиентскому серверу
@@ -117,9 +123,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log_info.data_login = append(log_info.data_login, data_test.Login)
-		log_info.data_password = append(log_info.data_password, data_test.Password)
-
-		db.Add_user(server.db, data_test.Login, data_test.Password)
+		openDB()
+		db.Add_user(server.db, data_test.Login, Hash_password(data_test.Password))
 	}
 }
