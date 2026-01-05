@@ -46,7 +46,6 @@ var register_page = template.Must(template.ParseFiles("templates/register.html")
 var data Note // создаем data для хранения передачи информации с одной функции на другую (временно)
 var info ArrayInfo // создаем элемент структуры (массив, состоящий из data.TextNote)
 var data_test Login_info
-var log_info Login_array
 var server Server
 
 func openDB() {
@@ -91,7 +90,7 @@ func NoteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка
 	http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 }
 
-// добавить шифрование
+// дописать правильную отравку json
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		log_page.Execute(w, nil)
@@ -104,10 +103,17 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		
-		log_info.data_login = append(log_info.data_login, data_test.Login)
-		log_info.data_password = append(log_info.data_password, data_test.Password)
-
-		fmt.Printf("Received JSON: %+v\n %+v\n", log_info.data_login,log_info.data_password)
+		openDB()
+		_, password := db.Check_user(server.db, data_test.Login)
+		if status := Check_password(password, data_test.Password); status == false {
+			if err := json.NewEncoder(w).Encode("Error"); err != nil {
+				fmt.Print(err)
+			}
+		} else {
+			if err := json.NewEncoder(w).Encode("Success"); err != nil {
+				fmt.Print(err)
+			}
+		}
 	}
 }
 

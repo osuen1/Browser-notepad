@@ -30,8 +30,19 @@ func Add_user(pool *pgxpool.Pool, login string, password string) (status string)
 	row := pool.QueryRow(context.Background(), "INSERT INTO users (username, password) VALUES ($1, $2)", login, password)
 	if err := row.Scan(&status); err != nil {
 		fmt.Fprint(os.Stderr, err)
-		os.Exit(1)
 	}
 
 	return status
+}
+
+// Использовать для проверки существования пользователя
+func Check_user(pool *pgxpool.Pool, login string) (username string, password string) {
+	row := pool.QueryRow(context.Background(), "SELECT username, password FROM users WHERE username = $1", login)
+	if err := row.Scan(&username, &password); err != nil {
+		// Эта функция должна прокидывать на клиент ошибку отсутствия пользоателя с требованием зарегистрироаться
+		fmt.Fprintf(os.Stderr, "There is an error in check_user: %v", err)
+		os.Exit(1)
+	}
+
+	return username, password
 }

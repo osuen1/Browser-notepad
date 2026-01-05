@@ -1,24 +1,34 @@
-// Добавить шифрование пароля/логина
+async function login() {
+    const loginInput = document.getElementById('login').value;
+    const passwordInput = document.getElementById('password').value;
 
-function login() {
-    let login = document.getElementById("username");
-    let password = document.getElementById("password");
+    const response = await fetch('/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            login: loginInput,
+            password: passwordInput
+        })
+    });
 
-    let login_password = {
-        "Login": login.value,
-        "Password": password.value
-    };
-
-    let json = JSON.stringify(login_password);
-
-    let xhr = new XMLHttpRequest();
-    let url = "http://localhost:3030/login.html";
-    xhr.open("POST", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-
-    xhr.send(json)
-
-    if (xhr.status == 200) {
-        alert(1);
-    }
+    fetch("/register.html?=example", {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+        }
+    })
+    .then(responce => {
+        if (response.ok) {
+            if (result.status === "true") {
+                // Успешный вход — редирект
+                window.location.replace('/'); // или куда нужно
+            } else {
+                alert('Login failed: ' + result.message);
+            }
+        } else {
+            alert('Server error');
+        }
+    })
 }
