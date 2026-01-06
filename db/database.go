@@ -41,7 +41,6 @@ func Check_user(pool *pgxpool.Pool, login string) (username string, password str
 	if err := row.Scan(&username, &password); err != nil {
 		// Эта функция должна прокидывать на клиент ошибку отсутствия пользоателя с требованием зарегистрироаться
 		fmt.Fprintf(os.Stderr, "There is an error in check_user: %v", err)
-		os.Exit(1)
 	}
 
 	return username, password

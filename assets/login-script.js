@@ -1,34 +1,28 @@
 async function login() {
-    const loginInput = document.getElementById('login').value;
+    const loginInput = document.getElementById('username').value;
     const passwordInput = document.getElementById('password').value;
 
-    const response = await fetch('/login', {
+    const response = await fetch('/login.html', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            login: loginInput,
-            password: passwordInput
+            Login: loginInput,
+            Password: passwordInput
         })
     });
 
-    fetch("/register.html?=example", {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json',
-        }
-    })
-    .then(responce => {
-        if (response.ok) {
-            if (result.status === "true") {
-                // Успешный вход — редирект
-                window.location.replace('/'); // или куда нужно
-            } else {
-                alert('Login failed: ' + result.message);
-            }
+    if (response.ok) {
+        const result = await response.json();
+
+        if (result.status === "true") {
+            // Успешный вход — редирект
+            window.location.replace('/'); // или куда нужно
         } else {
-            alert('Server error');
+            alert('Login failed: ' + result.message);
         }
-    })
+    } else {
+        alert('Server error');
+    }
 }

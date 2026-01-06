@@ -15,7 +15,6 @@ func Hash_password(password string) string {
 	return string(hashed_password)
 }
 
-// Проблема в генерации хеша (попробовать написать функцию дешифровки)
 func Check_password(hashed_password string, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashed_password), []byte(password))
 	if err != nil {

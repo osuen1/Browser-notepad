@@ -24,9 +24,9 @@ type Login_info struct { // парсим приходящий от js json
 	Password string `json:"Password"`
 }
 
-type Login_array struct {
-	data_login []string
-	data_password []string
+type Login_response struct {
+	Status  string `json:"status"`
+    Message string `json:"message,omitempty"`
 }
 
 type ArrayInfo struct { // создаем структуру, которая создает срез для временного хранения информации (будет заменено базой данных)
@@ -98,20 +98,31 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 		decoder := json.NewDecoder(r.Body) // декодируем JSON с клиента
-		if err := decoder.Decode(&data_test); err != nil { // записываем данные из JSON в структуру login_info
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		
-		openDB()
-		_, password := db.Check_user(server.db, data_test.Login)
-		if status := Check_password(password, data_test.Password); status == false {
-			if err := json.NewEncoder(w).Encode("Error"); err != nil {
-				fmt.Print(err)
-			}
+		if err := decoder.Decode(&data_test); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		} else {
-			if err := json.NewEncoder(w).Encode("Success"); err != nil {
-				fmt.Print(err)
+			var response Login_response
+			openDB() // открываем соединение с базой данных
+			
+			// получаем захешированный пароль из базы данных
+			_, password := db.Check_user(server.db, data_test.Login)
+
+			// проверка пароля
+			if status := Check_password(password, data_test.Password); status == true {
+				response.Status = "true"
+				w.Header().Set("Content-Type", "application/json")
+
+				if err := json.NewEncoder(w).Encode(response); err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
+			} else {
+				response.Status = "false"
+				response.Message = "Invalid login or password"
+
+				w.Header().Set("Content-Type", "application/json")
+				if err := json.NewEncoder(w).Encode(response); err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
 			}
 		}
 	}
