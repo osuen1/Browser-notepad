@@ -1,13 +1,16 @@
 package serv
 
 import (
-	"fmt"
-	"net/http"
-	"html/template"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"html/template"
+	"net/http"
+	"os"
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 
 	"server/db"
 )
@@ -48,12 +51,18 @@ var info ArrayInfo // создаем элемент структуры (масс
 var data_test Login_info
 var server Server
 
-func openDB() {
+func init_server() {
+	if err := godotenv.Load(); err != nil {
+		fmt.Print(err)
+	}
+
 	if server.db == nil {
 		server.db = db.Db_connect()
 	}
+
 	if server.cookie_handler == nil {
-		server.cookie_handler = sessions.NewCookieStore([]byte("secret-key"))
+		key, _ := hex.DecodeString(os.Getenv("COOKIE_KEY"))
+		server.cookie_handler = sessions.NewCookieStore(key)
 	}
 }
 
@@ -108,7 +117,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			var response Login_response
 
-			openDB()
+			init_server()
 			
 			// получаем захешированный пароль из базы данных
 			user_id, _, password := db.Check_user(server.db, data_test.Login)
@@ -150,7 +159,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		openDB()
+		init_server()
 		db.Add_user(server.db, data_test.Login, Hash_password(data_test.Password))
 	}
 }
