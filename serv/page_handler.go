@@ -52,14 +52,19 @@ func openDB() {
 	if server.db == nil {
 		server.db = db.Db_connect()
 	}
+	if server.cookie_handler == nil {
+		server.cookie_handler = sessions.NewCookieStore([]byte("secret-key"))
+	}
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовка главной страницы блокнота (с полем вводе новой заметки)
-	if r.Method == http.MethodGet {
+	if r.Method == http.MethodGet && server.cookie_handler != nil {
 		tmpl.Execute(w, nil) // передача HTML документа клиентскому серверу
+	} else {
+		http.Error(w, "u not login", http.StatusForbidden)
 	}
 
-	if r.Method == http.MethodPost { // если сервер отправляет JSON - обрабатываем
+	if r.Method == http.MethodPost && server.cookie_handler != nil { // если сервер отправляет JSON - обрабатываем
 
 		decoder := json.NewDecoder(r.Body) // декодируем JSON с клиента
 		if err := decoder.Decode(&data); err != nil { // записываем данные из JSON в структуру Note
@@ -73,7 +78,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовк�
 }
 
 func NoteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка вторичной страницы блокнота (со списком всех заметок)
-	if r.Method == http.MethodGet { // проверяем, запрашивает ли клиент информацию
+	if r.Method == http.MethodGet && server.cookie_handler != nil{ // проверяем, запрашивает ли клиент информацию
 		if r.Header.Get("Accept") == "application/json" { // Если клиент запрашивает JSON
 
 			w.Header().Set("Content-Type", "application/json") // устанавливаем заголовки
@@ -102,10 +107,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		} else {
 			var response Login_response
-			openDB() // открываем соединение с базой данных
+
+			openDB()
 			
 			// получаем захешированный пароль из базы данных
-			_, password := db.Check_user(server.db, data_test.Login)
+			user_id, _, password := db.Check_user(server.db, data_test.Login)
 
 			// проверка пароля
 			if status := Check_password(password, data_test.Password); status == true {
@@ -115,6 +121,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				if err := json.NewEncoder(w).Encode(response); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
+
+				session, _ := server.cookie_handler.Get(r, "session-name")
+				session.Values["user_id"] = user_id
+				session.Save(r, w)
 			} else {
 				response.Status = "false"
 				response.Message = "Invalid login or password"

@@ -47,5 +47,5 @@ function register() {
 
     xhr.send(json)
 
-    window.location.replace("/")
+    window.location.replace("/login.html")
 }
