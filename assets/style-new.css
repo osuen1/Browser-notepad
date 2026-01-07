@@ -14,6 +14,13 @@
     --text-secondary: #A0AEC0;
     --border-color: #4A5568;
     --hover-color: #434D5C;
+    --folder-bg: #333942;
+    --folder-hover: #3B414C;
+    --note-bg: #2D333C;
+    --note-hover: #333942;
+    --content-bg: #EFEFEF;
+    --content-border: #D0D0D0;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 body {
@@ -66,7 +73,7 @@ body {
     font-weight: 500;
 }
 
-/* Упрощенный левый бар */
+/* Упрощенный левый бар */
 .sidebar-left {
     width: 240px;
     background-color: var(--secondary-color);
@@ -74,6 +81,7 @@ body {
     margin-top: 36px;
     padding: 24px 16px;
     overflow-y: auto;
+    max-height: calc(100vh - 36px);
 }
 
 .sidebar-title {
@@ -87,17 +95,14 @@ body {
     border-bottom: 1px solid var(--border-color);
 }
 
-.explorer-section,
-.tags-section {
+.explorer-section, .tags-section {
     margin-bottom: 28px;
 }
 
-.explorer-list,
 .tags-list {
     list-style-type: none;
 }
 
-.explorer-item,
 .tag-item {
     padding: 10px 12px;
     margin-bottom: 4px;
@@ -110,18 +115,15 @@ body {
     font-size: 13px;
 }
 
-.explorer-item:hover,
 .tag-item:hover {
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-.explorer-item.active,
 .tag-item.active {
     background-color: rgba(228, 209, 183, 0.15);
     color: var(--accent-color);
 }
 
-.explorer-item i,
 .tag-item i {
     margin-right: 10px;
     color: var(--text-secondary);
@@ -130,7 +132,6 @@ body {
     text-align: center;
 }
 
-.explorer-item.active i,
 .tag-item.active i {
     color: var(--accent-color);
 }
@@ -144,6 +145,259 @@ body {
     border-radius: 10px;
 }
 
+/* --- Новый стиль папок --- */
+
+.folder-list {
+    list-style-type: none;
+    margin-bottom: 20px;
+}
+
+.folder-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 4px;
+    background-color: var(--folder-bg);
+    color: var(--text-color);
+    font-size: 13px;
+    position: relative;
+}
+
+.folder-item:hover {
+    background-color: var(--folder-hover);
+}
+
+.folder-item.active {
+    background-color: var(--accent-color);
+    color: #2D333C;
+}
+
+.folder-icon {
+    margin-right: 8px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    width: 16px;
+    text-align: center;
+}
+
+.folder-name {
+    flex: 1;
+    margin-right: 8px;
+}
+
+.folder-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.folder-action-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.folder-action-btn:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.folder-content {
+    margin-left: 26px;
+    display: none;
+    margin-top: 4px;
+}
+
+.folder-content.open {
+    display: block;
+}
+
+.note-list {
+    list-style-type: none;
+    margin-top: 4px;
+    margin-left: 8px;
+}
+
+.note-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 10px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 3px;
+    background-color: var(--note-bg);
+    color: var(--text-color);
+    font-size: 12px;
+}
+
+.note-item:hover {
+    background-color: var(--note-hover);
+}
+
+.note-item.active {
+    background-color: rgba(228, 209, 183, 0.15);
+    color: var(--accent-color);
+}
+
+.note-icon {
+    margin-right: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    width: 16px;
+    text-align: center;
+}
+
+.note-actions {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
+}
+
+.note-action-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    width: 20px;
+    height: 20px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.note-action-btn:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+/* Поле ввода для новой папки */
+#new-folder-input {
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    background: var(--primary-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+/* --- Выпадающее содержимое папки --- */
+
+.folder-preview {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: var(--content-bg);
+    border: 1px solid var(--content-border);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    padding: 12px;
+    z-index: 10;
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.folder-preview.show {
+    display: block;
+}
+
+.folder-preview .preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--content-border);
+}
+
+.folder-preview .preview-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.folder-preview .preview-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.folder-preview .preview-notes {
+    list-style-type: none;
+}
+
+.folder-preview .preview-note {
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 3px;
+    background-color: white;
+    color: var(--text-color);
+    font-size: 12px;
+    border: 1px solid var(--content-border);
+}
+
+.folder-preview .preview-note:hover {
+    background-color: var(--note-hover);
+}
+
+.folder-preview .preview-note.active {
+    background-color: var(--accent-color);
+    color: #2D333C;
+}
+
+.folder-preview .preview-note .note-title {
+    flex: 1;
+    margin-right: 8px;
+}
+
+.folder-preview .preview-note .note-actions {
+    display: flex;
+    gap: 2px;
+}
+
+.folder-preview .preview-note .note-action-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    width: 20px;
+    height: 20px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.folder-preview .preview-note .note-action-btn:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
 /* Упрощенная область заметок */
 .notes-area {
     flex: 1;
@@ -153,6 +407,9 @@ body {
 }
 
 .notes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-size: 24px;
     font-weight: 500;
     margin-bottom: 20px;
@@ -204,7 +461,7 @@ body {
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
 }
 
-/* Упрощенный правый бар */
+/* Упрощенный правый бар */
 .sidebar-right {
     width: 280px;
     background-color: var(--secondary-color);
@@ -290,8 +547,7 @@ body {
     color: var(--text-secondary);
 }
 
-.events-section,
-.todo-section {
+.events-section, .todo-section {
     margin-bottom: 24px;
 }
 
@@ -306,8 +562,7 @@ body {
     border-bottom: 1px solid var(--border-color);
 }
 
-.event-item,
-.todo-item {
+.event-item, .todo-item {
     padding: 10px 12px;
     margin-bottom: 6px;
     background-color: rgba(255, 255, 255, 0.03);
@@ -385,4 +640,47 @@ body {
     background-color: var(--border-color);
     margin: 16px 0;
     opacity: 0.3;
+}
+
+/* Модальное окно */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--secondary-color);
+    padding: 24px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90vw;
+}
+
+.modal-content h3 {
+    margin-bottom: 16px;
+    color: var(--text-color);
+}
+
+.modal-content input, .modal-content select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 16px;
+    background: var(--primary-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 4px;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
 }
