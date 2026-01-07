@@ -42,9 +42,9 @@ type Server struct {
 }
 
 var tmpl = template.Must(template.ParseFiles("templates/index.html"))
-var note_page = template.Must(template.ParseFiles("templates/save-notes.html"))
 var log_page = template.Must(template.ParseFiles("templates/login.html"))
 var register_page = template.Must(template.ParseFiles("templates/register.html"))
+var new_page = template.Must(template.ParseFiles("templates/new_page.html"))
 
 var data Note // создаем data для хранения передачи информации с одной функции на другую (временно)
 var info ArrayInfo // создаем элемент структуры (массив, состоящий из data.TextNote)
@@ -66,6 +66,7 @@ func init_server() {
 	}
 }
 
+// индекс уйдет под отрисовку лендинга
 func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовка главной страницы блокнота (с полем вводе новой заметки)
 	if r.Method == http.MethodGet && server.cookie_handler != nil {
 		tmpl.Execute(w, nil) // передача HTML документа клиентскому серверу
@@ -87,21 +88,9 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовк�
 }
 
 func NoteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка вторичной страницы блокнота (со списком всех заметок)
-	if r.Method == http.MethodGet && server.cookie_handler != nil{ // проверяем, запрашивает ли клиент информацию
-		if r.Header.Get("Accept") == "application/json" { // Если клиент запрашивает JSON
-
-			w.Header().Set("Content-Type", "application/json") // устанавливаем заголовки
-			if err := json.NewEncoder(w).Encode(info.data); err != nil { // кодируем массив значений, введенных пользователем, для отправки клиенту
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-			}
-
-		} else { // Если клиент запрашивает HTML
-			note_page.Execute(w, nil)
-		}
-		return
+	if r.Method == http.MethodGet {
+		new_page.Execute(w, nil)
 	}
-
-	http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 }
 
 // дописать правильную отравку json

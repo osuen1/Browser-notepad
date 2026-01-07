@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productivity App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/style-new.css">
+</head>
+<body>
+    <!-- Упрощенная строка вкладок -->
+    <div class="tabs-bar">
+        <div class="tab active"><i class="fas fa-home"></i></div>
+        <div class="tab"><i class="fas fa-sticky-note"></i></div>
+        <div class="tab"><i class="fas fa-tasks"></i></div>
+        <div class="tab"><i class="fas fa-calendar"></i></div>
+    </div>
+    
+    <div class="container">
+        <!-- Левый бар (упрощенный) -->
+        <div class="sidebar-left">
+            <div class="explorer-section">
+                <div class="sidebar-title">Проводник</div>
+                <ul class="explorer-list">
+                    <li class="explorer-item active">
+                        <i class="fas fa-folder"></i> Все заметки
+                        <span class="item-count">24</span>
+                    </li>
+                    <li class="explorer-item">
+                        <i class="fas fa-star"></i> Избранное
+                        <span class="item-count">8</span>
+                    </li>
+                    <li class="explorer-item">
+                        <i class="fas fa-clock"></i> Недавние
+                        <span class="item-count">12</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="tags-section">
+                <div class="sidebar-title">Теги</div>
+                <ul class="tags-list">
+                    <li class="tag-item active">
+                        <i class="fas fa-tag"></i> Работа
+                        <span class="item-count">12</span>
+                    </li>
+                    <li class="tag-item">
+                        <i class="fas fa-tag"></i> Личное
+                        <span class="item-count">7</span>
+                    </li>
+                    <li class="tag-item">
+                        <i class="fas fa-tag"></i> Идеи
+                        <span class="item-count">15</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Центральная область (упрощенная) -->
+        <div class="notes-area">
+            <div class="notes-header">Новая заметка</div>
+            <div class="notes-editor">
+                <div class="notes-toolbar">
+                    <button class="toolbar-button" title="Жирный"><strong>B</strong></button>
+                    <button class="toolbar-button" title="Курсив"><em>I</em></button>
+                    <button class="toolbar-button" title="Заголовок">H</button>
+                    <button class="toolbar-button" title="Список">•</button>
+                    <button class="toolbar-button" title="Нумерация">1.</button>
+                </div>
+                <textarea class="notes-content" placeholder="Начните писать здесь..."># План на сегодня
+
+## Утренняя рутина
+- [ ] Зарядка и медитация
+- [ ] Завтрак
+- [ ] Просмотр задач на день
+
+## Рабочие задачи
+- [x] Подготовить отчет
+- [ ] Ответить на письма
+- [ ] Проверить задачи команды
+
+## Идеи
+* Новый дизайн интерфейса
+* Автоматизация процессов
+* Оптимизация workflow
+
+---
+Заметка создана: 19.10.2023</textarea>
+            </div>
+        </div>
+        
+        <!-- Правый бар (упрощенный) -->
+        <div class="sidebar-right">
+            <!-- Календарь -->
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <div class="calendar-month">Октябрь 2023</div>
+                    <div class="calendar-nav">
+                        <button><i class="fas fa-chevron-left"></i></button>
+                        <button><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="calendar-grid">
+                    <div class="calendar-day weekday">ПН</div>
+                    <div class="calendar-day weekday">ВТ</div>
+                    <div class="calendar-day weekday">СР</div>
+                    <div class="calendar-day weekday">ЧТ</div>
+                    <div class="calendar-day weekday">ПТ</div>
+                    <div class="calendar-day weekday">СБ</div>
+                    <div class="calendar-day weekday">ВС</div>
+                    
+                    <div class="calendar-day other-month">25</div>
+                    <div class="calendar-day other-month">26</div>
+                    <div class="calendar-day other-month">27</div>
+                    <div class="calendar-day other-month">28</div>
+                    <div class="calendar-day other-month">29</div>
+                    <div class="calendar-day other-month">30</div>
+                    <div class="calendar-day">1</div>
+                    
+                    <div class="calendar-day">2</div>
+                    <div class="calendar-day">3</div>
+                    <div class="calendar-day">4</div>
+                    <div class="calendar-day">5</div>
+                    <div class="calendar-day">6</div>
+                    <div class="calendar-day">7</div>
+                    <div class="calendar-day">8</div>
+                    
+                    <div class="calendar-day">9</div>
+                    <div class="calendar-day">10</div>
+                    <div class="calendar-day">11</div>
+                    <div class="calendar-day">12</div>
+                    <div class="calendar-day">13</div>
+                    <div class="calendar-day">14</div>
+                    <div class="calendar-day">15</div>
+                    
+                    <div class="calendar-day">16</div>
+                    <div class="calendar-day">17</div>
+                    <div class="calendar-day">18</div>
+                    <div class="calendar-day today">19</div>
+                    <div class="calendar-day">20</div>
+                    <div class="calendar-day">21</div>
+                    <div class="calendar-day">22</div>
+                    
+                    <div class="calendar-day">23</div>
+                    <div class="calendar-day">24</div>
+                    <div class="calendar-day">25</div>
+                    <div class="calendar-day">26</div>
+                    <div class="calendar-day">27</div>
+                    <div class="calendar-day">28</div>
+                    <div class="calendar-day">29</div>
+                    
+                    <div class="calendar-day">30</div>
+                    <div class="calendar-day">31</div>
+                    <div class="calendar-day other-month">1</div>
+                    <div class="calendar-day other-month">2</div>
+                    <div class="calendar-day other-month">3</div>
+                    <div class="calendar-day other-month">4</div>
+                    <div class="calendar-day other-month">5</div>
+                </div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <!-- События -->
+            <div class="events-section">
+                <div class="section-title">События</div>
+                <div class="event-item">
+                    <div class="event-time">09:30</div>
+                    <div class="event-text">Совещание</div>
+                </div>
+                <div class="event-item">
+                    <div class="event-time">12:00</div>
+                    <div class="event-text">Обед с клиентом</div>
+                </div>
+                <button class="add-button">Добавить событие</button>
+            </div>
+            
+            <!-- Задачи -->
+            <div class="todo-section">
+                <div class="section-title">Задачи</div>
+                <div class="todo-item">
+                    <input type="checkbox" class="todo-checkbox" checked>
+                    <span class="todo-text todo-completed">Подготовить отчет</span>
+                </div>
+                <div class="todo-item">
+                    <input type="checkbox" class="todo-checkbox">
+                    <span class="todo-text">Обновить UI</span>
+                </div>
+                <div class="todo-item">
+                    <input type="checkbox" class="todo-checkbox">
+                    <span class="todo-text">Проверить почту</span>
+                </div>
+                <button class="add-button">Добавить задачу</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Обработчики для вкладок
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Обработчики для элементов боковых панелей
+        document.querySelectorAll('.explorer-item, .tag-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const items = this.closest('ul').querySelectorAll('li');
+                items.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Обработчики для чекбоксов
+        document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const text = this.nextElementSibling;
+                if (this.checked) {
+                    text.classList.add('todo-completed');
+                } else {
+                    text.classList.remove('todo-completed');
+                }
+            });
+        });
+        
+        // Обработчики для кнопок добавления
+        document.querySelectorAll('.add-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const section = this.parentElement;
+                const isEvents = section.classList.contains('events-section');
+                
+                if (isEvents) {
+                    const time = prompt('Время события:');
+                    const text = prompt('Описание:');
+                    if (time && text) {
+                        const newItem = document.createElement('div');
+                        newItem.className = 'event-item';
+                        newItem.innerHTML = `
+                            <div class="event-time">${time}</div>
+                            <div class="event-text">${text}</div>
+                        `;
+                        section.insertBefore(newItem, this);
+                    }
+                } else {
+                    const text = prompt('Новая задача:');
+                    if (text) {
+                        const newItem = document.createElement('div');
+                        newItem.className = 'todo-item';
+                        newItem.innerHTML = `
+                            <input type="checkbox" class="todo-checkbox">
+                            <span class="todo-text">${text}</span>
+                        `;
+                        section.insertBefore(newItem, this);
+                        
+                        newItem.querySelector('.todo-checkbox').addEventListener('change', function() {
+                            const textSpan = this.nextElementSibling;
+                            if (this.checked) {
+                                textSpan.classList.add('todo-completed');
+                            } else {
+                                textSpan.classList.remove('todo-completed');
+                            }
+                        });
+                    }
+                }
+            });
+        });
+        
+        // Обработчики для кнопок календаря
+        document.querySelectorAll('.calendar-nav button').forEach(button => {
+            button.addEventListener('click', function() {
+                const monthElement = document.querySelector('.calendar-month');
+                const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
+                               'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+                
+                if (this.querySelector('.fa-chevron-left')) {
+                    monthElement.textContent = 'Сентябрь 2023';
+                } else {
+                    monthElement.textContent = 'Ноябрь 2023';
+                }
+            });
+        });
+        
+        // Выбор дня в календаре
+        document.querySelectorAll('.calendar-day:not(.weekday)').forEach(day => {
+            day.addEventListener('click', function() {
+                document.querySelectorAll('.calendar-day').forEach(d => {
+                    if (d.classList.contains('today')) {
+                        d.classList.remove('today');
+                    }
+                });
+                this.classList.add('today');
+            });
+        });
+        
+        // Автосохранение заметки
+        const textarea = document.querySelector('.notes-content');
+        const saveNote = () => {
+            localStorage.setItem('productivity-note', textarea.value);
+        };
+        
+        textarea.addEventListener('input', saveNote);
+        
+        // Восстановление заметки
+        const savedNote = localStorage.getItem('productivity-note');
+        if (savedNote) {
+            textarea.value = savedNote;
+        }
+    </script>
+</body>
+</html>
