@@ -15,11 +15,11 @@ import (
 	"server/db"
 )
 
-type Note struct { // парсим приходящий от js json
-	ID       int    `json:"ID"`
-	User_id  int    `json:"User_id"`
-	Date     string `json:"Date"`
-	TextNote string `json:"Info"`
+type NoteData struct {
+    User_id  int `json:"User_id"`
+    Date     string `json:"Date"`
+    Data     string `json:"Data"`     // Должно совпадать с тем, что шлет JS
+    ID       int `json:"ID"`       // Для удаления
 }
 
 type Login_info struct { // парсим приходящий от js json
@@ -29,7 +29,7 @@ type Login_info struct { // парсим приходящий от js json
 
 type Login_response struct {
 	Status  string `json:"status"`
-    Message string `json:"message,omitempty"`
+	Message string `json:"message,omitempty"`
 }
 
 type ArrayInfo struct { // создаем структуру, которая создает срез для временного хранения информации (будет заменено базой данных)
@@ -37,8 +37,8 @@ type ArrayInfo struct { // создаем структуру, которая с�
 }
 
 type Server struct {
-	db 			    *pgxpool.Pool
-	cookie_handler  *sessions.CookieStore
+	db             *pgxpool.Pool
+	cookie_handler *sessions.CookieStore
 }
 
 var tmpl = template.Must(template.ParseFiles("templates/index.html"))
@@ -46,7 +46,7 @@ var log_page = template.Must(template.ParseFiles("templates/login.html"))
 var register_page = template.Must(template.ParseFiles("templates/register.html"))
 var new_page = template.Must(template.ParseFiles("templates/new_page.html"))
 
-var data Note // создаем data для хранения передачи информации с одной функции на другую (временно)
+var data NoteData      // создаем data для хранения передачи информации с одной функции на другую (временно)
 var info ArrayInfo // создаем элемент структуры (массив, состоящий из data.TextNote)
 var data_test Login_info
 var server Server
@@ -76,24 +76,96 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовк�
 
 	if r.Method == http.MethodPost && server.cookie_handler != nil { // если сервер отправляет JSON - обрабатываем
 
-		decoder := json.NewDecoder(r.Body) // декодируем JSON с клиента
+		decoder := json.NewDecoder(r.Body)            // декодируем JSON с клиента
 		if err := decoder.Decode(&data); err != nil { // записываем данные из JSON в структуру Note
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		info.data = append(info.data, data.TextNote) // заполняем массив текстом, который ввел пользователь
+		info.data = append(info.data, data.Data)  // заполняем массив текстом, который ввел пользователь
 		fmt.Printf("Received JSON: %+v\n", info.data) // выводим данные в консоль
 	}
 }
 
+// Отрисовка страницы заметок
 func NoteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка вторичной страницы блокнота (со списком всех заметок)
 	if r.Method == http.MethodGet {
 		new_page.Execute(w, nil)
 	}
+
+	if r.Method == http.MethodPost {
+		Create_note_handler(w, r)
+	}
 }
 
-// дописать правильную отравку json
+// Получение заметок
+func Get_notes_handler(w http.ResponseWriter, r *http.Request) {
+	init_server()
+
+	if r.Method == http.MethodPost {
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&data); err != nil {
+			fmt.Print("An error in Get_notes_handler: ", err)
+		}
+
+		if server.db != nil {
+			notes := db.Get_notes(server.db, data.User_id)
+			fmt.Print(notes)
+		} else {
+			http.Error(w, "u not login", http.StatusForbidden)
+		}
+	}
+}
+
+func Create_note_handler(w http.ResponseWriter, r *http.Request) {
+	init_server()
+
+    if r.Method != http.MethodPost {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
+
+    var req NoteData
+
+    err := json.NewDecoder(r.Body).Decode(&req)
+    if err != nil {
+        fmt.Printf("Ошибка декодирования: %v\n", err)
+        http.Error(w, "Bad Request", http.StatusBadRequest)
+        return
+    }
+
+    if server.db != nil {
+        err := db.Add_note(server.db, req.User_id, req.Date, req.Data)
+        if err != nil {
+            fmt.Printf("Ошибка записи в БД: %v\n", err)
+            http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+            return
+        }
+        
+        w.WriteHeader(http.StatusCreated)
+        json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+    } else {
+        http.Error(w, "Forbidden: Database not initialized or user not logged in", http.StatusForbidden)
+    }
+}
+
+func Delete_note_handler(w http.ResponseWriter, r *http.Request) {
+	init_server()
+
+	if r.Method == http.MethodPost {
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&data); err != nil {
+			fmt.Print("An error in Create_note: ", err.Error(), "\n")
+		}
+
+		if server.db != nil {
+			db.Delete_note(server.db, data.ID)
+		} else {
+			http.Error(w, "u not login", http.StatusForbidden)
+		}
+	}
+}
+
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		log_page.Execute(w, nil)
@@ -107,7 +179,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			var response Login_response
 
 			init_server()
-			
+
 			// получаем захешированный пароль из базы данных
 			user_id, _, password := db.Check_user(server.db, data_test.Login)
 

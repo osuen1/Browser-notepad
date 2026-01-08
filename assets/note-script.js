@@ -213,14 +213,14 @@ function saveFolders() {
 // Загрузка всех заметок
 function loadNotes() {
     const noteContent = document.getElementById('notes-content').value;
-    const currentTitle = document.getElementById('current-note-title').textContent;
-
-    // Здесь можно улучшить: хранить активную заметку и обновлять её
-    // Пока просто обновляем текущую заметку
+    
     const activeNote = notes.find(n => n.isCurrent);
     if (activeNote) {
         activeNote.content = noteContent;
-        saveNotes();
+        saveNotes(); // Сохраняем локально
+        
+        // Отправляем на сервер (можно добавить debounce, чтобы не спамить запросами на каждый символ)
+        sendNoteToServer(activeNote);
     }
 }
 
@@ -330,4 +330,40 @@ const lastNote = notes[0];
 if (lastNote) {
     document.getElementById('notes-content').value = lastNote.content || '';
     document.getElementById('current-note-title').textContent = lastNote.title || 'Новая заметка';
+}
+
+// Функция для отправки заметки на сервер
+async function sendNoteToServer(note) {
+    const userId = localStorage.getItem('User_id'); 
+    
+    // if (!userId) {
+    //     console.error('Ошибка: User_id не найден. Пользователь не авторизован.');
+    //     return;
+    // }
+
+    // Формируем объект согласно твоим требованиям
+    const payload = {
+        User_id: 11,
+        Date: note.createdAt, // или new Date().toISOString() для даты изменения
+        Data: note.content
+    };
+
+    try {
+        const response = await fetch('http://localhost:3030/new_note', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Ошибка сервера: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('Заметка успешно синхронизирована с сервером:', result);
+    } catch (error) {
+        console.error('Не удалось отправить заметку:', error);
+    }
 }

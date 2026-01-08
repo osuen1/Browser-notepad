@@ -45,3 +45,43 @@ func Check_user(pool *pgxpool.Pool, login string) (id int, username string, pass
 
 	return id, username, password
 }
+
+func Add_note(pool *pgxpool.Pool, user_id int, date string, data string) error {
+	// Возможно, будем использовать разные таблицы для разных пользователей в будущем
+	// row := pool.QueryRow(context.Background(), "CREATE TABLE IF NOT EXISTS notes (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, date TEXT NOT NULL, text TEXT NOT NULL, FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE)")
+
+	row := pool.QueryRow(context.Background(), "INSERT INTO notes (user_id, date, text) VALUES ($1, $2, $3)", user_id, date, data)
+	if err := row.Scan(); err != nil {
+		fmt.Fprint(os.Stderr, "An error in Add_note: ", err)
+		return err
+	}
+	return nil
+}
+
+func Get_notes(pool *pgxpool.Pool, user_id int) (notes []string) {
+	rows, err := pool.Query(context.Background(), "SELECT date, data FROM notes WHERE user_id = $1", user_id)
+	if err != nil {
+		fmt.Print("An error in Get_notes: ", err)
+	}
+
+	var date string
+	var data string
+
+	for rows.Next() {
+		if err := rows.Scan(&date, &data); err != nil {
+			fmt.Print("An error in scaning variables: ", err)
+		}
+		notes_details := []string{date, data}
+
+		notes = append(notes, notes_details...)
+	}
+
+	return notes
+}
+
+func Delete_note(pool *pgxpool.Pool, note_id int) {
+	row := pool.QueryRow(context.Background(), "DELETE FROM notes WHERE id = $1", note_id)
+	if err := row.Scan(); err != nil {
+		fmt.Print("An error in Delete_note: ", err)
+	}
+}
