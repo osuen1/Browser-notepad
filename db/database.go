@@ -26,10 +26,10 @@ func Db_connect() (pool *pgxpool.Pool) {
 	return pool
 }
 
-func Add_user(pool *pgxpool.Pool, login string, password string) (status string) {
-	row := pool.QueryRow(context.Background(), "INSERT INTO users (username, password) VALUES ($1, $2)", login, password)
+func Add_user(pool *pgxpool.Pool, login string, password string, email string) (status string) {
+	row := pool.QueryRow(context.Background(), "INSERT INTO users (username, password, email) VALUES ($1, $2, $3)", login, password, email)
 	if err := row.Scan(&status); err != nil {
-		fmt.Fprint(os.Stderr, err)
+		//
 	}
 
 	return status

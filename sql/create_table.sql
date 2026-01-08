@@ -12,3 +12,5 @@ CREATE TABLE notes (
     text TEXT NOT NULL,
     FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+ALTER TABLE users ADD COLUMN email CHAR(30);

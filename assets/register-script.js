@@ -5,6 +5,7 @@ function register() {
     const password_input = document.getElementById("password");
     const confirm_password_input = document.getElementById("confirmPassword");
     const checkbox = document.getElementById("agree");
+    const email = document.getElementById("email");
     let xhr = new XMLHttpRequest();
     let url = "http://localhost:3030/register.html";
 
@@ -36,6 +37,7 @@ function register() {
     }
 
     let data = {
+        "Email": email.value,
         "Login": username_input.value,
         "Password": password_input.value
     };
@@ -49,3 +51,25 @@ function register() {
 
     window.location.replace("/login.html")
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const icons = document.querySelectorAll('.toggle-password');
+    
+    icons.forEach(icon => {
+        icon.addEventListener('click', function() {
+            // Находим инпут по ID из атрибута data-target
+            const targetId = this.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.classList.remove('fa-eye');
+                this.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                this.classList.remove('fa-eye-slash');
+                this.classList.add('fa-eye');
+            }
+        });
+    });
+});

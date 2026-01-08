@@ -23,6 +23,7 @@ type NoteData struct {
 }
 
 type Login_info struct { // парсим приходящий от js json
+	Email    string `json:"Email"`
 	Login    string `json:"Login"`
 	Password string `json:"Password"`
 }
@@ -48,7 +49,6 @@ var register_page = template.Must(template.ParseFiles("templates/register.html")
 var new_page = template.Must(template.ParseFiles("templates/new_page.html"))
 
 var info ArrayInfo // создаем элемент структуры (массив, состоящий из data.TextNote)
-var data_test Login_info
 var server Server
 
 func init_server() {
@@ -167,13 +167,15 @@ func Delete_note_handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	var data_json Login_info
+	
 	if r.Method == http.MethodGet {
 		log_page.Execute(w, nil)
 	}
 
 	if r.Method == http.MethodPost {
 		decoder := json.NewDecoder(r.Body) // декодируем JSON с клиента
-		if err := decoder.Decode(&data_test); err != nil {
+		if err := decoder.Decode(&data_json); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		} else {
 			var response Login_response
@@ -181,11 +183,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			init_server()
 
 			// получаем захешированный пароль из базы данных
-			user_id, _, password := db.Check_user(server.db, data_test.Login)
+			user_id, _, password := db.Check_user(server.db, data_json.Login)
 			fmt.Print(user_id)
 
 			// проверка пароля
-			if status := Check_password(password, data_test.Password); status == true {
+			if status := Check_password(password, data_json.Password); status == true {
 				response.Status = true
 				response.User_id = user_id
 				fmt.Print(response.User_id)
@@ -212,18 +214,20 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	var data_json Login_info
+
 	if r.Method == http.MethodGet {
 		register_page.Execute(w, nil)
 	}
 
 	if r.Method == http.MethodPost {
 		decoder := json.NewDecoder(r.Body)
-		if err := decoder.Decode(&data_test); err != nil {
+		if err := decoder.Decode(&data_json); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		init_server()
-		db.Add_user(server.db, data_test.Login, Hash_password(data_test.Password))
+		db.Add_user(server.db, data_json.Login, Hash_password(data_json.Password), data_json.Email)
 	}
 }
