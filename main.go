@@ -26,6 +26,9 @@ func main() {
 	mux.HandleFunc("/new_note", serv.NoteHandler) // вызываем функцию noteHandler, которая отрисовывает вторичную страницу, и устанавливаем ец путь /save-notes.html
 	mux.HandleFunc("/login.html", serv.LoginHandler) // вызываем функцию loginHandler, которая отрисовывает страницу авторизации, и устанавливаем ец путь "/login.html
 	mux.HandleFunc("/register.html", serv.RegisterHandler)
+	mux.HandleFunc("/api/notes", serv.Get_notes_handler)
+    mux.HandleFunc("/api/notes/create", serv.Create_note_handler)
+    mux.HandleFunc("/api/notes/delete", serv.Delete_note_handler)
 
 	fmt.Print("Сервер запущен на порту: ", port, "\n")
 	http.ListenAndServe(":"+port, mux) // запускаем сервер, начиная слушать 3030 порт localhost'а

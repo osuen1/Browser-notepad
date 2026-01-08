@@ -16,10 +16,10 @@ import (
 )
 
 type NoteData struct {
-    User_id  int `json:"User_id"`
+    User_id  int    `json:"user_id"`
     Date     string `json:"Date"`
     Data     string `json:"Data"`     // Должно совпадать с тем, что шлет JS
-    ID       int `json:"ID"`       // Для удаления
+    ID       int    `json:"ID"`       // Для удаления
 }
 
 type Login_info struct { // парсим приходящий от js json
@@ -28,7 +28,8 @@ type Login_info struct { // парсим приходящий от js json
 }
 
 type Login_response struct {
-	Status  string `json:"status"`
+	User_id int    `json:"user_id"`
+	Status  bool   `json:"status"`
 	Message string `json:"message,omitempty"`
 }
 
@@ -46,7 +47,6 @@ var log_page = template.Must(template.ParseFiles("templates/login.html"))
 var register_page = template.Must(template.ParseFiles("templates/register.html"))
 var new_page = template.Must(template.ParseFiles("templates/new_page.html"))
 
-var data NoteData      // создаем data для хранения передачи информации с одной функции на другую (временно)
 var info ArrayInfo // создаем элемент структуры (массив, состоящий из data.TextNote)
 var data_test Login_info
 var server Server
@@ -68,6 +68,8 @@ func init_server() {
 
 // индекс уйдет под отрисовку лендинга
 func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовка главной страницы блокнота (с полем вводе новой заметки)
+	var data NoteData
+	
 	if r.Method == http.MethodGet && server.cookie_handler != nil {
 		tmpl.Execute(w, nil) // передача HTML документа клиентскому серверу
 	} else {
@@ -92,15 +94,12 @@ func NoteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка
 	if r.Method == http.MethodGet {
 		new_page.Execute(w, nil)
 	}
-
-	if r.Method == http.MethodPost {
-		Create_note_handler(w, r)
-	}
 }
 
 // Получение заметок
 func Get_notes_handler(w http.ResponseWriter, r *http.Request) {
 	init_server()
+	var data NoteData
 
 	if r.Method == http.MethodPost {
 		decoder := json.NewDecoder(r.Body)
@@ -151,6 +150,7 @@ func Create_note_handler(w http.ResponseWriter, r *http.Request) {
 
 func Delete_note_handler(w http.ResponseWriter, r *http.Request) {
 	init_server()
+	var data NoteData
 
 	if r.Method == http.MethodPost {
 		decoder := json.NewDecoder(r.Body)
@@ -182,10 +182,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 			// получаем захешированный пароль из базы данных
 			user_id, _, password := db.Check_user(server.db, data_test.Login)
+			fmt.Print(user_id)
 
 			// проверка пароля
 			if status := Check_password(password, data_test.Password); status == true {
-				response.Status = "true"
+				response.Status = true
+				response.User_id = user_id
+				fmt.Print(response.User_id)
 				w.Header().Set("Content-Type", "application/json")
 
 				if err := json.NewEncoder(w).Encode(response); err != nil {
@@ -196,7 +199,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				session.Values["user_id"] = user_id
 				session.Save(r, w)
 			} else {
-				response.Status = "false"
+				response.Status = false
 				response.Message = "Invalid login or password"
 
 				w.Header().Set("Content-Type", "application/json")

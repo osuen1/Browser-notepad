@@ -16,9 +16,12 @@ async function login() {
     if (response.ok) {
         const result = await response.json();
 
-        if (result.status === "true") {
+        if (result.status) {
+            console.log("Что прислали с сервера:", result)
+            localStorage.setItem("user_id", result.user_id)
+            
             // Успешный вход — редирект
-            window.location.replace('/'); // или куда нужно
+            window.location.replace('/new_note');
         } else {
             alert('Login failed: ' + result.message);
         }

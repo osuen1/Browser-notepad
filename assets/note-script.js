@@ -1,28 +1,85 @@
-// --- Управление папками ---
+// --- Инициализация данных ---
 let folders = JSON.parse(localStorage.getItem('folders')) || [
-    { id: '1', name: 'Работа', children: [
-        { id: '2', name: 'Проекты', children: [] },
-        { id: '3', name: 'Отчеты', children: [] }
-    ]},
+    { id: '1', name: 'Работа', children: [] },
     { id: '4', name: 'Личное', children: [] }
 ];
-
-// Заметки
 let notes = JSON.parse(localStorage.getItem('notes')) || [];
+let syncTimeout; // Для задержки отправки на сервер
 
-// Генерация ID
+// --- Вспомогательные функции ---
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-// Рендер папок
+function getUserId() {
+    return parseInt(localStorage.getItem('user_id')); // Получаем ID, сохраненный при логине
+}
+
+// --- Работа с API (Сервер на Go) ---
+async function sendNoteToServer(note) {
+    const userId = getUserId();
+    if (!userId) {
+        console.warn('User_id не найден. Синхронизация с сервером невозможна.');
+        return;
+    }
+
+    const payload = {
+        User_id: userId,
+        Date: new Date().toISOString(),
+        Data: note.content,
+        // Если твой хендлер удаления или обновления требует ID заметки, добавь его сюда:
+        // ID: note.id 
+    };
+
+    try {
+        const response = await fetch('/api/notes/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
+        console.log('✅ Заметка синхронизирована с сервером');
+    } catch (error) {
+        console.error('❌ Ошибка при отправке на сервер:', error);
+    }
+}
+
+// --- Управление заметками (Логика) ---
+
+function loadNotes() {
+    const noteContent = document.getElementById('notes-content').value;
+    const activeNote = notes.find(n => n.isCurrent);
+    
+    if (activeNote) {
+        activeNote.content = noteContent;
+        saveNotes(); // Локальное сохранение
+
+        // Синхронизация с сервером через 1 секунду после окончания набора текста
+        clearTimeout(syncTimeout);
+        syncTimeout = setTimeout(() => {
+            sendNoteToServer(activeNote);
+        }, 1000);
+    }
+}
+
+function saveNotes() {
+    localStorage.setItem('notes', JSON.stringify(notes));
+}
+
+function saveFolders() {
+    localStorage.setItem('folders', JSON.stringify(folders));
+}
+
+// --- Рендеринг интерфейса ---
+
 function renderFolders(foldersList = folders, container = document.getElementById('folder-list')) {
     container.innerHTML = '';
     
     foldersList.forEach(folder => {
         const noteCount = countNotesInFolder(folder.id);
         const folderElement = document.createElement('li');
-        folderElement.className = 'folder-wrapper'; // Используем обертку для структуры
+        folderElement.className = 'folder-wrapper';
         
         folderElement.innerHTML = `
             <div class="folder-item" data-id="${folder.id}">
@@ -31,8 +88,8 @@ function renderFolders(foldersList = folders, container = document.getElementByI
                 <span class="folder-name">${folder.name}</span>
                 <span class="item-count">${noteCount}</span>
                 <div class="folder-actions">
-                    <button class="folder-action-btn create-note" data-folder-id="${folder.id}" title="Создать заметку"><i class="fas fa-pencil-alt"></i></button>
-                    <button class="folder-action-btn add-subfolder" data-parent-id="${folder.id}" title="Добавить подпапку"><i class="fas fa-plus"></i></button>
+                    <button class="folder-action-btn create-note" title="Создать заметку"><i class="fas fa-pencil-alt"></i></button>
+                    <button class="folder-action-btn add-subfolder" title="Добавить подпапку"><i class="fas fa-plus"></i></button>
                 </div>
             </div>
             <div class="folder-content" id="content-${folder.id}">
@@ -47,28 +104,18 @@ function renderFolders(foldersList = folders, container = document.getElementByI
         const subfolderContainer = folderElement.querySelector('.subfolders-list');
         const noteContainer = folderElement.querySelector('.note-list');
 
-        // Рендер вложенных элементов
-        if (folder.children.length > 0) {
-            renderFolders(folder.children, subfolderContainer);
-        }
-        renderNotes(folder.id, noteContainer);
+        if (folder.children.length > 0) renderFolders(folder.children, subfolderContainer);
+        renderNotesInFolder(folder.id, noteContainer);
 
-        // Логика раскрытия
-        const folderHeader = folderElement.querySelector('.folder-item');
-        folderHeader.addEventListener('click', (e) => {
-            // Если кликнули не по кнопкам действий
+        // Раскрытие папки
+        folderElement.querySelector('.folder-item').addEventListener('click', (e) => {
             if (!e.target.closest('.folder-actions')) {
                 const isOpen = contentDiv.classList.toggle('open');
-                folderHeader.classList.toggle('active', isOpen);
                 folderElement.querySelector('.toggle-icon').style.transform = isOpen ? 'rotate(90deg)' : 'rotate(0deg)';
-                
-                // Меняем иконку папки
-                const icon = folderElement.querySelector('.folder-icon');
-                icon.className = isOpen ? 'fas fa-folder-open folder-icon' : 'fas fa-folder folder-icon';
             }
         });
 
-        // Обработчики для кнопок (создание заметки / подпапки)
+        // Кнопки внутри папки
         folderElement.querySelector('.create-note').addEventListener('click', (e) => {
             e.stopPropagation();
             createNoteInFolder(folder.id);
@@ -77,64 +124,39 @@ function renderFolders(foldersList = folders, container = document.getElementByI
         folderElement.querySelector('.add-subfolder').addEventListener('click', (e) => {
             e.stopPropagation();
             const subName = prompt('Название подпапки:');
-            if (subName) {
-                addFolder(folder.id, subName);
-            }
+            if (subName) addFolder(folder.id, subName);
         });
     });
 }
 
-// Рендер заметок в папке (основной список)
-function renderNotes(folderId, container) {
+function renderNotesInFolder(folderId, container) {
     container.innerHTML = '';
     const folderNotes = notes.filter(note => note.folderId === folderId);
     
     folderNotes.forEach(note => {
         const noteElement = document.createElement('li');
         noteElement.className = 'note-item';
+        if (note.isCurrent) noteElement.classList.add('active');
+        
         noteElement.innerHTML = `
             <i class="far fa-file-alt note-icon"></i>
             <span class="note-title">${note.title}</span>
-            <div class="note-actions">
-                <button class="note-action-btn edit-note" data-id="${note.id}"><i class="fas fa-edit"></i></button>
-                <button class="note-action-btn delete-note" data-id="${note.id}"><i class="fas fa-trash"></i></button>
-            </div>
         `;
         
-        container.appendChild(noteElement);
-
-        // Обработчик клика по заметке
         noteElement.addEventListener('click', () => {
-            document.querySelectorAll('.note-item').forEach(n => n.classList.remove('active'));
-            noteElement.classList.add('active');
+            notes.forEach(n => n.isCurrent = false);
+            note.isCurrent = true;
             document.getElementById('notes-content').value = note.content;
             document.getElementById('current-note-title').textContent = note.title;
+            renderFolders();
         });
 
-        // Редактирование заметки
-        noteElement.querySelector('.edit-note').addEventListener('click', (e) => {
-            e.stopPropagation();
-            const newTitle = prompt('Новое название заметки:', note.title);
-            if (newTitle) {
-                note.title = newTitle;
-                noteElement.querySelector('.note-title').textContent = newTitle;
-                saveNotes();
-            }
-        });
-
-        // Удаление заметки
-        noteElement.querySelector('.delete-note').addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (confirm(`Удалить заметку "${note.title}"?`)) {
-                notes = notes.filter(n => n.id !== note.id);
-                saveNotes();
-                renderNotes(folderId, container);
-            }
-        });
+        container.appendChild(noteElement);
     });
 }
 
-// Создание заметки в папке
+// --- Управление структурой ---
+
 function createNoteInFolder(folderId) {
     const title = prompt('Название заметки:');
     if (!title) return;
@@ -148,222 +170,58 @@ function createNoteInFolder(folderId) {
         isCurrent: true
     };
 
-    // Сброс текущей заметки
-    notes.forEach(note => note.isCurrent = false);
-
+    notes.forEach(n => n.isCurrent = false);
     notes.unshift(newNote);
     saveNotes();
-
-    // Обновляем UI
+    
     document.getElementById('notes-content').value = '';
-    document.getElementById('current-note-title').textContent = newNote.title;
-
-    // Перезагружаем папки
+    document.getElementById('current-note-title').textContent = title;
     renderFolders();
 }
 
-// Подсчет заметок в папке
-function countNotesInFolder(folderId) {
-    return notes.filter(note => note.folderId === folderId).length;
+function addFolder(parentId, name) {
+    const newFolder = { id: generateId(), name, children: [] };
+    if (!parentId) {
+        folders.push(newFolder);
+    } else {
+        const parent = findFolderById(folders, parentId);
+        if (parent) parent.children.push(newFolder);
+    }
+    saveFolders();
+    renderFolders();
 }
 
-// Поиск папки по ID
-function findFolder(id, list = folders) {
-    for (const item of list) {
-        if (item.id === id) return item;
-        const found = findFolder(id, item.children);
+function findFolderById(list, id) {
+    for (const f of list) {
+        if (f.id === id) return f;
+        const found = findFolderById(f.children, id);
         if (found) return found;
     }
     return null;
 }
 
-// Добавление папки
-function addFolder(parentId, name) {
-    const newFolder = { id: generateId(), name, children: [] };
-    
-    if (!parentId) {
-        folders.push(newFolder);
-    } else {
-        const parent = findFolder(parentId);
-        if (parent) parent.children.push(newFolder);
-    }
-    
-    saveFolders();
-    renderFolders();
+function countNotesInFolder(folderId) {
+    return notes.filter(n => n.folderId === folderId).length;
 }
 
-// Удаление папки
-function deleteFolder(id) {
-    folders = folders.filter(f => f.id !== id);
-    folders.forEach(f => f.children = f.children.filter(c => c.id !== id));
-    // Удаляем также заметки в этой папке
-    notes = notes.filter(note => note.folderId !== id);
-    saveNotes();
-    saveFolders();
-    renderFolders();
-}
+// --- Слушатели событий ---
 
-// Сохранение в localStorage
-function saveFolders() {
-    localStorage.setItem('folders', JSON.stringify(folders));
-}
-
-// --- Управление заметками ---
-
-// Загрузка всех заметок
-function loadNotes() {
-    const noteContent = document.getElementById('notes-content').value;
-    
-    const activeNote = notes.find(n => n.isCurrent);
-    if (activeNote) {
-        activeNote.content = noteContent;
-        saveNotes(); // Сохраняем локально
-        
-        // Отправляем на сервер (можно добавить debounce, чтобы не спамить запросами на каждый символ)
-        sendNoteToServer(activeNote);
-    }
-}
-
-// Сохранение заметок
-function saveNotes() {
-    localStorage.setItem('notes', JSON.stringify(notes));
-}
-
-// Создание новой заметки (из модального окна)
-function createNewNote(title, folderId) {
-    const newNote = {
-        id: generateId(),
-        title: title || 'Новая заметка',
-        content: '',
-        folderId: folderId || null,
-        createdAt: new Date().toISOString(),
-        isCurrent: true
-    };
-
-    // Сброс текущей заметки
-    notes.forEach(note => note.isCurrent = false);
-
-    notes.unshift(newNote);
-    saveNotes();
-
-    // Обновляем UI
-    document.getElementById('notes-content').value = '';
-    document.getElementById('current-note-title').textContent = newNote.title;
-
-    // Перезагружаем папки, чтобы обновить счетчики и список заметок
-    renderFolders();
-}
-
-// --- Обработчики событий ---
-
-// Кнопка создания заметки
-document.getElementById('create-note-btn').addEventListener('click', () => {
-    document.getElementById('note-modal').style.display = 'flex';
-    populateFolderSelect(document.getElementById('folder-select'));
-    document.getElementById('note-title-input').focus();
-});
-
-// Кнопка сохранения заметки
-document.getElementById('save-note-btn').addEventListener('click', () => {
-    const title = document.getElementById('note-title-input').value.trim();
-    const folderId = document.getElementById('folder-select').value;
-
-    if (!title) {
-        alert('Введите название заметки!');
-        return;
-    }
-
-    createNewNote(title, folderId);
-    document.getElementById('note-modal').style.display = 'none';
-    document.getElementById('note-title-input').value = '';
-});
-
-// Кнопка отмены
-document.getElementById('cancel-note-btn').addEventListener('click', () => {
-    document.getElementById('note-modal').style.display = 'none';
-});
-
-// Закрытие модального окна при клике вне его
-document.getElementById('note-modal').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('note-modal')) {
-        document.getElementById('note-modal').style.display = 'none';
-    }
-});
-
-// Кнопка добавления корневой папки
-document.getElementById('add-root-folder').addEventListener('click', () => {
-    const name = document.getElementById('new-folder-input').value.trim();
-    if (!name) {
-        alert('Введите название папки!');
-        return;
-    }
-    addFolder(null, name);
-    document.getElementById('new-folder-input').value = '';
-});
-
-// Загрузка списка папок в модальное окно
-function populateFolderSelect(selectElement, foldersList = folders, level = 0) {
-    selectElement.innerHTML = '<option value="">В корне</option>';
-    
-    function buildOption(folder, prefix = '') {
-        const option = document.createElement('option');
-        option.value = folder.id;
-        option.textContent = `${prefix}${folder.name}`;
-        selectElement.appendChild(option);
-
-        if (folder.children.length > 0) {
-            folder.children.forEach(child => buildOption(child, prefix + '— '));
-        }
-    }
-
-    foldersList.forEach(folder => buildOption(folder));
-}
-
-// Автосохранение заметки
 document.getElementById('notes-content').addEventListener('input', loadNotes);
 
-// Инициализация
-renderFolders();
-
-// Восстановление последней заметки
-const lastNote = notes[0];
-if (lastNote) {
-    document.getElementById('notes-content').value = lastNote.content || '';
-    document.getElementById('current-note-title').textContent = lastNote.title || 'Новая заметка';
-}
-
-// Функция для отправки заметки на сервер
-async function sendNoteToServer(note) {
-    const userId = localStorage.getItem('User_id'); 
-    
-    // if (!userId) {
-    //     console.error('Ошибка: User_id не найден. Пользователь не авторизован.');
-    //     return;
-    // }
-
-    // Формируем объект согласно твоим требованиям
-    const payload = {
-        User_id: 11,
-        Date: note.createdAt, // или new Date().toISOString() для даты изменения
-        Data: note.content
-    };
-
-    try {
-        const response = await fetch('http://localhost:3030/new_note', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            throw new Error(`Ошибка сервера: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log('Заметка успешно синхронизирована с сервером:', result);
-    } catch (error) {
-        console.error('Не удалось отправить заметку:', error);
+document.getElementById('add-root-folder').addEventListener('click', () => {
+    const name = document.getElementById('new-folder-input').value.trim();
+    if (name) {
+        addFolder(null, name);
+        document.getElementById('new-folder-input').value = '';
     }
-}
+});
+
+// --- Инициализация при загрузке ---
+window.onload = () => {
+    renderFolders();
+    const active = notes.find(n => n.isCurrent);
+    if (active) {
+        document.getElementById('notes-content').value = active.content;
+        document.getElementById('current-note-title').textContent = active.title;
+    }
+};

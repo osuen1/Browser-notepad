@@ -52,8 +52,7 @@ func Add_note(pool *pgxpool.Pool, user_id int, date string, data string) error {
 
 	row := pool.QueryRow(context.Background(), "INSERT INTO notes (user_id, date, text) VALUES ($1, $2, $3)", user_id, date, data)
 	if err := row.Scan(); err != nil {
-		fmt.Fprint(os.Stderr, "An error in Add_note: ", err)
-		return err
+		//
 	}
 	return nil
 }
