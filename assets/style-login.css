@@ -188,3 +188,33 @@ input:checked+.slider:before {
 .create-account a:hover {
     text-decoration: underline;
 }
+
+/* Контейнер для позиционирования */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 16px; /* Отступ как у остальных полей */
+}
+
+/* Настраиваем само поле ввода */
+.password-wrapper input {
+    width: 100%;
+    padding-right: 45px !important; /* Оставляем место справа, чтобы текст не заходил на иконку */
+}
+
+/* Стили самой иконки */
+#toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--text-secondary); /* Используем ваш цвет из темы */
+    font-size: 18px;
+    z-index: 10;
+    transition: color 0.2s ease;
+}
+
+#toggle-password:hover {
+    color: var(--accent-color); /* Подсвечиваем при наведении */
+}

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="assets/style-login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -19,7 +20,10 @@
     <div class="login-container">
         <h2>Login</h2>
         <input type="text" id="username" class="input-field" placeholder="Username">
-        <input type="password" id="password" class="input-field" placeholder="Password">
+        <div class="password-wrapper">
+            <input type="password" name="password" id="password-input" class="input-field" placeholder="Password">
+            <i class="fas fa-eye" id="toggle-password"></i>
+        </div>
 
         <div class="remember-forgot">
             <label class="remember-label">
@@ -32,7 +36,7 @@
             <a href="create-account.html" class="forgot-link">forgot password</a>
         </div>
 
-        <button id="loginBtn" class="login-btn", onclick="login()">Login</button>
+        <button id="loginBtn" class="login-btn" , onclick="login()">Login</button>
         <div class="create-account">
             Create Account <a href="/register.html">here</a>
         </div>

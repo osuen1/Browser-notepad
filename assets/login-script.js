@@ -1,3 +1,16 @@
+const togglePassword = document.querySelector('#toggle-password');
+const passwordInput = document.querySelector('#password-input');
+
+togglePassword.addEventListener('click', function () {
+    // Переключаем тип атрибута
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    
+    // Переключаем иконку (с глаза на перечеркнутый глаз)
+    this.classList.toggle('fa-eye');
+    this.classList.toggle('fa-eye-slash');
+});
+
 async function login() {
     const loginInput = document.getElementById('username').value;
     const passwordInput = document.getElementById('password').value;
