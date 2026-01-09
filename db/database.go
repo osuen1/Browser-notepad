@@ -20,7 +20,6 @@ func Db_connect() (pool *pgxpool.Pool) {
 	pool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
-		os.Exit(1)
 	}
 	
 	return pool
@@ -83,4 +82,12 @@ func Delete_note(pool *pgxpool.Pool, note_id int) {
 	if err := row.Scan(); err != nil {
 		fmt.Print("An error in Delete_note: ", err)
 	}
+}
+
+func Update_password(pool *pgxpool.Pool, email int, new_password string) error {
+	row := pool.QueryRow(context.Background(), "UPDATE users SET password = $1 WHERE email = $2", new_password, email)
+	if err := row.Scan(); err != nil {
+		return err
+	}
+	return nil
 }

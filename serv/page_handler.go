@@ -7,7 +7,7 @@ import (
 	"html/template"
 	"net/http"
 	"os"
-	// "regexp"
+	"regexp"
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -49,6 +49,8 @@ var tmpl = template.Must(template.ParseFiles("templates/index.html"))
 var log_page = template.Must(template.ParseFiles("templates/login.html"))
 var register_page = template.Must(template.ParseFiles("templates/register.html"))
 var new_page = template.Must(template.ParseFiles("templates/new_page.html"))
+var forgot_password_page = template.Must(template.ParseFiles("templates/forgot-password.html"))
+var resetPasswordPage = template.Must(template.ParseFiles("templates/reset-password.html"))
 
 var info ArrayInfo // создаем элемент структуры (массив, состоящий из data.TextNote)
 var server Server
@@ -238,5 +240,48 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 		init_server()
 		db.Add_user(server.db, data_json.Login, Hash_password(data_json.Password), data_json.Email)
+	}
+}
+
+func ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	var dataJson Login_info
+	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	
+	if r.Method == http.MethodGet {
+		forgot_password_page.Execute(w, nil)
+	}
+	
+	if r.Method == http.MethodPost {
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&dataJson); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		
+		if emailRegex.MatchString(dataJson.Email) {
+			mailer := mail.New_Dialer()
+			if err := mailer.Send_forgot_password_mail(dataJson.Email); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+		}
+	}
+}
+
+func ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	var dataJson Login_info
+	
+	if r.Method == http.MethodGet {
+		resetPasswordPage.Execute(w, nil)
+	}
+	
+	if r.Method == http.MethodPost {
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&dataJson); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		init_server()
+		
 	}
 }

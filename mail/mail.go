@@ -31,3 +31,20 @@ func (m *Mail) Send_enter_mail(email string) error {
 	
 	return nil
 }
+
+func (m *Mail) Send_forgot_password_mail(email string) error {
+	mail := gomail.NewMessage()
+	
+	link := "http://localhost:3030/resetpassword"
+
+	mail.SetHeader("From", "stepikfort@gmail.com")
+	mail.SetHeader("To", email)
+	mail.SetHeader("Subject", "Восстановление пароля")
+	mail.SetBody("text/html", "<h1>Восстановление пароля</h1><p>Вы запросили восстановление пароля. Это можно сделать по <a href="+link+">ссылке</a></p>")
+
+	if err := m.dialer.DialAndSend(mail); err != nil {
+		return err
+	}
+	
+	return nil
+}
