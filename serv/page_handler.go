@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"net/http"
 	"os"
+	// "regexp"
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -222,6 +223,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var data_json Login_info
+	// var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
 	if r.Method == http.MethodGet {
 		register_page.Execute(w, nil)
