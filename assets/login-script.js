@@ -13,7 +13,7 @@ togglePassword.addEventListener('click', function () {
 
 async function login() {
     const loginInput = document.getElementById('username').value;
-    const passwordInput = document.getElementById('password').value;
+    const passwordInput = document.getElementById('password-input').value;
 
     const response = await fetch('/login.html', {
         method: 'POST',

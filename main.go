@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"github.com/joho/godotenv"
 
 	"server/serv"
 )
 
-// Надо добавить куки для сохранения данных
-
-
 func main() {
+	godotenv.Load()
 	port := os.Getenv("PORT") // устанавливаем порт
 	if port == "" {
 		port = "3030"

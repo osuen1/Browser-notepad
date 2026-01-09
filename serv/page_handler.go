@@ -13,6 +13,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"server/db"
+	"server/mail"
 )
 
 type NoteData struct {
@@ -183,8 +184,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			init_server()
 
 			// получаем захешированный пароль из базы данных
-			user_id, _, password := db.Check_user(server.db, data_json.Login)
-			fmt.Print(user_id)
+			user_id, _, password, user_email := db.Check_user(server.db, data_json.Login)
 
 			// проверка пароля
 			if status := Check_password(password, data_json.Password); status == true {
@@ -200,6 +200,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				session, _ := server.cookie_handler.Get(r, "session-name")
 				session.Values["user_id"] = user_id
 				session.Save(r, w)
+
+				// Вынести определение mailer в main
+				mailer := mail.New_Dialer()
+				if err := mailer.Send_enter_mail(user_email); err != nil {
+					http.Error(w, "An error with send email", http.StatusInternalServerError)
+					fmt.Print(err)
+				}
 			} else {
 				response.Status = false
 				response.Message = "Invalid login or password"
