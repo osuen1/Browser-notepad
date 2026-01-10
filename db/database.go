@@ -25,17 +25,16 @@ func Db_connect() (pool *pgxpool.Pool) {
 	return pool
 }
 
-func Add_user(pool *pgxpool.Pool, login string, password string, email string) (status string) {
+func Add_user(pool *pgxpool.Pool, login string, password string, email string) (status bool) {
 	row := pool.QueryRow(context.Background(), "INSERT INTO users (username, password, email) VALUES ($1, $2, $3)", login, password, email)
 	if err := row.Scan(&status); err != nil {
-		//
+		return false
 	}
 
-	return status
+	return true
 }
 
-// Использовать для проверки существования пользователя
-func Check_user(pool *pgxpool.Pool, login string) (id int, username string, password string, email string) {
+func Find_user(pool *pgxpool.Pool, login string) (id int, username string, password string, email string) {
 	row := pool.QueryRow(context.Background(), "SELECT user_id, username, password, email FROM users WHERE username = $1", login)
 	if err := row.Scan(&id, &username, &password, &email); err != nil {
 		// Эта функция должна прокидывать на клиент ошибку отсутствия пользоателя с требованием зарегистрироаться
@@ -90,4 +89,17 @@ func Update_password(pool *pgxpool.Pool, email string, new_password string) erro
 		return err
 	}
 	return nil
+}
+
+func Check_username(pool *pgxpool.Pool, username string) (bool, error) {	
+	// вернет false если пользователь найден
+	var result bool
+	
+	err := pool.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)", username).Scan(&result)
+	if err != nil {
+		return false, fmt.Errorf("An error in Check_username: %v", err)
+	}
+	
+	fmt.Print(!result)
+	return !result, nil
 }

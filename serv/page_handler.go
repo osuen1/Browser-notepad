@@ -188,7 +188,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			init_server()
 
 			// получаем захешированный пароль из базы данных
-			user_id, _, password, user_email := db.Check_user(server.db, data_json.Login)
+			user_id, _, password, user_email := db.Find_user(server.db, data_json.Login)
 
 			// проверка пароля
 			if status := Check_password(password, data_json.Password); status == true {
@@ -224,8 +224,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	init_server()
 	var data_json Login_info
-	// var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	var responseJson Login_response
 
 	if r.Method == http.MethodGet {
 		register_page.Execute(w, nil)
@@ -237,10 +238,36 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
-		init_server()
-		db.Add_user(server.db, data_json.Login, Hash_password(data_json.Password), data_json.Email)
+		
+		result, err := db.Check_username(server.db, data_json.Login) 
+		if err != nil {
+			fmt.Print(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		
+		if result == true {
+			responseJson.Status = true
+			responseJson.Message = "Registration successful"
+			
+			encoder := json.NewEncoder(w)
+			if err := encoder.Encode(responseJson); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+			
+			db.Add_user(server.db, data_json.Login, Hash_password(data_json.Password), data_json.Email)
+			
+		} else {
+			responseJson.Status = false
+			responseJson.Message = "Username already exists"
+			
+			encoder := json.NewEncoder(w)
+			if err := encoder.Encode(&responseJson); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+		}
 	}
+	
+	
 }
 
 func ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
@@ -263,6 +290,8 @@ func ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 			if err := mailer.Send_forgot_password_mail(dataJson.Email); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
+		} else {
+			http.Error(w, "Invalid email address", http.StatusBadRequest)
 		}
 	}
 }
