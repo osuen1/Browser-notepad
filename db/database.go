@@ -25,8 +25,8 @@ func Db_connect() (pool *pgxpool.Pool) {
 	return pool
 }
 
-func Add_user(pool *pgxpool.Pool, login string, password string, email string) (status bool) {
-	row := pool.QueryRow(context.Background(), "INSERT INTO users (username, password, email) VALUES ($1, $2, $3)", login, password, email)
+func Add_user(pool *pgxpool.Pool, login string, password string, email string, token string) (status bool) {
+	row := pool.QueryRow(context.Background(), "INSERT INTO users (username, password, email, token) VALUES ($1, $2, $3, $4)", login, password, email, token)
 	if err := row.Scan(&status); err != nil {
 		return false
 	}
@@ -102,4 +102,12 @@ func Check_username(pool *pgxpool.Pool, username string) (bool, error) {
 	
 	fmt.Print(!result)
 	return !result, nil
+}
+
+func Update_token(pool *pgxpool.Pool, user_id int, token string) error {
+	_, err := pool.Exec(context.Background(), "UPDATE users SET token = $1 WHERE user_id = $2", token, user_id)
+	if err != nil {
+		return err
+	}
+	return nil
 }

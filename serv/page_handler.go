@@ -21,7 +21,7 @@ type NoteData struct {
     User_id  int    `json:"user_id"`
     Date     string `json:"Date"`
     Data     string `json:"Data"`     // Должно совпадать с тем, что шлет JS
-    ID       int    `json:"ID"`       // Для удаления
+    ID       int    `json:"ID"`
 }
 
 type Login_info struct { // парсим приходящий от js json
@@ -210,6 +210,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 					http.Error(w, "An error with send email", http.StatusInternalServerError)
 					fmt.Print(err)
 				}
+				
+				token := Generate_token()
+				if err := db.Update_token(server.db, user_id, token); err != nil {
+					fmt.Print(err)
+				}
 			} else {
 				response.Status = false
 				response.Message = "Invalid login or password"
@@ -254,7 +259,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 			
-			db.Add_user(server.db, data_json.Login, Hash_password(data_json.Password), data_json.Email)
+			db.Add_user(server.db, data_json.Login, Hash_password(data_json.Password), data_json.Email, Generate_token())
 			
 		} else {
 			responseJson.Status = false
@@ -266,8 +271,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	
-	
 }
 
 func ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {

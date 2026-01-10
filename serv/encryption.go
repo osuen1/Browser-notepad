@@ -3,6 +3,9 @@ package serv
 import (
 	"fmt"
 	"os"
+	"crypto/rand"
+	"encoding/base64"
+	
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,4 +25,13 @@ func Check_password(hashed_password string, password string) bool {
 		return false
 	}
 	return true
+}
+
+func Generate_token() string {
+	token := make([]byte, 32)
+	if _, err := rand.Read(token); err != nil {
+		fmt.Fprintf(os.Stderr, "There is some error with generating token: %v", err)
+	}
+
+	return base64.RawURLEncoding.EncodeToString(token)
 }
