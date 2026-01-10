@@ -32,6 +32,7 @@ func main() {
 	mux.HandleFunc("/api/notes", serv.Get_notes_handler)
     mux.HandleFunc("/api/notes/create", serv.Create_note_handler)
     mux.HandleFunc("/api/notes/delete", serv.Delete_note_handler)
+    mux.HandleFunc("/api/reset-password", serv.ResetApiHandler)
     
 
 	fmt.Print("Сервер запущен на порту: ", port, "\n")

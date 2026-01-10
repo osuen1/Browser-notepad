@@ -25,9 +25,10 @@ type NoteData struct {
 }
 
 type Login_info struct { // парсим приходящий от js json
-	Email    string `json:"Email"`
-	Login    string `json:"Login"`
-	Password string `json:"Password"`
+	Email       string `json:"Email"`
+	Login       string `json:"Login"`
+	Password    string `json:"Password"`
+	NewPassword string `json:"NewPassword"`
 }
 
 type Login_response struct {
@@ -193,7 +194,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			if status := Check_password(password, data_json.Password); status == true {
 				response.Status = true
 				response.User_id = user_id
-				fmt.Print(response.User_id)
 				w.Header().Set("Content-Type", "application/json")
 
 				if err := json.NewEncoder(w).Encode(response); err != nil {
@@ -268,20 +268,33 @@ func ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
-	var dataJson Login_info
-	
+	init_server()
 	if r.Method == http.MethodGet {
 		resetPasswordPage.Execute(w, nil)
 	}
-	
+}
+
+func ResetApiHandler(w http.ResponseWriter, r *http.Request) {
+	var dataJson Login_info
+	var response Login_response
+	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+
 	if r.Method == http.MethodPost {
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&dataJson); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
-		init_server()
 		
+		// добавить токен для генерации ссылки
+		if emailRegex.MatchString(dataJson.Email) {
+			db.Update_password(server.db, dataJson.Email, Hash_password(dataJson.NewPassword))
+		}
+		
+		response.Status = true
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
 }

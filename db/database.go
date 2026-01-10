@@ -84,9 +84,9 @@ func Delete_note(pool *pgxpool.Pool, note_id int) {
 	}
 }
 
-func Update_password(pool *pgxpool.Pool, email int, new_password string) error {
-	row := pool.QueryRow(context.Background(), "UPDATE users SET password = $1 WHERE email = $2", new_password, email)
-	if err := row.Scan(); err != nil {
+func Update_password(pool *pgxpool.Pool, email string, new_password string) error {
+	_, err := pool.Exec(context.Background(), "UPDATE users SET password = $1 WHERE email = $2", new_password, email)
+	if err != nil {
 		return err
 	}
 	return nil
