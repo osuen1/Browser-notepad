@@ -27,8 +27,7 @@ async function sendNoteToServer(note) {
         User_id: userId,
         Date: new Date().toISOString(),
         Data: note.content,
-        // Если твой хендлер удаления или обновления требует ID заметки, добавь его сюда:
-        // ID: note.id 
+        ID_note: parseInt(note.id) 
     };
 
     try {
@@ -219,9 +218,95 @@ document.getElementById('add-root-folder').addEventListener('click', () => {
 // --- Инициализация при загрузке ---
 window.onload = () => {
     renderFolders();
+    renderCalendar(); // Добавьте эту строку
+    
     const active = notes.find(n => n.isCurrent);
     if (active) {
         document.getElementById('notes-content').value = active.content;
         document.getElementById('current-note-title').textContent = active.title;
     }
 };
+
+// --- Логика динамического календаря ---
+
+let currentDisplayDate = new Date();
+
+function renderCalendar() {
+    const grid = document.getElementById('calendar-grid');
+    const monthYearLabel = document.getElementById('calendar-month-year');
+    
+    if (!grid || !monthYearLabel) return;
+
+    grid.innerHTML = '';
+    const year = currentDisplayDate.getFullYear();
+    const month = currentDisplayDate.getMonth();
+
+    // Установка заголовка (Месяц Год)
+    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+        "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+    monthYearLabel.textContent = `${monthNames[month]} ${year}`;
+
+    // Заголовки дней недели
+    const weekDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+    weekDays.forEach(day => {
+        const dayHeader = document.createElement('div');
+        dayHeader.className = 'calendar-day weekday';
+        dayHeader.textContent = day;
+        grid.appendChild(dayHeader);
+    });
+
+    // Расчет дат
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // Смещение для понедельника (в JS 0 - это воскресенье)
+    let startOffset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+
+    // Предыдущий месяц (серые дни)
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    for (let i = startOffset; i > 0; i--) {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day other-month';
+        dayDiv.textContent = prevMonthLastDay - i + 1;
+        grid.appendChild(dayDiv);
+    }
+
+    // Текущий месяц
+    const today = new Date();
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day';
+        dayDiv.textContent = d;
+
+        if (d === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+            dayDiv.classList.add('today');
+        }
+        grid.appendChild(dayDiv);
+    }
+
+    // Следующий месяц (заполнение остатка сетки до 42 ячеек для ровности)
+    const totalCells = grid.children.length - 7; // исключая заголовки
+    const remaining = 42 - totalCells;
+    for (let i = 1; i <= remaining; i++) {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day other-month';
+        dayDiv.textContent = i;
+        grid.appendChild(dayDiv);
+    }
+}
+
+// Слушатели для навигации календаря
+document.getElementById('prev-month')?.addEventListener('click', () => {
+    currentDisplayDate.setMonth(currentDisplayDate.getMonth() - 1);
+    renderCalendar();
+});
+
+document.getElementById('next-month')?.addEventListener('click', () => {
+    currentDisplayDate.setMonth(currentDisplayDate.getMonth() + 1);
+    renderCalendar();
+});
+
+document.getElementById('today-btn')?.addEventListener('click', () => {
+    currentDisplayDate = new Date(); // Устанавливаем текущую дату
+    renderCalendar();
+});

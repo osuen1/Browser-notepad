@@ -20,8 +20,8 @@ import (
 type NoteData struct {
     User_id  int    `json:"user_id"`
     Date     string `json:"Date"`
-    Data     string `json:"Data"`     // Должно совпадать с тем, что шлет JS
-    ID       int    `json:"ID"`
+    Data     string `json:"Data"`     
+    ID_note  int    `json:"ID_note"`
 }
 
 type Login_info struct { // парсим приходящий от js json
@@ -95,15 +95,16 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовк�
 }
 
 // Отрисовка страницы заметок
-func NoteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка вторичной страницы блокнота (со списком всех заметок)
-	if r.Method == http.MethodGet {
+func NoteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка вторичной страницы блокнота (со списком всех заметок)
+	if r.Method == http.MethodGet && server.cookie_handler != nil {
 		new_page.Execute(w, nil)
+	} else if server.cookie_handler == nil {
+		http.Error(w, "u not login", http.StatusForbidden)
 	}
 }
 
 // Получение заметок
 func Get_notes_handler(w http.ResponseWriter, r *http.Request) {
-	init_server()
 	var data NoteData
 
 	if r.Method == http.MethodPost {
@@ -122,7 +123,6 @@ func Get_notes_handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Create_note_handler(w http.ResponseWriter, r *http.Request) {
-	init_server()
 
     if r.Method != http.MethodPost {
         http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -139,7 +139,7 @@ func Create_note_handler(w http.ResponseWriter, r *http.Request) {
     }
 
     if server.db != nil {
-        err := db.Add_note(server.db, req.User_id, req.Date, req.Data)
+        err := db.Add_note(server.db, req.ID_note, req.User_id, req.Date, req.Data)
         if err != nil {
             fmt.Printf("Ошибка записи в БД: %v\n", err)
             http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -163,7 +163,7 @@ func Delete_note_handler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if server.db != nil {
-			db.Delete_note(server.db, data.ID)
+			db.Delete_note(server.db, data.ID_note)
 		} else {
 			http.Error(w, "u not login", http.StatusForbidden)
 		}
@@ -172,6 +172,7 @@ func Delete_note_handler(w http.ResponseWriter, r *http.Request) {
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var data_json Login_info
+	init_server()
 	
 	if r.Method == http.MethodGet {
 		log_page.Execute(w, nil)
@@ -196,8 +197,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				if err := json.NewEncoder(w).Encode(response); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
-				
-				init_server()
 
 				session, _ := server.cookie_handler.Get(r, "session-name")
 				session.Values["user_id"] = user_id

@@ -45,11 +45,11 @@ func Find_user(pool *pgxpool.Pool, login string) (id int, username string, passw
 	return id, username, password, email
 }
 
-func Add_note(pool *pgxpool.Pool, user_id int, date string, data string) error {
+func Add_note(pool *pgxpool.Pool, note_id int, user_id int, date string, data string) error {
 	// Возможно, будем использовать разные таблицы для разных пользователей в будущем
 	// row := pool.QueryRow(context.Background(), "CREATE TABLE IF NOT EXISTS notes (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, date TEXT NOT NULL, text TEXT NOT NULL, FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE)")
 
-	row := pool.QueryRow(context.Background(), "INSERT INTO notes (user_id, date, text) VALUES ($1, $2, $3)", user_id, date, data)
+	row := pool.QueryRow(context.Background(), "INSERT INTO notes (id, user_id, date, text) VALUES ($1, $2, $3, $4)", note_id, user_id, date, data)
 	if err := row.Scan(); err != nil {
 		//
 	}
@@ -77,11 +77,12 @@ func Get_notes(pool *pgxpool.Pool, user_id int) (notes []string) {
 	return notes
 }
 
-func Delete_note(pool *pgxpool.Pool, note_id int) {
+func Delete_note(pool *pgxpool.Pool, note_id int) error {
 	row := pool.QueryRow(context.Background(), "DELETE FROM notes WHERE id = $1", note_id)
 	if err := row.Scan(); err != nil {
 		fmt.Print("An error in Delete_note: ", err)
 	}
+	return nil
 }
 
 func Update_password(pool *pgxpool.Pool, email string, new_password string) error {
