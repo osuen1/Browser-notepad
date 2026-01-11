@@ -154,7 +154,6 @@ func Create_note_handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Delete_note_handler(w http.ResponseWriter, r *http.Request) {
-	init_server()
 	var data NoteData
 
 	if r.Method == http.MethodPost {
@@ -185,8 +184,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			var response Login_response
 
-			init_server()
-
 			// получаем захешированный пароль из базы данных
 			user_id, _, password, user_email := db.Find_user(server.db, data_json.Login)
 
@@ -199,6 +196,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				if err := json.NewEncoder(w).Encode(response); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
+				
+				init_server()
 
 				session, _ := server.cookie_handler.Get(r, "session-name")
 				session.Values["user_id"] = user_id
@@ -289,8 +288,13 @@ func ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		
 		if emailRegex.MatchString(dataJson.Email) {
+			token, err := db.Get_token(server.db, dataJson.Email)
+			if err != nil {
+				http.Error(w, "An error in get token", http.StatusBadRequest)
+			}
+			
 			mailer := mail.New_Dialer()
-			if err := mailer.Send_forgot_password_mail(dataJson.Email); err != nil {
+			if err := mailer.Send_forgot_password_mail(dataJson.Email, token); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 		} else {

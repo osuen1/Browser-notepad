@@ -2,8 +2,9 @@ package mail
 
 import (
 	"os"
-
-	// "github.com/joho/godotenv"
+	"fmt"
+	// "net/url"
+	
 	"gopkg.in/gomail.v2"
 )
 
@@ -32,15 +33,18 @@ func (m *Mail) Send_enter_mail(email string) error {
 	return nil
 }
 
-func (m *Mail) Send_forgot_password_mail(email string) error {
+func (m *Mail) Send_forgot_password_mail(email string, token string) error {
 	mail := gomail.NewMessage()
+	// encrypted_token := url.QueryEscape(token)
+	
+	// link := fmt.Sprintf("http://localhost:3030/resetpassword?param=%s", encrypted_token)
 	
 	link := "http://localhost:3030/resetpassword"
 
 	mail.SetHeader("From", "stepikfort@gmail.com")
 	mail.SetHeader("To", email)
 	mail.SetHeader("Subject", "Восстановление пароля")
-	mail.SetBody("text/html", "<h1>Восстановление пароля</h1><p>Вы запросили восстановление пароля. Это можно сделать по <a href="+link+">ссылке</a></p>")
+	mail.SetBody("text/html", fmt.Sprintf("<h1>Восстановление пароля</h1><p>Вы запросили восстановление пароля. Это можно сделать по <a href=%s>ссылке</a></p><p>Если вы не запрашивали восстановление пароля, то просто проигнорируйте это письмо.</p>", link))
 
 	if err := m.dialer.DialAndSend(mail); err != nil {
 		return err

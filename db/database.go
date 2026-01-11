@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/joho/godotenv"
 )
@@ -110,4 +111,14 @@ func Update_token(pool *pgxpool.Pool, user_id int, token string) error {
 		return err
 	}
 	return nil
+}
+
+func Get_token(pool *pgxpool.Pool, email string) (token string, err error) {
+	row := pool.QueryRow(context.Background(), "SELECT token FROM users WHERE email = '$1'", email)
+	if err := row.Scan(&token); err != nil {
+		if err == pgx.ErrNoRows {
+			return "", err
+		}
+	}
+	return token, nil
 }

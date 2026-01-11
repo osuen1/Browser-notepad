@@ -173,3 +173,23 @@ body {
     font-size: 18px;
     z-index: 10; /* Чтобы иконка была над инпутом */
 }
+
+.login-btn {
+    display: block; /* Чтобы ссылка занимала всю ширину и можно было задать margin-top */
+    width: 100%;
+    padding: 12px;
+    background-color: #f0f0f0; /* Более светлый цвет */
+    color: #7a4da5; /* Основной фиолетовый цвет для текста */
+    border: 1px solid #7a4da5; /* Обводка */
+    border-radius: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 15px; /* Отступ сверху */
+    text-decoration: none; /* Убрать подчеркивание ссылки */
+}
+
+.login-btn:hover {
+    background-color: #7a4da5; /* При наведении фон становится фиолетовым */
+    color: white; /* Текст становится белым */
+}
