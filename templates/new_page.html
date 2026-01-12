@@ -1,139 +1,208 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productivity App</title>
-    <link rel="stylesheet" href="/assets/style-new.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <!-- Упрощенная строка вкладок -->
-    <div class="tabs-bar">
-        <div class="tab active"><i class="fas fa-home"></i></div>
-        <div class="tab"><i class="fas fa-sticky-note"></i></div>
-        <div class="tab"><i class="fas fa-tasks"></i></div>
-        <div class="tab"><i class="fas fa-calendar"></i></div>
-    </div>
-    
-    <div class="container">
-        <!-- Левый бар -->
-        <div class="sidebar-left">
-            <div class="explorer-section">
-                <div class="sidebar-title">Папки</div>
-                <ul class="folder-list" id="folder-list">
-                    <!-- Папки будут добавлены сюда -->
-                </ul>
-                <input type="text" id="new-folder-input" placeholder="Название папки" />
-                <button class="add-button" id="add-root-folder">Создать папку</button>
-            </div>
-            
-            <div class="tags-section">
-                <div class="sidebar-title">Теги</div>
-                <ul class="tags-list">
-                    <li class="tag-item active">
-                        <i class="fas fa-tag"></i> Работа
-                        <span class="item-count">12</span>
-                    </li>
-                    <li class="tag-item">
-                        <i class="fas fa-tag"></i> Личное
-                        <span class="item-count">7</span>
-                    </li>
-                    <li class="tag-item">
-                        <i class="fas fa-tag"></i> Идеи
-                        <span class="item-count">15</span>
-                    </li>
-                </ul>
-            </div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Productivity App</title>
+        <link rel="stylesheet" href="/assets/style-new.css" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+    </head>
+    <body>
+        <!-- Упрощенная строка вкладок -->
+        <div class="tabs-bar">
+            <div class="tab active"><i class="fas fa-home"></i></div>
+            <div class="tab"><i class="fas fa-sticky-note"></i></div>
+            <div class="tab"><i class="fas fa-tasks"></i></div>
+            <div class="tab"><i class="fas fa-calendar"></i></div>
         </div>
-        
-        <!-- Центральная область -->
-        <div class="notes-area">
-            <div class="notes-header">
-                <span id="current-note-title">Новая заметка</span>
-                <button class="toolbar-button" id="create-note-btn" title="Создать новую заметку"><i class="fas fa-plus"></i></button>
-            </div>
-            <div class="notes-editor">
-                <div class="notes-toolbar">
-                    <button class="toolbar-button" title="Жирный"><strong>B</strong></button>
-                    <button class="toolbar-button" title="Курсив"><em>I</em></button>
-                    <button class="toolbar-button" title="Заголовок">H</button>
-                    <button class="toolbar-button" title="Список">•</button>
-                    <button class="toolbar-button" title="Нумерация">1.</button>
+
+        <div class="container">
+            <!-- Левый бар -->
+            <div class="sidebar-left">
+                <div class="explorer-section">
+                    <div class="sidebar-title">Папки</div>
+                    <ul class="folder-list" id="folder-list">
+                        <!-- Папки будут добавлены сюда -->
+                    </ul>
+                    <input
+                        type="text"
+                        id="new-folder-input"
+                        placeholder="Название папки"
+                    />
+                    <button class="add-button" id="add-root-folder">
+                        Создать папку
+                    </button>
                 </div>
-                <textarea class="notes-content" id="notes-content" placeholder="Начните писать здесь..."></textarea>
+
+                <div class="tags-section">
+                    <div class="sidebar-title">Теги</div>
+                    <ul class="tags-list">
+                        <li class="tag-item active">
+                            <i class="fas fa-tag"></i> Работа
+                            <span class="item-count">12</span>
+                        </li>
+                        <li class="tag-item">
+                            <i class="fas fa-tag"></i> Личное
+                            <span class="item-count">7</span>
+                        </li>
+                        <li class="tag-item">
+                            <i class="fas fa-tag"></i> Идеи
+                            <span class="item-count">15</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </div>
-        
-        <!-- Правый бар -->
-        <div class="sidebar-right">
-            <!-- Календарь -->
-            <div class="calendar-section">
-                <div class="calendar-header">
-                    <div class="calendar-month" id="calendar-month-year"></div>
-                    <div class="calendar-nav">
-                        <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
-                        <button id="today-btn" title="Вернуться к текущей дате" style="width: auto; padding: 0 8px; font-size: 11px;">Сегодня</button>
-                        <button id="next-month"><i class="fas fa-chevron-right"></i></button>
+
+            <!-- Центральная область -->
+            <div class="notes-area">
+                <div class="notes-header">
+                    <span id="current-note-title">Новая заметка</span>
+                    <div class="header-actions">
+                        <button
+                            class="toolbar-button"
+                            id="sync-notes-btn"
+                            title="Синхронизировать с сервером"
+                        >
+                            <i class="fas fa-sync"></i>
+                        </button>
+                        <button
+                            class="toolbar-button"
+                            id="save-note-btn-manual"
+                            title="Сохранить"
+                        >
+                            <i class="fas fa-save"></i>
+                        </button>
+                        <button
+                            class="toolbar-button"
+                            id="create-note-btn"
+                            title="Создать новую заметку"
+                        >
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="calendar-grid" id="calendar-grid">
+                <div class="notes-editor">
+                    <div class="notes-toolbar">
+                        <button class="toolbar-button" title="Жирный">
+                            <strong>B</strong>
+                        </button>
+                        <button class="toolbar-button" title="Курсив">
+                            <em>I</em>
+                        </button>
+                        <button class="toolbar-button" title="Заголовок">
+                            H
+                        </button>
+                        <button class="toolbar-button" title="Список">•</button>
+                        <button class="toolbar-button" title="Нумерация">
+                            1.
+                        </button>
                     </div>
+                    <textarea
+                        class="notes-content"
+                        id="notes-content"
+                        placeholder="Начните писать здесь..."
+                    ></textarea>
+                </div>
             </div>
-            
-            <div class="divider"></div>
-            
-            <!-- События -->
-            <div class="events-section">
-                <div class="section-title">События</div>
-                <div class="event-item">
-                    <div class="event-time">09:30</div>
-                    <div class="event-text">Совещание</div>
+
+            <!-- Правый бар -->
+            <div class="sidebar-right">
+                <!-- Календарь -->
+                <div class="calendar-section">
+                    <div class="calendar-header">
+                        <div
+                            class="calendar-month"
+                            id="calendar-month-year"
+                        ></div>
+                        <div class="calendar-nav">
+                            <button id="prev-month">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button
+                                id="today-btn"
+                                title="Вернуться к текущей дате"
+                                style="
+                                    width: auto;
+                                    padding: 0 8px;
+                                    font-size: 11px;
+                                "
+                            >
+                                Сегодня
+                            </button>
+                            <button id="next-month">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendar-grid"></div>
                 </div>
-                <div class="event-item">
-                    <div class="event-time">12:00</div>
-                    <div class="event-text">Обед с клиентом</div>
+
+                <div class="divider"></div>
+
+                <!-- События -->
+                <div class="events-section">
+                    <div class="section-title">События</div>
+                    <div class="event-item">
+                        <div class="event-time">09:30</div>
+                        <div class="event-text">Совещание</div>
+                    </div>
+                    <div class="event-item">
+                        <div class="event-time">12:00</div>
+                        <div class="event-text">Обед с клиентом</div>
+                    </div>
+                    <button class="add-button">Добавить событие</button>
                 </div>
-                <button class="add-button">Добавить событие</button>
-            </div>
-            
-            <!-- Задачи -->
-            <div class="todo-section">
-                <div class="section-title">Задачи</div>
-                <div class="todo-item">
-                    <input type="checkbox" class="todo-checkbox" checked>
-                    <span class="todo-text todo-completed">Подготовить отчет</span>
+
+                <!-- Задачи -->
+                <div class="todo-section">
+                    <div class="section-title">Задачи</div>
+                    <div class="todo-item">
+                        <input type="checkbox" class="todo-checkbox" checked />
+                        <span class="todo-text todo-completed"
+                            >Подготовить отчет</span
+                        >
+                    </div>
+                    <div class="todo-item">
+                        <input type="checkbox" class="todo-checkbox" />
+                        <span class="todo-text">Обновить UI</span>
+                    </div>
+                    <div class="todo-item">
+                        <input type="checkbox" class="todo-checkbox" />
+                        <span class="todo-text">Проверить почту</span>
+                    </div>
+                    <button class="add-button">Добавить задачу</button>
                 </div>
-                <div class="todo-item">
-                    <input type="checkbox" class="todo-checkbox">
-                    <span class="todo-text">Обновить UI</span>
-                </div>
-                <div class="todo-item">
-                    <input type="checkbox" class="todo-checkbox">
-                    <span class="todo-text">Проверить почту</span>
-                </div>
-                <button class="add-button">Добавить задачу</button>
             </div>
         </div>
-    </div>
 
-    <!-- Модальное окно создания заметки -->
-    <div class="modal-overlay" id="note-modal">
-        <div class="modal-content">
-            <h3>Создать новую заметку</h3>
-            <input type="text" id="note-title-input" placeholder="Название заметки..." />
-            <label>Выберите папку:</label>
-            <select id="folder-select">
-                <option value="">В корне</option>
-                <!-- Папки будут добавлены здесь -->
-            </select>
-            <div class="modal-buttons">
-                <button class="toolbar-button" id="save-note-btn">Создать</button>
-                <button class="toolbar-button" id="cancel-note-btn">Отмена</button>
+        <!-- Модальное окно создания заметки -->
+        <div class="modal-overlay" id="note-modal">
+            <div class="modal-content">
+                <h3>Создать новую заметку</h3>
+                <input
+                    type="text"
+                    id="note-title-input"
+                    placeholder="Название заметки..."
+                />
+                <label>Выберите папку:</label>
+                <select id="folder-select">
+                    <option value="">В корне</option>
+                    <!-- Папки будут добавлены здесь -->
+                </select>
+                <div class="modal-buttons">
+                    <button class="toolbar-button" id="save-note-btn">
+                        Создать
+                    </button>
+                    <button class="toolbar-button" id="cancel-note-btn">
+                        Отмена
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <script src="/assets/note-script.js"></script>
-</body>
+        <script src="/assets/note-script.js"></script>
+    </body>
 </html>

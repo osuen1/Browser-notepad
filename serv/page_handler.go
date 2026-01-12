@@ -18,10 +18,10 @@ import (
 )
 
 type NoteData struct {
-    User_id  int    `json:"user_id"`
-    Date     string `json:"Date"`
-    Data     string `json:"Data"`     
-    ID_note  int    `json:"ID_note"`
+	User_id int    `json:"user_id"`
+	Date    string `json:"Date"`
+	Data    string `json:"Data"`
+	ID_note string `json:"ID_note"`
 }
 
 type Login_info struct { // парсим приходящий от js json
@@ -74,7 +74,7 @@ func init_server() {
 // индекс уйдет под отрисовку лендинга
 func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовка главной страницы блокнота (с полем вводе новой заметки)
 	var data NoteData
-	
+
 	if r.Method == http.MethodGet && server.cookie_handler != nil {
 		tmpl.Execute(w, nil) // передача HTML документа клиентскому серверу
 	} else {
@@ -89,7 +89,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовк�
 			return
 		}
 
-		info.data = append(info.data, data.Data)  // заполняем массив текстом, который ввел пользователь
+		info.data = append(info.data, data.Data)      // заполняем массив текстом, который ввел пользователь
 		fmt.Printf("Received JSON: %+v\n", info.data) // выводим данные в консоль
 	}
 }
@@ -111,11 +111,14 @@ func Get_notes_handler(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&data); err != nil {
 			fmt.Print("An error in Get_notes_handler: ", err)
+			http.Error(w, "Bad Request", http.StatusBadRequest)
+			return
 		}
 
 		if server.db != nil {
 			notes := db.Get_notes(server.db, data.User_id)
-			fmt.Print(notes)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(notes)
 		} else {
 			http.Error(w, "u not login", http.StatusForbidden)
 		}
@@ -124,33 +127,33 @@ func Get_notes_handler(w http.ResponseWriter, r *http.Request) {
 
 func Create_note_handler(w http.ResponseWriter, r *http.Request) {
 
-    if r.Method != http.MethodPost {
-        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-        return
-    }
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
-    var req NoteData
+	var req NoteData
 
-    err := json.NewDecoder(r.Body).Decode(&req)
-    if err != nil {
-        fmt.Printf("Ошибка декодирования: %v\n", err)
-        http.Error(w, "Bad Request", http.StatusBadRequest)
-        return
-    }
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		fmt.Printf("Ошибка декодирования: %v\n", err)
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
 
-    if server.db != nil {
-        err := db.Add_note(server.db, req.ID_note, req.User_id, req.Date, req.Data)
-        if err != nil {
-            fmt.Printf("Ошибка записи в БД: %v\n", err)
-            http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-            return
-        }
-        
-        w.WriteHeader(http.StatusCreated)
-        json.NewEncoder(w).Encode(map[string]string{"status": "success"})
-    } else {
-        http.Error(w, "Forbidden: Database not initialized or user not logged in", http.StatusForbidden)
-    }
+	if server.db != nil {
+		err := db.Add_note(server.db, req.ID_note, req.User_id, req.Date, req.Data)
+		if err != nil {
+			fmt.Printf("Ошибка записи в БД: %v\n", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+	} else {
+		http.Error(w, "Forbidden: Database not initialized or user not logged in", http.StatusForbidden)
+	}
 }
 
 func Delete_note_handler(w http.ResponseWriter, r *http.Request) {
@@ -173,7 +176,7 @@ func Delete_note_handler(w http.ResponseWriter, r *http.Request) {
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var data_json Login_info
 	init_server()
-	
+
 	if r.Method == http.MethodGet {
 		log_page.Execute(w, nil)
 	}
@@ -208,7 +211,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 					http.Error(w, "An error with send email", http.StatusInternalServerError)
 					fmt.Print(err)
 				}
-				
+
 				token := Generate_token()
 				if err := db.Update_token(server.db, user_id, token); err != nil {
 					fmt.Print(err)
@@ -241,28 +244,28 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		
-		result, err := db.Check_username(server.db, data_json.Login) 
+
+		result, err := db.Check_username(server.db, data_json.Login)
 		if err != nil {
 			fmt.Print(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		
+
 		if result == true {
 			responseJson.Status = true
 			responseJson.Message = "Registration successful"
-			
+
 			encoder := json.NewEncoder(w)
 			if err := encoder.Encode(responseJson); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-			
+
 			db.Add_user(server.db, data_json.Login, Hash_password(data_json.Password), data_json.Email, Generate_token())
-			
+
 		} else {
 			responseJson.Status = false
 			responseJson.Message = "Username already exists"
-			
+
 			encoder := json.NewEncoder(w)
 			if err := encoder.Encode(&responseJson); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -274,24 +277,24 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 func ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var dataJson Login_info
 	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	
+
 	if r.Method == http.MethodGet {
 		forgot_password_page.Execute(w, nil)
 	}
-	
+
 	if r.Method == http.MethodPost {
 		decoder := json.NewDecoder(r.Body)
 		if err := decoder.Decode(&dataJson); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		
+
 		if emailRegex.MatchString(dataJson.Email) {
 			token, err := db.Get_token(server.db, dataJson.Email)
 			if err != nil {
 				http.Error(w, "An error in get token", http.StatusBadRequest)
 			}
-			
+
 			mailer := mail.New_Dialer()
 			if err := mailer.Send_forgot_password_mail(dataJson.Email, token); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -320,12 +323,12 @@ func ResetApiHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		
+
 		// добавить токен для генерации ссылки
 		if emailRegex.MatchString(dataJson.Email) {
 			db.Update_password(server.db, dataJson.Email, Hash_password(dataJson.NewPassword))
 		}
-		
+
 		response.Status = true
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(response); err != nil {
