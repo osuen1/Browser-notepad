@@ -280,6 +280,13 @@ document
   .getElementById("sync-notes-btn")
   .addEventListener("click", syncNotesFromServer);
 
+document.getElementById("logout-btn").addEventListener("click", () => {
+  if (confirm("Вы уверены, что хотите выйти?")) {
+    localStorage.clear();
+    window.location.replace("/login.html"); // Перенаправление на главную страницу или страницу логина
+  }
+});
+
 // --- Инициализация при загрузке ---
 window.onload = () => {
   renderFolders();
