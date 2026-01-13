@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
-	
+
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
@@ -108,7 +108,6 @@ func NoteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка
 
 // Получение заметок
 func Get_notes_handler(w http.ResponseWriter, r *http.Request) {
-	init_server()
 	var data NoteData
 	var response []NoteData
 
@@ -148,7 +147,6 @@ func Get_notes_handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Create_note_handler(w http.ResponseWriter, r *http.Request) {
-
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -188,7 +186,20 @@ func Delete_note_handler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if server.db != nil {
-			db.Delete_note(server.db, data.ID_note)
+			if err := db.Delete_note(server.db, data.ID_note); err != nil {
+				fmt.Print("An error in Delete_note_handler: ", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
+			
+			response := Login_response{
+				Status: true,
+				Message: "Заметка успешно удалена",
+			}
+			
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				fmt.Print("An error in Delete_note_handler: ", err)
+			}
+			
 		} else {
 			http.Error(w, "u not login", http.StatusForbidden)
 		}

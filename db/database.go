@@ -84,8 +84,7 @@ func Get_notes(pool *pgxpool.Pool, user_id int) ([][]string, []int) {
 }
 
 func Delete_note(pool *pgxpool.Pool, note_id string) error {
-	row := pool.QueryRow(context.Background(), "DELETE FROM notes WHERE id = '$1'", note_id)
-	if err := row.Scan(); err != nil {
+	if _, err := pool.Exec(context.Background(), "DELETE FROM note WHERE id = $1", note_id); err != nil {
 		fmt.Print("An error in Delete_note: ", err)
 	}
 	return nil

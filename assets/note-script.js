@@ -85,6 +85,34 @@ async function syncNotesFromServer() {
   }
 }
 
+async function sendDeleteNoteToServer(noteId) {
+  const userId = getUserId();
+  if (!userId) {
+    console.warn("User_id не найден. Удаление с сервера невозможно.");
+    return false;
+  }
+
+  const payload = {
+    User_id: userId,
+    ID_note: noteId,
+  };
+
+  try {
+    const response = await fetch("/api/notes/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
+    console.log(`✅ Заметка с ID ${noteId} успешно удалена с сервера`);
+    return true;
+  } catch (error) {
+    console.error("❌ Ошибка при удалении заметки с сервера:", error);
+    return false;
+  }
+}
+
 // --- Управление заметками (Логика) ---
 
 function loadNotes() {
@@ -275,6 +303,36 @@ document
       alert("Отправка на сервер...");
     } else {
       alert("Нет активной заметки для сохранения");
+    }
+  });
+
+document
+  .getElementById("delete-note-btn")
+  .addEventListener("click", async () => {
+    const activeNote = notes.find((n) => n.isCurrent);
+    if (!activeNote) {
+      alert("Нет активной заметки для удаления.");
+      return;
+    }
+
+    if (
+      confirm(`Вы уверены, что хотите удалить заметку "${activeNote.title}"?`)
+    ) {
+      const success = await sendDeleteNoteToServer(activeNote.id);
+      if (success) {
+        notes = notes.filter((n) => n.id !== activeNote.id);
+        saveNotes();
+        // Clear editor and title
+        document.getElementById("notes-content").value = "";
+        document.getElementById("current-note-title").textContent =
+          "Новая заметка";
+        // Deselect any active note
+        notes.forEach((n) => (n.isCurrent = false));
+        renderFolders();
+        alert("Заметка успешно удалена.");
+      } else {
+        alert("Не удалось удалить заметку с сервера.");
+      }
     }
   });
 
