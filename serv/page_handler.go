@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
-
+	
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
@@ -19,9 +19,11 @@ import (
 
 type NoteData struct {
 	User_id int    `json:"user_id"`
+	Title   string `json:"Title"`
 	Date    string `json:"Date"`
 	Data    string `json:"Data"`
 	ID_note string `json:"ID_note"`
+	Folder_id int `json:"Folder_id"`
 }
 
 type Login_info struct { // парсим приходящий от js json
@@ -96,7 +98,8 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовк�
 
 // Отрисовка страницы заметок
 func NoteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка вторичной страницы блокнота (со списком всех заметок)
-	if r.Method == http.MethodGet && server.cookie_handler != nil {
+	init_server()
+	if r.Method == http.MethodGet { // && server.cookie_handler != nil {
 		new_page.Execute(w, nil)
 	} else if server.cookie_handler == nil {
 		http.Error(w, "u not login", http.StatusForbidden)
@@ -105,7 +108,9 @@ func NoteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка
 
 // Получение заметок
 func Get_notes_handler(w http.ResponseWriter, r *http.Request) {
+	init_server()
 	var data NoteData
+	var response []NoteData
 
 	if r.Method == http.MethodPost {
 		decoder := json.NewDecoder(r.Body)
@@ -116,9 +121,26 @@ func Get_notes_handler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if server.db != nil {
-			notes := db.Get_notes(server.db, data.User_id)
+			notes, folder_ids := db.Get_notes(server.db, data.User_id)
+			
+			for index, note := range notes {
+				id_note, title, date, text := note[0], note[1], note[2], note[3]
+				folder_id := folder_ids[index]
+				
+				response = append(response, NoteData{
+					User_id: data.User_id,
+					Title: title,
+					Date: date,
+					Data: text,
+					ID_note: id_note,
+					Folder_id: folder_id,
+				})
+			}
+			
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(notes)
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				fmt.Print("An error in Get_notes_handler: ", err)
+			}
 		} else {
 			http.Error(w, "u not login", http.StatusForbidden)
 		}
@@ -142,7 +164,7 @@ func Create_note_handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if server.db != nil {
-		err := db.Add_note(server.db, req.ID_note, req.User_id, req.Date, req.Data)
+		err := db.Add_note(server.db, req.ID_note, req.User_id, req.Date, req.Data, req.Folder_id, req.Title)
 		if err != nil {
 			fmt.Printf("Ошибка записи в БД: %v\n", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)

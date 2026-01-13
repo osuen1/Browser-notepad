@@ -25,9 +25,11 @@ async function sendNoteToServer(note) {
 
   const payload = {
     User_id: userId,
+    Title: note.title,
     Date: new Date().toISOString(),
     Data: note.content,
     ID_note: note.id,
+    Folder_id: parseInt(note.folderId),
   };
 
   try {
@@ -67,9 +69,9 @@ async function syncNotesFromServer() {
       // Очищаем текущие локальные данные (или можно реализовать мердж)
       notes = serverNotes.map((sn) => ({
         id: sn.ID_note.toString(),
-        title: "Заметка #" + sn.ID_note, // Если в БД нет Title, создаем временный
-        content: sn.Data,
-        folderId: "", // В вашей структуре NoteData пока нет FolderID
+        title: sn.Title,
+        content: sn.Data, // Теперь поле совпадает с NoteData на сервере
+        folderId: sn.Folder_id.toString(), // Теперь Folder_id доступен
         isCurrent: false,
       }));
 

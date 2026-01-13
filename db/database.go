@@ -45,11 +45,11 @@ func Find_user(pool *pgxpool.Pool, login string) (id int, username string, passw
 	return id, username, password, email
 }
 
-func Add_note(pool *pgxpool.Pool, note_id string, user_id int, date string, data string) error {
+func Add_note(pool *pgxpool.Pool, note_id string, user_id int, date string, data string, folder_id int, title string) error {
 	// Возможно, будем использовать разные таблицы для разных пользователей в будущем
 	// row := pool.QueryRow(context.Background(), "CREATE TABLE IF NOT EXISTS notes (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, date TEXT NOT NULL, text TEXT NOT NULL, FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE)")
 	
-	_, err := pool.Exec(context.Background(), "INSERT INTO note (id, user_id, date, text) VALUES ($1, $2, $3, $4)", note_id, user_id, date, data)
+	_, err := pool.Exec(context.Background(), "INSERT INTO note (id, user_id, date, text, folder_id, title) VALUES ($1, $2, $3, $4, $5, $6)", note_id, user_id, date, data, folder_id, title)
 	if err != nil {
 		if err != pgx.ErrNoRows {
 			return fmt.Errorf("error adding note: %v", err)
@@ -58,25 +58,29 @@ func Add_note(pool *pgxpool.Pool, note_id string, user_id int, date string, data
 	return nil
 }
 
-func Get_notes(pool *pgxpool.Pool, user_id int) (notes []string) {
-	rows, err := pool.Query(context.Background(), "SELECT date, data FROM notes WHERE user_id = $1", user_id)
+func Get_notes(pool *pgxpool.Pool, user_id int) ([][]string, []int) {
+	rows, err := pool.Query(context.Background(), "SELECT id, title, date, text, folder_id FROM note WHERE user_id = $1", user_id)
 	if err != nil {
 		fmt.Print("An error in Get_notes: ", err)
 	}
-
+	
+	var notes_details [][]string
+	var folder_id_array []int
+	var note_id string
+	var title string
 	var date string
 	var data string
+	var folder_id int
 
 	for rows.Next() {
-		if err := rows.Scan(&date, &data); err != nil {
+		if err := rows.Scan(&note_id, &title, &date, &data, &folder_id); err != nil {
 			fmt.Print("An error in scaning variables: ", err)
 		}
-		notes_details := []string{date, data}
-
-		notes = append(notes, notes_details...)
+		notes_details = append(notes_details, []string{note_id, title, date, data})
+		folder_id_array = append(folder_id_array, folder_id)
 	}
 
-	return notes
+	return notes_details, folder_id_array
 }
 
 func Delete_note(pool *pgxpool.Pool, note_id string) error {
