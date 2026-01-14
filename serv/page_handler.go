@@ -162,15 +162,24 @@ func Create_note_handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if server.db != nil {
-		err := db.Add_note(server.db, req.ID_note, req.User_id, req.Date, req.Data, req.Folder_id, req.Title)
-		if err != nil {
-			fmt.Printf("Ошибка записи в БД: %v\n", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
+		if result, err := db.Check_note(server.db, req.ID_note); err != nil {
+			fmt.Print("Ошибка базы даных. Невозможно найти заметку")
+		} else if result {
+			if err := db.Update_note(server.db, req.ID_note, req.Data); err != nil {
+				fmt.Print("Ошибка базы даных. Невозможно обновить заметку")
+			}
+		} else if !result {
+			err := db.Add_note(server.db, req.ID_note, req.User_id, req.Date, req.Data, req.Folder_id, req.Title)
+			if err != nil {
+				fmt.Printf("Ошибка записи в БД: %v\n", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
 
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+			w.WriteHeader(http.StatusCreated)
+			json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+		}
+		
 	} else {
 		http.Error(w, "Forbidden: Database not initialized or user not logged in", http.StatusForbidden)
 	}

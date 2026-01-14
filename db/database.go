@@ -90,6 +90,25 @@ func Delete_note(pool *pgxpool.Pool, note_id string) error {
 	return nil
 }
 
+func Update_note(pool *pgxpool.Pool, note_id string, new_data string) error {
+	if _, err := pool.Exec(context.Background(), "UPDATE note SET text = $1 WHERE id = $2", new_data, note_id); err != nil {
+		fmt.Print("An error in Update_note: ", err)
+		return err
+	}
+	return nil
+}
+
+func Check_note(pool *pgxpool.Pool, note_id string) (bool, error) {
+	var result bool
+	
+	err := pool.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM note WHERE id = $1)", note_id).Scan(&result)
+	if err != nil {
+		fmt.Print("An error in Check_note: ", err)
+		return false, err
+	}
+	return result, nil
+}
+
 func Update_password(pool *pgxpool.Pool, email string, new_password string) error {
 	_, err := pool.Exec(context.Background(), "UPDATE users SET password = $1 WHERE email = $2", new_password, email)
 	if err != nil {
