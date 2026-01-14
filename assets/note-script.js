@@ -4,40 +4,78 @@ let folders = JSON.parse(localStorage.getItem("folders")) || [
   { id: 4, name: "Личное", children: [] },
 ];
 let notes = JSON.parse(localStorage.getItem("notes")) || [];
-let syncTimeout; // Для задержки отправки на сервер
+let syncTimeout; 
 
 // --- Вспомогательные функции ---
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-// Генерация числового ID для папки
 function generateFolderId() {
-  // Простая генерация числового ID, можно улучшить для большей уникальности
   return Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 1000);
 }
 
 function getUserId() {
-  return parseInt(localStorage.getItem("user_id")); // Получаем ID, сохраненный при логине
+  return parseInt(localStorage.getItem("user_id"));
 }
 
+// Функция для преобразования плоского списка папок от сервера в древовидную структуру
+function buildFolderTree(flatFolders) {
+    const folderMap = {};
+    const tree = [];
+
+    // 1. Создаем объект-карту, чтобы быстро находить папки по ID
+    flatFolders.forEach(f => {
+        // Важно: в Go поле называется FolderId, используем его
+        folderMap[f.FolderId] = {
+            id: f.FolderId,
+            name: f.Name,
+            parentId: f.ParentId,
+            children: []
+        };
+    });
+
+    // 2. Проходим по всем папкам и распределяем их: либо в корень, либо в родителя
+    flatFolders.forEach(f => {
+        const folder = folderMap[f.FolderId];
+        if (f.ParentId && f.ParentId !== 0 && folderMap[f.ParentId]) {
+            // Если есть родитель — пушим в его массив children
+            folderMap[f.ParentId].children.push(folder);
+        } else {
+            // Если родителя нет (0) — это корневая папка
+            tree.push(folder);
+        }
+    });
+
+    return tree;
+}
+
+// Функция для удаления папки из дерева
+function removeFolderRecursive(list, id) {
+    return list.filter(f => {
+        if (f.id === id) return false;
+        if (f.children) {
+            f.children = removeFolderRecursive(f.children, id);
+        }
+        return true;
+    });
+}
 // --- Работа с API (Сервер на Go) ---
 
-// Отправка заметки на сервер
 async function sendNoteToServer(note) {
   const userId = getUserId();
   if (!userId) {
-    console.warn("User_id не найден. Синхронизация с сервером невозможна.");
+    console.warn("User_id не найден.");
     return;
   }
 
   const payload = {
-    User_id: userId,
+    user_id: userId,
     Title: note.title,
     Date: new Date().toISOString(),
     Data: note.content,
     ID_note: note.id,
-    Folder_id: note.folderId, // Ожидается числовой ID папки
+    Folder_id: note.folderId, 
   };
 
   try {
@@ -48,57 +86,53 @@ async function sendNoteToServer(note) {
     });
 
     if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
-    console.log("✅ Заметка синхронизирована с сервером");
+    console.log("✅ Заметка синхронизирована");
   } catch (error) {
     console.error("❌ Ошибка при отправке на сервер:", error);
   }
 }
 
-// Отправка новой папки на сервер
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ: Поля теперь соответствуют FolderData в Go
 async function sendFolderToServer(folder) {
   const userId = getUserId();
   if (!userId) {
-    console.warn("User_id не найден. Синхронизация папок с сервером невозможна.");
+    console.warn("User_id не найден.");
     return null;
   }
 
-  // Структура для отправки на бэкенд (должна соответствовать FolderData в page_handler.go)
+  // Соответствует структуре FolderData в page_handler.go
   const payload = {
-    id: folder.id, // Числовой ID папки
-    name: folder.name,
     user_id: userId,
-    parent_id: folder.parentId || 0, // Используем 0 для корневых папок
+    Name: folder.Name,      // В Go: json:"Name"
+    FolderId: folder.FolderId, // В Go: json:"FolderId"
+    ParentId: folder.ParentId || 0 // В Go: json:"ParentId"
   };
 
   try {
-    const response = await fetch("/api/folders/create", { // Новый эндпоинт для создания папок
+    const response = await fetch("/api/folders/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
-      throw new Error(`Ошибка сервера при создании папки: ${response.status}`);
+      throw new Error(`Ошибка сервера: ${response.status}`);
     }
 
-    const result = await response.json();
-    console.log(`✅ Папка "${folder.name}" синхронизирована с сервером`);
-    return result.folder_id; // Возвращаем ID папки с сервера
+    // CreateFolderHandler в Go ничего не возвращает в теле (только статус), 
+    // поэтому просто подтверждаем успех по статусу 200 OK
+    console.log(`✅ Папка "${folder.Name}" синхронизирована`);
+    return folder.FolderId; 
 
   } catch (error) {
-    console.error("❌ Ошибка при отправке папки на сервер:", error);
+    console.error("❌ Ошибка при отправке папки:", error);
     return null;
   }
 }
 
-
-// Синхронизация заметок с сервера (остается как есть, т.к. folderId уже числовой)
 async function syncNotesFromServer() {
   const userId = getUserId();
-  if (!userId) {
-    alert("Пожалуйста, войдите в систему для синхронизации.");
-    return;
-  }
+  if (!userId) return;
 
   try {
     const response = await fetch("/api/notes/get", {
@@ -116,95 +150,110 @@ async function syncNotesFromServer() {
         id: sn.ID_note.toString(),
         title: sn.Title,
         content: sn.Data,
-        folderId: sn.Folder_id, // Ожидаем числовой ID папки
+        folderId: sn.Folder_id,
         isCurrent: false,
       }));
-
       saveNotes();
-      // renderFolders(); // Не перерисовываем здесь, т.к. syncDataFromServer будет вызвана
     }
   } catch (error) {
     console.error("❌ Ошибка синхронизации заметок:", error);
-    alert("Не удалось загрузить заметки с сервера");
   }
 }
 
-// Синхронизация данных (папок и заметок) с сервера
 async function syncDataFromServer() {
   const userId = getUserId();
   if (!userId) {
-    alert("Пожалуйста, войдите в систему для синхронизации.");
+    alert("Пожалуйста, войдите в систему.");
     return;
   }
 
   try {
-    // 1. Получаем заметки
-    await syncNotesFromServer(); // Вызываем синхронизацию заметок
+    // 1. Сначала загружаем заметки (как и было)
+    await syncNotesFromServer();
 
-    // 2. Получаем структуру папок
-    const foldersResponse = await fetch("/api/folders/get", { // Новый эндпоинт для получения папок
+    // 2. Делаем запрос к серверу за папками
+    const foldersResponse = await fetch("/api/folders/get", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id: userId }),
     });
 
-    if (!foldersResponse.ok) throw new Error(`Ошибка сервера при получении папок: ${foldersResponse.status}`);
+    if (!foldersResponse.ok) throw new Error(`Ошибка сервера папок: ${foldersResponse.status}`);
+    
     const serverFolders = await foldersResponse.json();
 
-    // Обновляем локальные папки. 
-    // Внимание: Эта простая замена может потерять локально созданные папки, если они еще не синхронизированы.
-    // Для более надежной синхронизации потребуется сложная логика слияния.
-    folders = serverFolders || []; // Используем [] если serverFolders пуст или null
-    saveFolders();
+    // 3. ПРЕОБРАЗОВАНИЕ: вместо простого .map используем нашу новую функцию
+    if (serverFolders && Array.isArray(serverFolders)) {
+        folders = buildFolderTree(serverFolders);
+    } else {
+        folders = [];
+    }
 
-    renderFolders(); // Перерисовываем интерфейс после полной синхронизации
-    alert("✅ Данные успешно синхронизированы с сервером");
+    // 4. Сохраняем и перерисовываем интерфейс
+    saveFolders();
+    renderFolders();
+    console.log("✅ Структура папок успешно восстановлена");
 
   } catch (error) {
     console.error("❌ Ошибка синхронизации:", error);
-    alert("Не удалось загрузить данные с сервера");
   }
 }
 
-// Отправка запроса на удаление заметки с сервера
-async function sendDeleteNoteToServer(noteId) {
-  const userId = getUserId();
-  if (!userId) {
-    console.warn("User_id не найден. Удаление с сервера невозможно.");
-    return false;
-  }
+// Функция вызова API сервера
+async function sendDeleteFolderToServer(folderId) {
+    const userId = getUserId();
+    // Структура должна совпадать с FolderData в page_handler.go (json:"FolderId")
+    const payload = { 
+        user_id: userId, 
+        FolderId: parseInt(folderId) 
+    };
 
-  const payload = {
-    User_id: userId,
-    ID_note: noteId,
-  };
+    try {
+        const response = await fetch("/api/folders/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
 
-  try {
-    const response = await fetch("/api/notes/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
-    console.log(`✅ Заметка с ID ${noteId} успешно удалена с сервера`);
-    return true;
-  } catch (error) {
-    console.error("❌ Ошибка при удалении заметки с сервера:", error);
-    return false;
-  }
+        if (!response.ok) throw new Error("Ошибка при удалении на сервере");
+        return true;
+    } catch (error) {
+        console.error("❌ Ошибка удаления папки:", error);
+        return false;
+    }
 }
 
-// --- Управление заметками (Логика) ---
+// Логика удаления из интерфейса и массива
+async function deleteFolder(folderId, folderName) {
+    if (!confirm(`Вы уверены, что хотите удалить папку "${folderName}" и всё её содержимое?`)) {
+        return;
+    }
+
+    const success = await sendDeleteFolderToServer(folderId);
+    if (success) {
+        // Рекурсивное удаление из локального массива folders
+        folders = removeFolderRecursive(folders, folderId);
+        
+        // Удаляем также все заметки, которые были в этой папке
+        notes = notes.filter(note => note.folderId !== folderId);
+        
+        saveFolders();
+        saveNotes();
+        renderFolders();
+        console.log(`✅ Папка ${folderId} удалена`);
+    } else {
+        alert("Не удалось удалить папку с сервера.");
+    }
+}
+
+// --- Управление заметками ---
 
 function loadNotes() {
   const noteContent = document.getElementById("notes-content").value;
   const activeNote = notes.find((n) => n.isCurrent);
-
   if (activeNote) {
     activeNote.content = noteContent;
-    saveNotes(); // Локальное сохранение
-    // Синхронизация с сервером через 1 секунду после окончания набора текста (можно добавить debounce)
+    saveNotes();
   }
 }
 
@@ -229,7 +278,6 @@ function renderFolders(
     const folderElement = document.createElement("li");
     folderElement.className = "folder-wrapper";
 
-    // data-id теперь содержит числовой ID
     folderElement.innerHTML = `
             <div class="folder-item" data-id="${folder.id}">
                 <i class="fas fa-chevron-right toggle-icon"></i>
@@ -239,6 +287,7 @@ function renderFolders(
                 <div class="folder-actions">
                     <button class="folder-action-btn create-note" title="Создать заметку"><i class="fas fa-pencil-alt"></i></button>
                     <button class="folder-action-btn add-subfolder" title="Добавить подпапку"><i class="fas fa-plus"></i></button>
+                    <button class="folder-action-btn delete-folder" title="Удалить папку"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
             <div class="folder-content" id="content-${folder.id}">
@@ -249,50 +298,40 @@ function renderFolders(
 
     container.appendChild(folderElement);
 
+    // Обработчик удаления
+    folderElement.querySelector(".delete-folder").addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteFolder(folder.id, folder.name);
+    });
+
+    // Остальные обработчики (раскрытие, создание заметок и подпапок)
     const contentDiv = folderElement.querySelector(".folder-content");
-    const subfolderContainer = folderElement.querySelector(".subfolders-list");
-    const noteContainer = folderElement.querySelector(".note-list");
-
-    // Рекурсивно рендерим подпапки, если они есть
-    if (folder.children && folder.children.length > 0) {
-      renderFolders(folder.children, subfolderContainer);
-    }
-    // Рендерим заметки в текущей папке
-    renderNotesInFolder(folder.id, noteContainer);
-
-    // Раскрытие/скрытие содержимого папки
-    folderElement
-      .querySelector(".folder-item")
-      .addEventListener("click", (e) => {
-        // Не раскрываем, если клик был по кнопкам действий
+    folderElement.querySelector(".folder-item").addEventListener("click", (e) => {
         if (!e.target.closest(".folder-actions")) {
           const isOpen = contentDiv.classList.toggle("open");
-          folderElement.querySelector(".toggle-icon").style.transform = isOpen
-            ? "rotate(90deg)"
-            : "rotate(0deg)";
+          folderElement.querySelector(".toggle-icon").style.transform = isOpen ? "rotate(90deg)" : "rotate(0deg)";
         }
-      });
+    });
 
-    // Обработчик кнопки "Создать заметку"
-    folderElement
-      .querySelector(".create-note")
-      .addEventListener("click", (e) => {
-        e.stopPropagation(); // Предотвращаем всплытие события клика на folder-item
+    folderElement.querySelector(".create-note").addEventListener("click", (e) => {
+        e.stopPropagation();
         createNoteInFolder(folder.id);
-      });
+    });
 
-    // Обработчик кнопки "Добавить подпапку"
-    folderElement
-      .querySelector(".add-subfolder")
-      .addEventListener("click", (e) => {
-        e.stopPropagation(); // Предотвращаем всплытие события клика на folder-item
+    folderElement.querySelector(".add-subfolder").addEventListener("click", (e) => {
+        e.stopPropagation();
         const subName = prompt("Название подпапки:");
-        if (subName) addFolder(folder.id, subName); // Передаем ID родительской папки
-      });
+        if (subName) addFolder(folder.id, subName);
+    });
+
+    // Рекурсия для вложенных папок и заметок
+    if (folder.children && folder.children.length > 0) {
+      renderFolders(folder.children, folderElement.querySelector(".subfolders-list"));
+    }
+    renderNotesInFolder(folder.id, folderElement.querySelector(".note-list"));
   });
 }
 
-// Рендерит заметки внутри указанной папки
 function renderNotesInFolder(folderId, container) {
   container.innerHTML = "";
   const folderNotes = notes.filter((note) => note.folderId === folderId);
@@ -300,20 +339,19 @@ function renderNotesInFolder(folderId, container) {
   folderNotes.forEach((note) => {
     const noteElement = document.createElement("li");
     noteElement.className = "note-item";
-    if (note.isCurrent) noteElement.classList.add("active"); // Добавляем класс 'active' для текущей заметки
+    if (note.isCurrent) noteElement.classList.add("active");
 
     noteElement.innerHTML = `
             <i class="far fa-file-alt note-icon"></i>
             <span class="note-title">${note.title}</span>
         `;
 
-    // Обработчик клика по заметке: активирует ее и отображает в редакторе
     noteElement.addEventListener("click", () => {
-      notes.forEach((n) => (n.isCurrent = false)); // Снимаем активность со всех заметок
-      note.isCurrent = true; // Делаем текущую заметку активной
-      document.getElementById("notes-content").value = note.content; // Заполняем редактор
-      document.getElementById("current-note-title").textContent = note.title; // Обновляем заголовок
-      renderFolders(); // Перерисовываем список папок, чтобы обновить класс 'active'
+      notes.forEach((n) => (n.isCurrent = false));
+      note.isCurrent = true;
+      document.getElementById("notes-content").value = note.content;
+      document.getElementById("current-note-title").textContent = note.title;
+      renderFolders();
     });
 
     container.appendChild(noteElement);
@@ -322,211 +360,118 @@ function renderNotesInFolder(folderId, container) {
 
 // --- Управление структурой ---
 
-// Создание новой заметки в указанной папке
 function createNoteInFolder(folderId) {
   const title = prompt("Название заметки:");
-  if (!title) return; // Если название не введено, выходим
+  if (!title) return;
 
   const newNote = {
-    id: generateId(), // Уникальный ID заметки
+    id: generateId(),
     title: title,
     content: "",
-    folderId: folderId, // ID папки, в которую добавляем заметку (числовой)
+    folderId: folderId,
     createdAt: new Date().toISOString(),
-    isCurrent: true, // Новая заметка сразу становится активной
+    isCurrent: true,
   };
 
-  // Делаем новую заметку активной, остальные неактивными
   notes.forEach((n) => (n.isCurrent = false));
-  notes.unshift(newNote); // Добавляем новую заметку в начало списка
-  saveNotes(); // Сохраняем локально
+  notes.unshift(newNote);
+  saveNotes();
 
-  // Обновляем редактор и заголовок
-  document.getElementById("notes-content").value = ""; // Очищаем редактор
-  document.getElementById("current-note-title").textContent = title; // Устанавливаем заголовок
-  renderFolders(); // Перерисовываем список папок
+  document.getElementById("notes-content").value = "";
+  document.getElementById("current-note-title").textContent = title;
+  renderFolders();
 }
 
-// Добавление новой папки (корневой или подпапки)
 function addFolder(parentId, name) {
-  // Создаем временный объект папки с уникальным числовым ID
+  // Используем названия полей, которые легко мапятся на Go-структуру
   const newLocalFolder = { 
     FolderId: generateFolderId(), 
     Name: name, 
     Children: [],
-    ParentId: parentId, // Сохраняем parentId для отправки на сервер
-    isLocal: true // Флаг, чтобы отличать локально созданные папки
+    ParentId: parentId || 0,
+    id: null // Сюда запишем ID для JS-логики после генерации
   };
+  newLocalFolder.id = newLocalFolder.FolderId;
 
-  // Добавляем папку локально для немедленного отображения
+  // Локальное обновление для UI (мапим под JS формат)
+  const uiFolder = { id: newLocalFolder.id, name: name, children: [], parentId: parentId };
+
   if (!parentId) {
-    // Добавление корневой папки
-    folders.push(newLocalFolder);
+    folders.push(uiFolder);
   } else {
-    // Добавление подпапки
     const parent = findFolderById(folders, parentId);
     if (parent) {
-      // Проверяем, есть ли у родителя поле children, если нет - создаем
-      if (!parent.children) {
-        parent.children = [];
-      }
-      parent.children.push(newLocalFolder);
-    } else {
-      console.error(`Родительская папка с ID ${parentId} не найдена.`);
-      return; // Если родителя нет, выходим
+      if (!parent.children) parent.children = [];
+      parent.children.push(uiFolder);
     }
   }
-  saveFolders(); // Сохраняем обновленную структуру папок локально
-  renderFolders(); // Перерисовываем интерфейс
+  
+  saveFolders();
+  renderFolders();
 
-  // Отправляем папку на сервер для синхронизации
-  sendFolderToServer(newLocalFolder).then(serverId => {
-    if (serverId !== null && serverId !== undefined) { // Проверяем, что ID получен успешно
-      // Если папка успешно создана на сервере:
-      // 1. Находим созданную папку по ее временному локальному ID
-      const createdFolder = findFolderById(folders, newLocalFolder.id); 
-      if (createdFolder) {
-        createdFolder.id = serverId; // Обновляем локальный ID на ID, полученный с сервера
-        createdFolder.isLocal = false; // Снимаем флаг локальной папки
-        createdFolder.parentId = parentId; // Убедимся, что parentId правильный
-
-        // Обновляем folderId у всех заметок, которые были добавлены в эту папку
-        // до ее синхронизации с сервером (их folderId равен временному локальному ID)
-        notes.forEach(note => {
-          if (note.folderId === newLocalFolder.id) {
-            note.folderId = serverId; // Заменяем временный ID на серверный
-          }
-        });
-
-        saveFolders(); // Сохраняем обновленную структуру с серверным ID
-        saveNotes();   // Сохраняем обновленные заметки
-        renderFolders(); // Перерисовываем интерфейс, чтобы отобразить правильные ID
-        console.log(`Папка "${name}" успешно синхронизирована с ID ${serverId}.`);
-      } else {
-        console.error(`Не удалось найти созданную папку ${newLocalFolder.id} для обновления.`);
-      }
-    } else {
-      // Если при отправке на сервер произошла ошибка
-      alert(`Не удалось синхронизировать папку "${name}". Пожалуйста, попробуйте позже.`);
-      // Здесь можно добавить логику для удаления локально созданной папки, если синхронизация не удалась,
-      // или пометить ее как "не синхронизированную" для повторной попытки.
-    }
-  });
+  // Отправка на сервер
+  sendFolderToServer(newLocalFolder);
 }
 
-// Рекурсивно ищет папку по ID в списке папок (включая вложенные)
 function findFolderById(list, id) {
   for (const f of list) {
-    if (f.id === id) return f; // Найдена папка
-    // Если у папки есть подпапки, рекурсивно ищем в них
+    if (f.id === id) return f;
     if (f.children && f.children.length > 0) {
       const found = findFolderById(f.children, id);
-      if (found) return found; // Найдена в подпапках
+      if (found) return found;
     }
   }
-  return null; // Папка не найдена
+  return null;
 }
 
-// Подсчет количества заметок в указанной папке
 function countNotesInFolder(folderId) {
   return notes.filter((note) => note.folderId === folderId).length;
 }
 
-// --- Слушатели событий ---
-
-// Обновление содержимого заметки при вводе текста
+// --- Слушатели ---
 document.getElementById("notes-content").addEventListener("input", loadNotes);
 
-// Добавление корневой папки
 document.getElementById("add-root-folder").addEventListener("click", () => {
   const name = document.getElementById("new-folder-input").value.trim();
   if (name) {
-    addFolder(null, name); // null как parentId означает корневую папку
-    document.getElementById("new-folder-input").value = ""; // Очищаем поле ввода
+    addFolder(null, name);
+    document.getElementById("new-folder-input").value = "";
   }
 });
 
-// Ручное сохранение заметки (с отправкой на сервер)
-document
-  .getElementById("save-note-btn-manual")
-  .addEventListener("click", () => {
+document.getElementById("save-note-btn-manual").addEventListener("click", () => {
     const activeNote = notes.find((n) => n.isCurrent);
     if (activeNote) {
-      // Принудительно обновляем контент перед отправкой
       activeNote.content = document.getElementById("notes-content").value;
       sendNoteToServer(activeNote);
-      alert("Отправка на сервер...");
-    } else {
-      alert("Нет активной заметки для сохранения");
     }
-  });
-
-// Удаление активной заметки
-document
-  .getElementById("delete-note-btn")
-  .addEventListener("click", async () => {
-    const activeNote = notes.find((n) => n.isCurrent);
-    if (!activeNote) {
-      alert("Нет активной заметки для удаления.");
-      return;
-    }
-
-    if (
-      confirm(`Вы уверены, что хотите удалить заметку "${activeNote.title}"?`)
-    ) {
-      const success = await sendDeleteNoteToServer(activeNote.id);
-      if (success) {
-        // Удаляем заметку из локального массива
-        notes = notes.filter((n) => n.id !== activeNote.id);
-        saveNotes();
-        // Очищаем редактор и заголовок
-        document.getElementById("notes-content").value = "";
-        document.getElementById("current-note-title").textContent =
-          "Новая заметка";
-        // Снимаем активность с любой заметки
-        notes.forEach((n) => (n.isCurrent = false));
-        renderFolders(); // Перерисовываем папки
-        alert("Заметка успешно удалена.");
-      } else {
-        alert("Не удалось удалить заметку с сервера.");
-      }
-    }
-  });
-
-// Кнопка синхронизации данных (заметок и папок)
-document
-  .getElementById("sync-notes-btn")
-  .addEventListener("click", syncDataFromServer); // Используем новую функцию синхронизации
-
-// Выход из аккаунта
-document.getElementById("logout-btn").addEventListener("click", () => {
-  if (confirm("Вы уверены, что хотите выйти?")) {
-    localStorage.clear(); // Очищаем все данные локального хранилища
-    window.location.replace("/login.html"); // Перенаправление на страницу логина
-  }
 });
 
-// --- Инициализация при загрузке ---
+document.getElementById("delete-note-btn").addEventListener("click", async () => {
+    const activeNote = notes.find((n) => n.isCurrent);
+    if (activeNote && confirm(`Удалить "${activeNote.title}"?`)) {
+      if (await sendDeleteNoteToServer(activeNote.id)) {
+        notes = notes.filter((n) => n.id !== activeNote.id);
+        saveNotes();
+        renderFolders();
+      }
+    }
+});
+
+document.getElementById("sync-notes-btn").addEventListener("click", syncDataFromServer);
+
+document.getElementById("logout-btn").addEventListener("click", () => {
+  localStorage.clear();
+  window.location.replace("/login.html");
+});
+
 window.onload = () => {
-  // При первой загрузке, если локальных данных нет, пытаемся синхронизировать с сервером
-  // Проверяем наличие хотя бы одного элемента в folders или notes, чтобы не делать лишний запрос
   if (!localStorage.getItem("folders") && !localStorage.getItem("notes")) {
-      console.log("Локальные данные не найдены, пытаюсь синхронизировать с сервером...");
       syncDataFromServer();
   } else {
-      // Если локальные данные есть, просто рендерим их
-      console.log("Локальные данные найдены, рендерю...");
       renderFolders();
   }
-  
-  renderCalendar(); // Рендерим календарь
-
-  // Устанавливаем содержимое редактора, если есть активная заметка
-  const active = notes.find((n) => n.isCurrent);
-  if (active) {
-    document.getElementById("notes-content").value = active.content;
-    document.getElementById("current-note-title").textContent = active.title;
-  }
+  renderCalendar();
 };
 
 // --- Логика динамического календаря ---

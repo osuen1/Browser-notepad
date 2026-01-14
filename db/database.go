@@ -152,6 +152,11 @@ func Delete_folder(pool *pgxpool.Pool, folder_id int) error {
 	if _, err := pool.Exec(context.Background(), "DELETE FROM folders WHERE id = $1", folder_id); err != nil {
 		return fmt.Errorf("An error in Delete_folder: %v", err)
 	}
+	
+	if _, err := pool.Exec(context.Background(), "DELETE FROM note WHERE folder_id = $1", folder_id); err != nil {
+		return fmt.Errorf("An error in Delete_folder: %v", err)
+	}
+	
 	return nil
 }
 

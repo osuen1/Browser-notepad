@@ -32,9 +32,9 @@ func main() {
 	mux.HandleFunc("/api/folders/create", serv.CreateFolderHandler)
 	mux.HandleFunc("/api/folders/delete", serv.DeleteFolderHandler)
 	mux.HandleFunc("/api/folders/get", serv.GetFoldersHandler)
-	mux.HandleFunc("/api/notes/get", serv.Get_notes_handler)
-    mux.HandleFunc("/api/notes/create", serv.Create_note_handler)
-    mux.HandleFunc("/api/notes/delete", serv.Delete_note_handler)
+	mux.HandleFunc("/api/notes/get", serv.GetNotesHandler)
+    mux.HandleFunc("/api/notes/create", serv.CreateNoteHandler)
+    mux.HandleFunc("/api/notes/delete", serv.DeleteNoteHandler)
     mux.HandleFunc("/api/reset-password", serv.ResetApiHandler)
     
 

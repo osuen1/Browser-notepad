@@ -116,7 +116,7 @@ func NoteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка
 }
 
 // Получение заметок
-func Get_notes_handler(w http.ResponseWriter, r *http.Request) {
+func GetNotesHandler(w http.ResponseWriter, r *http.Request) {
 	var data NoteData
 	var response []NoteData
 
@@ -155,7 +155,7 @@ func Get_notes_handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Create_note_handler(w http.ResponseWriter, r *http.Request) {
+func CreateNoteHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -194,7 +194,7 @@ func Create_note_handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Delete_note_handler(w http.ResponseWriter, r *http.Request) {
+func DeleteNoteHandler(w http.ResponseWriter, r *http.Request) {
 	var data NoteData
 
 	if r.Method == http.MethodPost {

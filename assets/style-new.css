@@ -724,3 +724,27 @@ body {
     gap: 8px;
     justify-content: flex-end;
 }
+
+/* Стили для кнопки удаления папки */
+.folder-action-btn.delete-folder:hover {
+    color: #ff4d4d; /* Красный цвет при наведении */
+    border-color: #ff4d4d;
+}
+
+/* Стилизация самих иконок внутри кнопок действий */
+.folder-action-btn i {
+    font-size: 12px;
+    pointer-events: none; /* Чтобы клик регистрировался на кнопке, а не на иконке */
+}
+
+/* Убедимся, что кнопки действий не перекрывают текст */
+.folder-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0; /* Скрываем кнопки по умолчанию */
+    transition: opacity 0.2s;
+}
+
+.folder-item:hover .folder-actions {
+    opacity: 1; /* Показываем кнопки при наведении на папку */
+}
