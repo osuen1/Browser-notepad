@@ -14,3 +14,12 @@ CREATE TABLE notes (
 );
 
 ALTER TABLE users ADD COLUMN email CHAR(30);
+
+CREATE TABLE folders (
+	id INTEGER NOT NULL UNIQUE,
+	user_id INTEGER NOT NULL,
+	name varchar(30) NOT NULL,
+	parent_id INTEGER NOT NULL,
+	
+	Foreign Key (id) REFERENCES users(user_id)
+);

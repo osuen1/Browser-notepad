@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -24,6 +25,14 @@ type NoteData struct {
 	Data    string `json:"Data"`
 	ID_note string `json:"ID_note"`
 	Folder_id int `json:"Folder_id"`
+}
+
+type FolderData struct {
+	User_id       int          `json:"user_id"`
+	Name          string       `json:"Name"`
+	Folder_id     int          `json:"FolderId"`
+	Parent_id     int          `json:"ParentId"`
+	// Child_folders []FolderData `json:"Child_folders"`
 }
 
 type Login_info struct { // парсим приходящий от js json
@@ -211,6 +220,88 @@ func Delete_note_handler(w http.ResponseWriter, r *http.Request) {
 			
 		} else {
 			http.Error(w, "u not login", http.StatusForbidden)
+		}
+	}
+}
+
+func CreateFolderHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost && server.db != nil && server.cookie_handler != nil {
+		var req FolderData
+		
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		
+		if err := db.Create_folder(server.db, req.Folder_id, req.Name, req.User_id, req.Parent_id); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func GetFoldersHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost && server.db != nil && server.cookie_handler != nil {
+		var response []FolderData
+		var req FolderData
+		
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "An error in GetFoldersHandler", http.StatusBadRequest)
+		}
+		
+		info := db.Get_folders(server.db, req.User_id)
+		
+		for _, folder := range info {
+			folder_id, err := strconv.Atoi(folder[0])
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			
+			parent_id, err := strconv.Atoi(folder[2])
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			
+			response = append(response, FolderData{
+				Folder_id: folder_id,
+				Name: folder[1],
+				Parent_id: parent_id,
+			})
+		}
+		
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+func DeleteFolderHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost && server.cookie_handler != nil && server.db != nil {
+		var req FolderData
+		var response Login_response
+		
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		
+		if err := db.Delete_folder(server.db, req.Folder_id); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		
+		response = Login_response{
+			Status: true,
+			Message: "Папка успешно удалена",
+		}
+		
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }

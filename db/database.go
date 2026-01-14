@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -44,6 +45,8 @@ func Find_user(pool *pgxpool.Pool, login string) (id int, username string, passw
 
 	return id, username, password, email
 }
+
+// Логика заметок 
 
 func Add_note(pool *pgxpool.Pool, note_id string, user_id int, date string, data string, folder_id int, title string) error {
 	// Возможно, будем использовать разные таблицы для разных пользователей в будущем
@@ -107,6 +110,49 @@ func Check_note(pool *pgxpool.Pool, note_id string) (bool, error) {
 		return false, err
 	}
 	return result, nil
+}
+
+// Логика папок
+
+func Create_folder(pool *pgxpool.Pool, folder_id int, folder_name string, user_id int, parent_id int) error {
+	if _, err := pool.Exec(context.Background(), "INSERT INTO folders (id, user_id, name, parent_id) VALUES ($1, $2, $3, $4)", folder_id, user_id, folder_name, parent_id); err != nil {
+		fmt.Print("An error in Create_folder: ", err)
+	}
+	
+	return nil
+}
+
+func Get_folders(pool *pgxpool.Pool, user_id int) ([][]string) {
+	rows, err := pool.Query(context.Background(), "SELECT id, name, parent_id FROM folders WHERE user_id = $1", user_id)
+	if err != nil {
+		fmt.Print("An error in Get_folders: ", err)
+		return nil
+	}
+	defer rows.Close()
+	
+	var info [][] string
+	var folder_id int
+	var name string
+	var parent_id int
+	
+	for rows.Next() {
+		
+		if err := rows.Scan(&folder_id, &name, &parent_id); err != nil {
+			fmt.Print("An error in Get_folders: ", err)
+			return nil
+		}
+		
+		info = append(info, []string{strconv.Itoa(folder_id), name, strconv.Itoa(parent_id)})
+	}
+	
+	return info
+}
+
+func Delete_folder(pool *pgxpool.Pool, folder_id int) error {
+	if _, err := pool.Exec(context.Background(), "DELETE FROM folders WHERE id = $1", folder_id); err != nil {
+		return fmt.Errorf("An error in Delete_folder: %v", err)
+	}
+	return nil
 }
 
 func Update_password(pool *pgxpool.Pool, email string, new_password string) error {
