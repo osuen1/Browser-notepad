@@ -322,7 +322,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			var response Login_response
 
 			// получаем захешированный пароль из базы данных
-			user_id, _, password, user_email := db.Find_user(server.db, data_json.Login)
+			user_id, _, password, _ := db.Find_user(server.db, data_json.Login)
 
 			// проверка пароля
 			if status := Check_password(password, data_json.Password); status == true {
@@ -338,12 +338,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				session.Values["user_id"] = user_id
 				session.Save(r, w)
 
+				// Закоменчен блок отправки почты. Только для тестов
 				// Вынести определение mailer в main
-				mailer := mail.New_Dialer()
-				if err := mailer.Send_enter_mail(user_email); err != nil {
-					http.Error(w, "An error with send email", http.StatusInternalServerError)
-					fmt.Print(err)
-				}
+				// mailer := mail.New_Dialer()
+				// if err := mailer.Send_enter_mail(user_email); err != nil {
+				// 	http.Error(w, "An error with send email", http.StatusInternalServerError)
+				// 	fmt.Print(err)
+				// }
 
 				token := Generate_token()
 				if err := db.Update_token(server.db, user_id, token); err != nil {
