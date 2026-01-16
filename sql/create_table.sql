@@ -5,11 +5,14 @@ CREATE TABLE users (
     password TEXT NOT NULL
 );
 
-CREATE TABLE notes (
-    id SERIAL PRIMARY KEY,
+CREATE TABLE note (
+    id varchar(20) PRIMARY KEY,
     user_id INTEGER NOT NULL,
     date TEXT NOT NULL,
     text TEXT NOT NULL,
+    folder_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    colour TEXT NOT NULL,
     FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
