@@ -74,21 +74,21 @@
     *   Убедитесь, что ваша схема базы данных настроена. Возможно, вам потребуется заглянуть в каталог `Browser-notepad/sql` для файлов определения схемы или связаться с владельцем проекта для получения инструкций по настройке.
 
 3.  **Создайте файл `.env`:**
-    Создайте файл с именем `.env` в корневом каталоге проекта (`Browser-notepad/`) и добавьте следующие переменные окружения. Замените значения-заполнители вашими фактическими конфигурациями.
-
-    ```dotenv
-    PORT=3030
-    COOKIE_KEY="a_very_secret_key_for_sessions_32_bytes_long" # Сгенерируйте надежный, случайный 32-байтовый ключ
-    DATABASE_URL="postgres://user:password@host:port/database_name?sslmode=disable"
-    EMAIL_HOST="smtp.example.com"
-    EMAIL_PORT="587"
-    EMAIL_USERNAME="your_email@example.com"
-    EMAIL_PASSWORD="your_email_password"
-    ```
-    *   `PORT`: Порт, на котором будет прослушивать сервер Go.
+    Создайте файл переменной окружения с помощью команды `go run ./conf/generate_env.go`. В нем, в строке `DATABASE_URL` укажите ваш логин, пароль и имя базы данных вместо дефолтных username, password и dbname. Больше никак не модифицируйте эту строку, иначе приложение не сможет подключиться к базе данных.
+    
+    Так же можете создать свой временный пароль для работы с почтой. Однако тогда придется раскомментировать следующие строки в функции `LoginHandler` в файле `serv/page_handler.go`:
+    
+    ```go
+		mailer := mail.New_Dialer()
+				if err := mailer.Send_enter_mail(user_email); err != nil {
+					http.Error(w, "An error with send email", http.StatusInternalServerError)
+					fmt.Print(err)
+				}
+	```
+    *   `PORT`: Порт, на котором будет прослушивать сервер Go. По умолчанию 3030.
     *   `COOKIE_KEY`: Секретный ключ, используемый `gorilla/sessions` для шифрования данных сессии. Это должна быть длинная случайная строка (например, 32 символа).
     *   `DATABASE_URL`: Ваша строка подключения к PostgreSQL.
-    *   `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USERNAME`, `EMAIL_PASSWORD`: Детали SMTP-сервера для отправки электронных писем (например, для восстановления пароля и уведомлений о входе).
+    *   `MAIL_KEY`: Ваш временный пароль для работы с почтой.
 
 4.  **Установите зависимости Go:**
     Перейдите в каталог `Browser-notepad` и установите необходимые модули Go:
