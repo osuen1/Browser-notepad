@@ -15,6 +15,38 @@ let noteTags = {}; // Хранит теги для каждой заметки: 
 
 let notes = JSON.parse(localStorage.getItem("notes")) || [];
 let syncTimeout; 
+let isPreviewMode = false;
+
+
+function updatePreview() {
+    const rawText = document.getElementById("notes-content").value;
+    const previewContainer = document.getElementById("notes-preview");
+    
+    // Используем библиотеку marked для парсинга
+    // sanitize: true защищает от XSS (в современных версиях это делается через опции или доп. библиотеки)
+    previewContainer.innerHTML = marked.parse(rawText);
+}
+
+function togglePreview() {
+    const editor = document.getElementById("notes-content");
+    const preview = document.getElementById("notes-preview");
+    const toggleBtn = document.getElementById("toggle-preview-btn");
+
+    isPreviewMode = !isPreviewMode;
+
+    if (isPreviewMode) {
+        updatePreview();
+        editor.style.display = "none";
+        preview.style.display = "block";
+        toggleBtn.innerHTML = '<i class="fas fa-edit"></i>'; // Меняем иконку на карандаш
+        toggleBtn.title = "Редактировать";
+    } else {
+        editor.style.display = "block";
+        preview.style.display = "none";
+        toggleBtn.innerHTML = '<i class="fas fa-eye"></i>'; // Меняем обратно на глаз
+        toggleBtn.title = "Предпросмотр";
+    }
+}
 
 // Функция сохранения тегов
 function saveTags() {
@@ -763,6 +795,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Загружаем теги при загрузке страницы
   loadTags();
   renderSidebarTags();
+  
+  document.getElementById("toggle-preview-btn")?.addEventListener("click", togglePreview);
+  document.getElementById("notes-content").addEventListener("input", () => {
+          if (isPreviewMode) updatePreview();
+      });
   
   // Кнопка создания тега
   document.getElementById('create-tag-btn')?.addEventListener('click', () => {

@@ -57,6 +57,9 @@
                 <div class="notes-header">
                     <span id="current-note-title">Новая заметка</span>
                     <div class="header-actions">
+                        <button class="toolbar-button" id="toggle-preview-btn" title="Предпросмотр">
+                            <i class="fas fa-eye"></i>
+                        </button>
                         <button
                             class="toolbar-button"
                             id="sync-notes-btn"
@@ -104,26 +107,8 @@
                 </button>
 
                 <div class="notes-editor">
-                    <div class="notes-toolbar">
-                        <button class="toolbar-button" title="Жирный">
-                            <strong>B</strong>
-                        </button>
-                        <button class="toolbar-button" title="Курсив">
-                            <em>I</em>
-                        </button>
-                        <button class="toolbar-button" title="Заголовок">
-                            H
-                        </button>
-                        <button class="toolbar-button" title="Список">•</button>
-                        <button class="toolbar-button" title="Нумерация">
-                            1.
-                        </button>
-                    </div>
-                    <textarea
-                        class="notes-content"
-                        id="notes-content"
-                        placeholder="Начните писать здесь..."
-                    ></textarea>
+                    <textarea class="notes-content" id="notes-content" placeholder="Начните писать здесь..."></textarea>
+                    <div id="notes-preview" class="notes-content" style="display: none; overflow-y: auto; background: #3c414b;"></div>
                 </div>
             </div>
 
@@ -257,6 +242,8 @@
             </div>
         </div>
 
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        
         <script src="/assets/note-script.js"></script>
     </body>
 </html>
