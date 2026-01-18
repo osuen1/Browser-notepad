@@ -57,7 +57,7 @@ type Server struct {
 	cookie_handler *sessions.CookieStore
 }
 
-var tmpl = template.Must(template.ParseFiles("templates/index.html"))
+var lending = template.Must(template.ParseFiles("templates/lending.html"))
 var log_page = template.Must(template.ParseFiles("templates/login.html"))
 var register_page = template.Must(template.ParseFiles("templates/register.html"))
 var new_page = template.Must(template.ParseFiles("templates/new_page.html"))
@@ -83,25 +83,9 @@ func init_server() {
 }
 
 // индекс уйдет под отрисовку лендинга
-func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовка главной страницы блокнота (с полем вводе новой заметки)
-	var data NoteData
-
-	if r.Method == http.MethodGet && server.cookie_handler != nil {
-		tmpl.Execute(w, nil) // передача HTML документа клиентскому серверу
-	} else {
-		http.Error(w, "u not login", http.StatusForbidden)
-	}
-
-	if r.Method == http.MethodPost && server.cookie_handler != nil { // если сервер отправляет JSON - обрабатываем
-
-		decoder := json.NewDecoder(r.Body)            // декодируем JSON с клиента
-		if err := decoder.Decode(&data); err != nil { // записываем данные из JSON в структуру Note
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		info.data = append(info.data, data.Data)      // заполняем массив текстом, который ввел пользователь
-		fmt.Printf("Received JSON: %+v\n", info.data) // выводим данные в консоль
+func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовка лендинга
+	if r.Method == http.MethodGet {
+		lending.Execute(w, nil)
 	}
 }
 
