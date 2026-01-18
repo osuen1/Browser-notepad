@@ -170,7 +170,7 @@ func CreateNoteHandler(w http.ResponseWriter, r *http.Request) {
 		} else if !result {
 			var tags []string
 			for _, tag := range req.Tags {
-				tags = append(tags, tag.Colour, tag.Name)
+				tags = append(tags, tag.Name, tag.Colour)
 			}
 			
 			err := db.Add_note(server.db, req.ID_note, req.User_id, req.Date, req.Data, req.Folder_id, req.Title, tags)
@@ -380,6 +380,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if result == true {
+			db.Add_user(server.db, data_json.Login, Hash_password(data_json.Password), data_json.Email, Generate_token())
+			
 			responseJson.Status = true
 			responseJson.Message = "Registration successful"
 
@@ -387,8 +389,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			if err := encoder.Encode(responseJson); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-
-			db.Add_user(server.db, data_json.Login, Hash_password(data_json.Password), data_json.Email, Generate_token())
 
 		} else {
 			responseJson.Status = false
