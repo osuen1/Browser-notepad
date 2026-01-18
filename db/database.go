@@ -48,11 +48,11 @@ func Find_user(pool *pgxpool.Pool, login string) (id int, username string, passw
 
 // Логика заметок 
 
-func Add_note(pool *pgxpool.Pool, note_id string, user_id int, date string, data string, folder_id int, title string) error {
+func Add_note(pool *pgxpool.Pool, note_id string, user_id int, date string, data string, folder_id int, title string, tags []string) error {
 	// Возможно, будем использовать разные таблицы для разных пользователей в будущем
 	// row := pool.QueryRow(context.Background(), "CREATE TABLE IF NOT EXISTS notes (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, date TEXT NOT NULL, text TEXT NOT NULL, FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE)")
 	
-	_, err := pool.Exec(context.Background(), "INSERT INTO note (id, user_id, date, text, folder_id, title) VALUES ($1, $2, $3, $4, $5, $6)", note_id, user_id, date, data, folder_id, title)
+	_, err := pool.Exec(context.Background(), "INSERT INTO note (id, user_id, date, text, folder_id, title, tags) VALUES ($1, $2, $3, $4, $5, $6, $7)", note_id, user_id, date, data, folder_id, title, tags)
 	if err != nil {
 		if err != pgx.ErrNoRows {
 			return fmt.Errorf("error adding note: %v", err)

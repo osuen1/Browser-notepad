@@ -18,13 +18,19 @@ import (
 	"server/mail"
 )
 
+type Tags struct {
+	Name  string `json:"Name"`
+	Colour string `json:"Colour"`
+}
+
 type NoteData struct {
-	User_id int    `json:"user_id"`
-	Title   string `json:"Title"`
-	Date    string `json:"Date"`
-	Data    string `json:"Data"`
-	ID_note string `json:"ID_note"`
-	Folder_id int `json:"Folder_id"`
+	User_id   int      `json:"user_id"`
+	Title     string   `json:"Title"`
+	Date      string   `json:"Date"`
+	Data      string   `json:"Data"`
+	ID_note   string   `json:"ID_note"`
+	Folder_id int      `json:"Folder_id"`
+	Tags      []Tags   `json:"Tags"`
 }
 
 type FolderData struct {
@@ -162,7 +168,12 @@ func CreateNoteHandler(w http.ResponseWriter, r *http.Request) {
 				fmt.Print("Ошибка базы даных. Невозможно обновить заметку")
 			}
 		} else if !result {
-			err := db.Add_note(server.db, req.ID_note, req.User_id, req.Date, req.Data, req.Folder_id, req.Title)
+			var tags []string
+			for _, tag := range req.Tags {
+				tags = append(tags, tag.Colour, tag.Name)
+			}
+			
+			err := db.Add_note(server.db, req.ID_note, req.User_id, req.Date, req.Data, req.Folder_id, req.Title, tags)
 			if err != nil {
 				fmt.Printf("Ошибка записи в БД: %v\n", err)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)

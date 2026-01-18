@@ -46,19 +46,8 @@
 
                 <div class="tags-section">
                     <div class="sidebar-title">Теги</div>
-                    <ul class="tags-list">
-                        <li class="tag-item active">
-                            <i class="fas fa-tag"></i> Работа
-                            <span class="item-count">12</span>
-                        </li>
-                        <li class="tag-item">
-                            <i class="fas fa-tag"></i> Личное
-                            <span class="item-count">7</span>
-                        </li>
-                        <li class="tag-item">
-                            <i class="fas fa-tag"></i> Идеи
-                            <span class="item-count">15</span>
-                        </li>
+                    <ul class="tags-list" id="tags-list">
+                        <!-- Теги будут добавлены динамически -->
                     </ul>
                 </div>
             </div>
@@ -96,8 +85,24 @@
                         >
                             <i class="fas fa-plus"></i>
                         </button>
+                        <button
+                            class="toolbar-button"
+                            id="create-tag-btn"
+                            title="Создать новый тег"
+                        >
+                            <i class="fas fa-tag"></i>
+                        </button>
                     </div>
                 </div>
+
+                <!-- Контейнер для выбранных тегов -->
+                <div class="selected-tags-container" id="selected-tags-container"></div>
+
+                <!-- Кнопка для добавления тегов к заметке -->
+                <button class="tag-select-btn" id="add-tags-btn">
+                    <i class="fas fa-tag"></i> Добавить теги
+                </button>
+
                 <div class="notes-editor">
                     <div class="notes-toolbar">
                         <button class="toolbar-button" title="Жирный">
@@ -138,11 +143,6 @@
                             <button
                                 id="today-btn"
                                 title="Вернуться к текущей дате"
-                                style="
-                                    width: auto;
-                                    padding: 0 8px;
-                                    font-size: 11px;
-                                "
                             >
                                 Сегодня
                             </button>
@@ -213,6 +213,46 @@
                     <button class="toolbar-button" id="cancel-note-btn">
                         Отмена
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно создания тега -->
+        <div class="modal-overlay" id="tag-modal">
+            <div class="modal-content">
+                <h3>Создать новый тег</h3>
+                <input
+                    type="text"
+                    id="tag-name-input"
+                    placeholder="Название тега..."
+                />
+                <label>Выберите цвет:</label>
+                <div class="color-picker" id="color-picker">
+                    <div class="color-option" data-color="#FF6B6B"></div>
+                    <div class="color-option" data-color="#4ECDC4"></div>
+                    <div class="color-option" data-color="#45B7D1"></div>
+                    <div class="color-option" data-color="#96CEB4"></div>
+                    <div class="color-option" data-color="#FFEAA7"></div>
+                    <div class="color-option" data-color="#DDA0DD"></div>
+                    <div class="color-option" data-color="#F8A5C2"></div>
+                    <div class="color-option" data-color="#778899"></div>
+                </div>
+                <input type="hidden" id="tag-color-input" value="#FF6B6B">
+                <div class="modal-buttons">
+                    <button class="toolbar-button" id="save-tag-btn">Создать</button>
+                    <button class="toolbar-button" id="cancel-tag-btn">Отмена</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно выбора тегов для заметки -->
+        <div class="modal-overlay" id="tag-select-modal">
+            <div class="modal-content">
+                <h3>Выберите теги</h3>
+                <div class="tags-container" id="available-tags-container"></div>
+                <div class="modal-buttons">
+                    <button class="toolbar-button" id="confirm-tags-btn">Применить</button>
+                    <button class="toolbar-button" id="cancel-select-tags-btn">Отмена</button>
                 </div>
             </div>
         </div>

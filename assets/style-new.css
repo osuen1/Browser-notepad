@@ -748,3 +748,57 @@ body {
 .folder-item:hover .folder-actions {
     opacity: 1; /* Показываем кнопки при наведении на папку */
 }
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .tag-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .tag-pill:hover {
+    opacity: 0.8;
+  }
+  
+  .tag-pill i {
+    font-size: 10px;
+  }
+  
+  .selected-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .tag-select-btn {
+    margin-top: 12px;
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+  }
+  
+  .tag-select-btn:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+  }
