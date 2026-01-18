@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Notepad — Ваши заметки всегда с вами</title>
+    <link rel="stylesheet" href="lending.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="header">
+        <nav class="container">
+            <div class="logo">Browser<span>Notepad</span></div>
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="#features">Возможности</a></li>
+                    <li><a href="#about">Авторы</a></li>
+                </ul>
+                <button id="theme-toggle" class="theme-btn" aria-label="Переключить тему">
+                    <span class="icon-sun">☀️</span>
+                    <span class="icon-moon">🌙</span>
+                </button>
+                <a href="https://github.com/osuen1/Browser-notepad" target="_blank" class="btn-secondary github-btn">GitHub</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-content animate-on-scroll">
+                <h1>Твои мысли. В безопасности. <span class="accent">Всегда.</span></h1>
+                <p>Минималистичный инструмент для быстрых заметок, разработанный специалистами по ИБ.</p>
+                <div class="hero-btns">
+                    <a href="https://osuen1.github.io/Browser-notepad/" target="_blank" class="btn-primary">Начать писать</a>
+                </div>
+                <div class="browser-mockup animate-on-scroll delay-200">
+                    <div class="browser-header">
+                        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                        <span class="address-bar">browser-notepad.io</span>
+                    </div>
+                    <div class="browser-body">
+                        <p class="placeholder-text">Весь текст сохраняется автоматически в вашем браузере...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features container">
+            <div class="feature-card animate-on-scroll">
+                <div class="icon">🔄</div>
+                <h3>Умная сессия</h3>
+                <p>Даже после закрытия вкладки или перезагрузки компьютера ваш текст мгновенно восстановится при открытии.</p>
+            </div>
+            
+            <div class="feature-card animate-on-scroll delay-100">
+                <div class="icon">🛡️</div>
+                <h3>ИБ-защита</h3>
+                <p>Данные изолированы в «песочнице» вашего браузера. Никаких утечек и скрытой передачи на серверы.</p>
+            </div>
+
+            <div class="feature-card animate-on-scroll delay-200">
+                <div class="icon">🔐</div>
+                <h3>Приватность</h3>
+                <p>Доступ к локальному хранилищу имеете только вы. Приложение не собирает телеметрию и куки.</p>
+            </div>
+
+            <div class="feature-card animate-on-scroll">
+                <div class="icon">🌓</div>
+                <h3>Темная тема</h3>
+                <p>Полноценная поддержка ночного режима для комфортной работы и снижения нагрузки на зрение.</p>
+            </div>
+
+            <div class="feature-card animate-on-scroll delay-100">
+                <div class="icon">✈️</div>
+                <h3>Offline-режим</h3>
+                <p>Приложение полностью автономно. Пишите заметки в самолете или там, где связь недоступна.</p>
+            </div>
+
+            <div class="feature-card animate-on-scroll delay-200">
+                <div class="icon">🚀</div>
+                <h3>Zero-Bloat</h3>
+                <p>Чистый JavaScript без лишних библиотек. Максимальная скорость работы и чистый интерфейс.</p>
+            </div>
+        </section>
+
+        <section id="about" class="authors container animate-on-scroll">
+            <h2 class="section-title">Создатели проекта</h2>
+            <div class="authors-grid">
+                
+                <div class="author-card">
+                    <div class="author-photo">
+                        <img src="https://github.com/osuen1.png" alt="Степан Акимов">
+                    </div>
+                    <h3>Акимов Степан (osuen1)</h3>
+                    <p class="role">Lead Developer, IS Specialist</p>
+                    <p class="bio">Автор архитектуры проекта и главный разработчик.</p>
+                    <div class="socials">
+                        <a href="https://github.com/osuen1" target="_blank" class="github-link">GitHub</a>
+                        <span class="email-badge">st.akimov1@gmail.com</span>
+                    </div>
+                </div>
+
+                <div class="author-card">
+                    <div class="author-photo">
+                        <img src="https://github.com/danbeldania.png" alt="Даниил Беляков">
+                    </div>
+                    <h3>Беляков Даниил</h3>
+                    <p class="role">IS Specialist, Manager</p>
+                    <p class="bio">Соавтор проекта. Аналитика безопасности, управление рисками.</p>
+                    <div class="socials">
+                        <a href="https://github.com/danbeldania" target="_blank" class="github-link">GitHub</a>
+                        <span class="email-badge">belyakov.is@internet.ru</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Browser Notepad.</p>
+        </div>
+    </footer>
+
+    <script src="lending.js"></script>
+</body>
+</html>
