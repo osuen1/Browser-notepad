@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Productivity App</title>
+    <link rel="stylesheet" href="/assets/style-new.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+
+<body>
+    <!-- Упрощенная строка вкладок -->
+    <div class="tabs-bar">
+        <div class="tab"><i class="fas fa-home"></i></div>
+        <div class="tab"><i class="fas fa-sticky-note"></i></div>
+        <div class="tab active"><i class="fas fa-tasks"></i></div>
+        <div class="tab"><i class="fas fa-calendar"></i></div>
+        <button class="logout-btn" id="logout-btn" title="Выйти из аккаунта">
+            <i class="fas fa-sign-out-alt"></i> <span>Выйти</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <!-- Левый бар -->
+        <div class="sidebar-left">
+            <div class="explorer-section">
+                <div class="sidebar-title">Папки</div>
+                <ul class="folder-list" id="folder-list">
+                    <!-- Папки будут добавлены сюда -->
+                </ul>
+                <input type="text" id="new-folder-input" placeholder="Название папки" />
+                <button class="add-button" id="add-root-folder">
+                    Создать папку
+                </button>
+            </div>
+
+            <div class="tags-section">
+                <div class="sidebar-title">Теги</div>
+                <ul class="tags-list" id="tags-list">
+                    <!-- Теги будут добавлены динамически -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Центральная область -->
+        <div class="todo-page-container">
+            <div class="notes-header">
+                <span>Список задач</span>
+                <div class="header-actions">
+                    <button class="toolbar-button" id="clear-completed-btn" title="Очистить выполненные">
+                        <i class="fas fa-broom"></i>
+                    </button>
+                    <button class="toolbar-button" id="sync-todo-btn" title="Синхронизировать">
+                        <i class="fas fa-sync"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="todo-input-group">
+                <input type="text" id="todo-new-input" placeholder="Что нужно сделать?" />
+                <button class="add-button" id="todo-add-btn">
+                    <i class="fas fa-plus"></i> Добавить
+                </button>
+            </div>
+
+            <div class="todo-list-full" id="todo-list-full">
+            </div>
+        </div>
+
+        <!-- Контейнер для выбранных тегов -->
+        <div class="selected-tags-container" id="selected-tags-container"></div>
+
+    <!-- Правый бар -->
+    <div class="sidebar-right">
+        <!-- Календарь -->
+        <div class="calendar-section">
+            <div class="calendar-header">
+                <div class="calendar-month" id="calendar-month-year"></div>
+                <div class="calendar-nav">
+                    <button id="prev-month">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button id="today-btn" title="Вернуться к текущей дате">
+                        Сегодня
+                    </button>
+                    <button id="next-month">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- События -->
+        <div class="events-section">
+            <div class="section-title">События</div>
+            <div class="event-item">
+                <div class="event-time">09:30</div>
+                <div class="event-text">Совещание</div>
+            </div>
+            <div class="event-item">
+                <div class="event-time">12:00</div>
+                <div class="event-text">Обед с клиентом</div>
+            </div>
+            <button class="add-button">Добавить событие</button>
+        </div>
+
+        <!-- Задачи -->
+        <div class="todo-section">
+            <div class="section-title">Задачи</div>
+            <div class="todo-item">
+                <input type="checkbox" class="todo-checkbox" checked />
+                <span class="todo-text todo-completed">Подготовить отчет</span>
+            </div>
+            <div class="todo-item">
+                <input type="checkbox" class="todo-checkbox" />
+                <span class="todo-text">Обновить UI</span>
+            </div>
+            <div class="todo-item">
+                <input type="checkbox" class="todo-checkbox" />
+                <span class="todo-text">Проверить почту</span>
+            </div>
+            <button class="add-button">Добавить задачу</button>
+        </div>
+    </div>
+    </div>
+
+    <!-- Модальное окно создания заметки -->
+    <div class="modal-overlay" id="note-modal">
+        <div class="modal-content">
+            <h3>Создать новую заметку</h3>
+            <input type="text" id="note-title-input" placeholder="Название заметки..." />
+            <label>Выберите папку:</label>
+            <select id="folder-select">
+                <option value="">В корне</option>
+                <!-- Папки будут добавлены здесь -->
+            </select>
+            <div class="modal-buttons">
+                <button class="toolbar-button" id="save-note-btn">
+                    Создать
+                </button>
+                <button class="toolbar-button" id="cancel-note-btn">
+                    Отмена
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно создания тега -->
+    <div class="modal-overlay" id="tag-modal">
+        <div class="modal-content">
+            <h3>Создать новый тег</h3>
+            <input type="text" id="tag-name-input" placeholder="Название тега..." />
+            <label>Выберите цвет:</label>
+            <div class="color-picker" id="color-picker">
+                <div class="color-option" data-color="#FF6B6B"></div>
+                <div class="color-option" data-color="#4ECDC4"></div>
+                <div class="color-option" data-color="#45B7D1"></div>
+                <div class="color-option" data-color="#96CEB4"></div>
+                <div class="color-option" data-color="#FFEAA7"></div>
+                <div class="color-option" data-color="#DDA0DD"></div>
+                <div class="color-option" data-color="#F8A5C2"></div>
+                <div class="color-option" data-color="#778899"></div>
+            </div>
+            <input type="hidden" id="tag-color-input" value="#FF6B6B">
+            <div class="modal-buttons">
+                <button class="toolbar-button" id="save-tag-btn">Создать</button>
+                <button class="toolbar-button" id="cancel-tag-btn">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно выбора тегов для заметки -->
+    <div class="modal-overlay" id="tag-select-modal">
+        <div class="modal-content">
+            <h3>Выберите теги</h3>
+            <div class="tags-container" id="available-tags-container"></div>
+            <div class="modal-buttons">
+                <button class="toolbar-button" id="confirm-tags-btn">Применить</button>
+                <button class="toolbar-button" id="cancel-select-tags-btn">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/assets/todo_script.js"></script>
+</body>
+
+</html>

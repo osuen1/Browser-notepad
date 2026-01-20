@@ -12,13 +12,9 @@ CREATE TABLE note (
     text TEXT NOT NULL,
     folder_id INTEGER NOT NULL,
     title TEXT NOT NULL,
-    colour TEXT NOT NULL,
+    tags []TEXT
     FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
-
-ALTER TABLE users ADD COLUMN email CHAR(30);
-ALTER TABLE users ADD COLUMN token CHAR(50);
-
 CREATE TABLE folders (
 	id INTEGER NOT NULL UNIQUE,
 	user_id INTEGER NOT NULL,
@@ -27,3 +23,19 @@ CREATE TABLE folders (
 	
 	Foreign Key (id) REFERENCES users(user_id)
 );
+
+CREATE TABLE IF NOT EXISTS public.settings
+(
+    id serial NOT NULL,
+    user_id integer NOT NULL,
+    language character varying(2) NOT NULL,
+    theme character varying(2) NOT NULL,
+    PRIMARY KEY (id),
+    
+    Foreign Key (user_id) REFERENCES users(user_id)
+);
+
+
+ALTER TABLE users ADD COLUMN email CHAR(30);
+ALTER TABLE users ADD COLUMN token CHAR(50);
+ALTER TABLE notes ADD COLUMN tags []TEXT;

@@ -54,10 +54,6 @@ type Login_response struct {
 	Message string `json:"message,omitempty"`
 }
 
-type ArrayInfo struct { // создаем структуру, которая создает срез для временного хранения информации (будет заменено базой данных)
-	data []string
-}
-
 type Server struct {
 	db             *pgxpool.Pool
 	cookie_handler *sessions.CookieStore
@@ -69,8 +65,8 @@ var register_page = template.Must(template.ParseFiles("templates/register.html")
 var new_page = template.Must(template.ParseFiles("templates/new_page.html"))
 var forgot_password_page = template.Must(template.ParseFiles("templates/forgot-password.html"))
 var resetPasswordPage = template.Must(template.ParseFiles("templates/reset-password.html"))
+var todoList = template.Must(template.ParseFiles("templates/todo_list.html"))
 
-var info ArrayInfo // создаем элемент структуры (массив, состоящий из data.TextNote)
 var server Server
 
 func init_server() {
@@ -88,8 +84,7 @@ func init_server() {
 	}
 }
 
-// индекс уйдет под отрисовку лендинга
-func IndexHandler(w http.ResponseWriter, r *http.Request) { // отрисовка лендинга
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		lending.Execute(w, nil)
 	}
@@ -298,6 +293,12 @@ func DeleteFolderHandler(w http.ResponseWriter, r *http.Request) {
 		if err := json.NewEncoder(w).Encode(response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+	}
+}
+
+func TodoListHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		todoList.Execute(w, nil)
 	}
 }
 

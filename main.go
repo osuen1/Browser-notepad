@@ -27,6 +27,7 @@ func main() {
 	mux.HandleFunc("/register.html", serv.RegisterHandler)
 	mux.HandleFunc("/forgotpassword", serv.ForgotPasswordHandler)
 	mux.HandleFunc("/resetpassword", serv.ResetPasswordHandler)
+	mux.HandleFunc("/todolist", serv.TodoListHandler)
 	
 	
 	mux.HandleFunc("/api/folders/create", serv.CreateFolderHandler)

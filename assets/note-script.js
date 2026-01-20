@@ -17,6 +17,11 @@ let notes = JSON.parse(localStorage.getItem("notes")) || [];
 let syncTimeout; 
 let isPreviewMode = false;
 
+let todoListLink = document.getElementById("todo-list-link").addEventListener("click", () => {
+  todoListLink.classList.add(".tab.active");
+  window.location.href = "/todolist";
+})
+
 
 function updatePreview() {
     const rawText = document.getElementById("notes-content").value;
