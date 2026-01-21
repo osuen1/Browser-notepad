@@ -1,34 +1,35 @@
 /* =========================================
-   1. ПЕРЕМЕННЫЕ И ТЕМЫ
+   APPLE LIQUID GLASS DESIGN
    ========================================= */
+
 :root {
-    /* Светлая тема */
-    --primary: #3b82f6;
-    --primary-hover: #2563eb;
+    --primary: #007AFF;
+    --primary-hover: #0051D5;
+    --bg-main: #0a0e1a;
+    --bg-gradient-1: #1a1f35;
+    --bg-gradient-2: #0f1628;
+    --text-main: #f5f5f7;
+    --text-muted: #86868b;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: rgba(0, 0, 0, 0.3);
+    --accent-glow: rgba(0, 122, 255, 0.3);
+}
+
+body.light-mode {
+    --primary: #007AFF;
+    --primary-hover: #0051D5;
     --bg-main: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-hero: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    --border: #e2e8f0;
-    --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
+    --bg-gradient-1: #f5f5f7;
+    --bg-gradient-2: #e8e8ed;
+    --text-main: #1d1d1f;
+    --text-muted: #6e6e73;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --glass-shadow: rgba(0, 0, 0, 0.1);
+    --accent-glow: rgba(0, 122, 255, 0.2);
 }
 
-body.dark-mode {
-    /* Темная тема */
-    --primary: #60a5fa;
-    --bg-main: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-hero: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-    --text-main: #f1f5f9;
-    --text-muted: #94a3b8;
-    --border: #334155;
-    --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
-}
-
-/* =========================================
-   2. БАЗОВЫЕ СТИЛИ
-   ========================================= */
 * {
     margin: 0;
     padding: 0;
@@ -40,41 +41,82 @@ html {
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 100%);
     color: var(--text-main);
     line-height: 1.6;
-    transition: background 0.3s, color 0.3s;
     overflow-x: hidden;
+    min-height: 100vh;
+    transition: all 0.3s ease;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(0, 122, 255, 0.1) 0%, transparent 50%);
+    animation: rotateGradient 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes rotateGradient {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 24px;
+    position: relative;
+    z-index: 1;
 }
 
 /* =========================================
-   3. ШАПКА (HEADER)
+   GLASS MORPHISM EFFECTS
    ========================================= */
+
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px var(--glass-shadow);
+}
+
+.glass-nav {
+    background: rgba(10, 14, 26, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+body.light-mode .glass-nav {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+/* =========================================
+   HEADER
+   ========================================= */
+
 .header {
-    background: rgba(var(--bg-main), 0.8);
-    backdrop-filter: blur(10px);
     position: sticky;
     top: 0;
     z-index: 100;
-    border-bottom: 1px solid var(--border);
-    padding: 15px 0;
+    padding: 16px 0;
 }
 
-nav, .nav-right {
+nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
-
-.nav-right {
-    gap: 25px;
+    padding: 12px 24px;
+    border-radius: 16px;
 }
 
 .logo {
@@ -84,215 +126,406 @@ nav, .nav-right {
 }
 
 .logo span {
-    color: var(--primary);
+    background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 .nav-links {
     display: flex;
     list-style: none;
-    gap: 25px;
+    gap: 30px;
 }
 
 .nav-links a {
     text-decoration: none;
     color: var(--text-main);
     font-weight: 500;
-    transition: 0.2s;
+    font-size: 0.95rem;
+    transition: color 0.3s;
+    position: relative;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary);
+    transition: width 0.3s;
 }
 
 .nav-links a:hover {
     color: var(--primary);
 }
 
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+.theme-btn {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.3s;
+}
+
+.theme-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.icon-moon { display: none; }
+body.light-mode .icon-sun { display: none; }
+body.light-mode .icon-moon { display: inline-block; }
+
 /* =========================================
-   4. КНОПКИ
+   BUTTONS
    ========================================= */
+
 .btn-primary {
-    background: var(--primary);
+    background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
     color: #fff;
-    padding: 14px 32px;
-    border-radius: 12px;
+    padding: 18px 48px;
+    border-radius: 16px;
     text-decoration: none;
-    font-weight: 700;
-    box-shadow: 0 4px 14px -4px var(--primary);
-    transition: 0.3s;
-    display: inline-block;
+    font-weight: 600;
+    font-size: 1.15rem;
+    box-shadow: 0 8px 24px var(--accent-glow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: none;
+    cursor: pointer;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px -6px var(--primary);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(0, 122, 255, 0.5);
+}
+
+.btn-primary:active {
+    transform: translateY(-1px) scale(0.98);
 }
 
 .btn-secondary {
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
     padding: 10px 20px;
-    border-radius: 10px;
+    border-radius: 12px;
     text-decoration: none;
     color: var(--text-main);
     font-weight: 600;
     font-size: 0.9rem;
-    transition: 0.2s;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .btn-secondary:hover {
-    background: var(--bg-secondary);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary);
 }
 
-.theme-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.3rem;
+.glass-btn-sm {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    padding: 8px 16px;
+    border-radius: 10px;
+    text-decoration: none;
     color: var(--text-main);
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.icon-moon { display: none; }
-body.dark-mode .icon-sun { display: none; }
-body.dark-mode .icon-moon { display: inline-block; }
+.glass-btn-sm:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
 
 /* =========================================
-   5. ГЛАВНЫЙ БЛОК (HERO)
+   HERO SECTION
    ========================================= */
+
 .hero {
-    padding: 80px 0 60px;
+    padding: 100px 0 120px;
     text-align: center;
-    background: var(--bg-hero);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(0, 122, 255, 0.15) 0%, transparent 50%);
+    pointer-events: none;
 }
 
 .hero h1 {
-    font-size: clamp(2.5rem, 8vw, 3.8rem);
-    letter-spacing: -1.5px;
-    margin-bottom: 20px;
+    font-size: clamp(2.5rem, 7vw, 4.5rem);
+    letter-spacing: -2px;
+    margin-bottom: 24px;
     line-height: 1.1;
+    font-weight: 800;
 }
 
 .hero .accent {
-    color: var(--primary);
+    background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-.hero p {
-    max-width: 600px;
-    margin: 0 auto 40px;
+.hero-subtitle {
+    max-width: 700px;
+    margin: 0 auto 50px;
     color: var(--text-muted);
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+    font-weight: 400;
+    line-height: 1.6;
 }
 
-/* МОКАП БРАУЗЕРА */
+.hero-btns {
+    margin-bottom: 80px;
+}
+
+/* BROWSER MOCKUP */
 .browser-mockup {
-    max-width: 850px;
-    margin: 50px auto 0;
-    background: var(--bg-main);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    box-shadow: var(--card-shadow);
+    max-width: 900px;
+    margin: 0 auto;
     overflow: hidden;
 }
 
 .browser-header {
-    background: var(--bg-secondary);
-    padding: 12px;
+    background: rgba(26, 31, 53, 0.8);
+    backdrop-filter: blur(20px);
+    padding: 14px 20px;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid var(--border);
+    gap: 16px;
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 24px 24px 0 0;
 }
 
-.dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
-.red { background: #ff5f56; }
-.yellow { background: #ffbd2e; }
-.green { background: #27c93f; }
+body.light-mode .browser-header {
+    background: rgba(245, 245, 247, 0.9);
+}
+
+.browser-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    opacity: 0.8;
+}
+
+.red { background: #FF5F57; }
+.yellow { background: #FFBD2E; }
+.green { background: #28CA42; }
 
 .address-bar {
-    margin: 0 20px;
-    background: var(--bg-main);
-    border-radius: 6px;
-    padding: 4px 12px;
-    flex-grow: 1;
-    text-align: left;
-    font-size: 0.8rem;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    text-align: center;
+    font-size: 0.85rem;
     color: var(--text-muted);
-    border: 1px solid var(--border);
+}
+
+body.light-mode .address-bar {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.browser-icons {
+    opacity: 0.5;
 }
 
 .browser-body {
-    padding: 40px;
-    height: 250px;
-    text-align: left;
-    font-family: monospace;
-    color: var(--text-muted);
-    opacity: 0.6;
+    padding: 60px 40px;
+    height: 300px;
+    background: rgba(10, 14, 26, 0.5);
+    border-radius: 0 0 24px 24px;
+    display: flex;
+    align-items: flex-start;
+}
+
+body.light-mode .browser-body {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.typing-text {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--text-main);
+    letter-spacing: -0.5px;
+}
+
+.cursor {
+    animation: blink 1s infinite;
+    color: var(--primary);
+    font-weight: 300;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
 }
 
 /* =========================================
-   6. ПРЕИМУЩЕСТВА (FEATURES)
+   FEATURES SECTION
    ========================================= */
-.features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-    padding: 80px 0;
-}
 
-.feature-card {
-    background: var(--bg-main);
-    padding: 40px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    box-shadow: var(--card-shadow);
-    transition: 0.3s;
-}
-
-.feature-card:hover {
-    transform: translateY(-5px);
-    border-color: var(--primary);
-}
-
-.feature-card .icon {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-}
-
-/* =========================================
-   7. АВТОРЫ (AUTHORS)
-   ========================================= */
-.authors {
-    padding: 80px 0;
-    text-align: center;
+.features-section {
+    padding: 100px 0 80px;
 }
 
 .section-title {
-    font-size: 2.5rem;
-    margin-bottom: 50px;
+    font-size: 3rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 80px;
+    letter-spacing: -1px;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.feature-card {
+    padding: 48px 36px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.feature-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(0, 122, 255, 0.05), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(0, 122, 255, 0.3);
+    box-shadow: 0 12px 48px rgba(0, 122, 255, 0.25);
+}
+
+.feature-card:hover::before,
+.feature-card:hover::after {
+    opacity: 1;
+}
+
+.feature-card .icon {
+    font-size: 3.5rem;
+    margin-bottom: 24px;
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text-main);
+    position: relative;
+    z-index: 1;
+}
+
+.feature-card p {
+    color: var(--text-muted);
+    line-height: 1.8;
+    font-size: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* =========================================
+   AUTHORS SECTION
+   ========================================= */
+
+.authors-section {
+    padding: 80px 0;
 }
 
 .authors-grid {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 32px;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .author-card {
-    background: var(--bg-main);
-    padding: 40px;
-    border-radius: 24px;
-    border: 1px solid var(--border);
-    max-width: 380px;
-    flex: 1 1 300px;
-    box-shadow: var(--card-shadow);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    padding: 48px 40px;
+    text-align: center;
+    transition: all 0.4s;
+}
+
+.author-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 48px rgba(0, 122, 255, 0.2);
 }
 
 .author-photo {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    border: 3px solid var(--primary);
-    margin-bottom: 20px;
+    margin: 0 auto 24px;
     overflow: hidden;
-    background: var(--bg-secondary);
+    border: 3px solid var(--primary);
+    box-shadow: 0 8px 24px var(--accent-glow);
 }
 
 .author-photo img {
@@ -301,80 +534,95 @@ body.dark-mode .icon-moon { display: inline-block; }
     object-fit: cover;
 }
 
+.author-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
 .role {
     color: var(--primary);
     font-weight: 700;
     font-size: 0.75rem;
     text-transform: uppercase;
-    margin-bottom: 10px;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+    display: block;
 }
 
 .bio {
     color: var(--text-muted);
-    font-size: 0.9rem;
-    margin-bottom: 20px;
+    font-size: 0.95rem;
+    margin-bottom: 28px;
+    line-height: 1.6;
 }
 
-/* СТИЛИ ДЛЯ ПОЧТЫ И ГИТХАБА */
 .socials {
-    margin-top: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    width: 100%;
 }
 
 .github-link {
-    color: var(--text-main);
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 1rem;
-    transition: 0.2s;
-}
-
-.github-link:hover {
-    color: var(--primary);
+    width: 100%;
+    justify-content: center;
 }
 
 .email-badge {
-    background: var(--bg-secondary);
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
     color: var(--text-muted);
-    padding: 8px 16px;
+    padding: 10px 20px;
     border-radius: 10px;
     font-size: 0.85rem;
-    font-family: 'Courier New', Courier, monospace;
-    border: 1px solid var(--border);
-    user-select: all; /* Выделение текста одним кликом */
-    cursor: text;
-    transition: 0.2s;
-    width: fit-content;
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    transition: all 0.3s;
+    user-select: none;
+    width: 100%;
+    text-align: center;
 }
 
-body.dark-mode .email-badge {
-    background: #1e293b;
-    border-color: #334155;
+.email-badge:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary);
+}
+
+.email-badge.copied {
+    background: rgba(0, 122, 255, 0.2);
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
 /* =========================================
-   8. ПОДВАЛ (FOOTER)
+   FOOTER
    ========================================= */
+
 .footer {
-    padding: 60px 0;
+    padding: 60px 0 40px;
     text-align: center;
-    border-top: 1px solid var(--border);
+}
+
+.glass-footer {
+    padding: 24px;
+    border-radius: 16px;
+}
+
+.footer p {
     color: var(--text-muted);
     font-size: 0.9rem;
 }
 
 /* =========================================
-   9. АНИМАЦИИ
+   ANIMATIONS
    ========================================= */
+
 .animate-on-scroll {
     opacity: 0;
-    transform: translateY(20px);
-    transition: 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .animate-on-scroll.visible {
@@ -386,18 +634,86 @@ body.dark-mode .email-badge {
 .delay-200 { transition-delay: 0.2s; }
 
 /* =========================================
-   10. АДАПТИВНОСТЬ
+   RESPONSIVE
    ========================================= */
+
+@media (max-width: 1024px) {
+    .features {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 750px;
+    }
+}
+
 @media (max-width: 768px) {
-    .nav-links, .github-btn {
+    .nav-links {
         display: none;
     }
-    
-    .hero h1 {
-        font-size: 2.5rem;
+
+    .github-btn {
+        font-size: 0;
+        padding: 10px 12px;
     }
-    
-    .author-card {
-        padding: 30px 20px;
+
+    .github-btn svg {
+        margin: 0;
+    }
+
+    .hero {
+        padding: 60px 0 80px;
+    }
+
+    .hero h1 {
+        font-size: 2.2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .hero-btns {
+        margin-bottom: 60px;
+    }
+
+    .browser-body {
+        height: 200px;
+        padding: 40px 20px;
+    }
+
+    .typing-text {
+        font-size: 1.1rem;
+    }
+
+    .features {
+        grid-template-columns: 1fr;
+        max-width: 100%;
+    }
+
+    .feature-card {
+        padding: 36px 28px;
+    }
+
+    .feature-card .icon {
+        font-size: 2.8rem;
+    }
+
+    .feature-card h3 {
+        font-size: 1.3rem;
+    }
+
+    .feature-card p {
+        font-size: 0.95rem;
+    }
+
+    .features-section {
+        padding: 80px 0 60px;
+    }
+
+    .section-title {
+        font-size: 2.2rem;
+        margin-bottom: 60px;
+    }
+
+    .authors-grid {
+        grid-template-columns: 1fr;
     }
 }
