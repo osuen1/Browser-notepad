@@ -370,7 +370,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func TodoCreateHadler (w http.ResponseWriter, r *http.Request) {
+func TodoCreateHadler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		var req TodoData
 
@@ -398,7 +398,7 @@ func TodoCreateHadler (w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetTodoHandler (w http.ResponseWriter, r *http.Request) {
+func GetTodoHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		var req Response
 		var response TodoRespose

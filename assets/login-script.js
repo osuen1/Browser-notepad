@@ -15,7 +15,7 @@ async function login() {
     const loginInput = document.getElementById('username').value;
     const passwordInput = document.getElementById('password-input').value;
 
-    const response = await fetch('/login.html', {
+    const response = await fetch('/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

@@ -996,3 +996,16 @@ body {
     height: auto;
     margin-bottom: 20px;
 }
+
+.todo-delete-btn {
+  background: transparent;
+  border: none;
+  color: #ff6b6b;
+  cursor: pointer;
+  margin-left: auto;
+  padding: 4px 8px;
+}
+
+.todo-delete-btn:hover {
+  color: #ff4757;
+}

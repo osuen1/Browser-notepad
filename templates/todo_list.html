@@ -71,61 +71,43 @@
         <!-- Контейнер для выбранных тегов -->
         <div class="selected-tags-container" id="selected-tags-container"></div>
 
-    <!-- Правый бар -->
-    <div class="sidebar-right">
-        <!-- Календарь -->
-        <div class="calendar-section">
-            <div class="calendar-header">
-                <div class="calendar-month" id="calendar-month-year"></div>
-                <div class="calendar-nav">
-                    <button id="prev-month">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button id="today-btn" title="Вернуться к текущей дате">
-                        Сегодня
-                    </button>
-                    <button id="next-month">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
+        <!-- Правый бар -->
+        <div class="sidebar-right">
+            <!-- Календарь -->
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <div class="calendar-month" id="calendar-month-year"></div>
+                    <div class="calendar-nav">
+                        <button id="prev-month">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button id="today-btn" title="Вернуться к текущей дате">
+                            Сегодня
+                        </button>
+                        <button id="next-month">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
+                <div class="calendar-grid" id="calendar-grid"></div>
             </div>
-            <div class="calendar-grid" id="calendar-grid"></div>
-        </div>
 
-        <div class="divider"></div>
+            <div class="divider"></div>
 
-        <!-- События -->
-        <div class="events-section">
-            <div class="section-title">События</div>
-            <div class="event-item">
-                <div class="event-time">09:30</div>
-                <div class="event-text">Совещание</div>
+            <!-- События -->
+            <div class="events-section">
+                <div class="section-title">События</div>
+                <div class="event-item">
+                    <div class="event-time">09:30</div>
+                    <div class="event-text">Совещание</div>
+                </div>
+                <div class="event-item">
+                    <div class="event-time">12:00</div>
+                    <div class="event-text">Обед с клиентом</div>
+                </div>
+                <button class="add-button">Добавить событие</button>
             </div>
-            <div class="event-item">
-                <div class="event-time">12:00</div>
-                <div class="event-text">Обед с клиентом</div>
-            </div>
-            <button class="add-button">Добавить событие</button>
         </div>
-
-        <!-- Задачи -->
-        <div class="todo-section">
-            <div class="section-title">Задачи</div>
-            <div class="todo-item">
-                <input type="checkbox" class="todo-checkbox" checked />
-                <span class="todo-text todo-completed">Подготовить отчет</span>
-            </div>
-            <div class="todo-item">
-                <input type="checkbox" class="todo-checkbox" />
-                <span class="todo-text">Обновить UI</span>
-            </div>
-            <div class="todo-item">
-                <input type="checkbox" class="todo-checkbox" />
-                <span class="todo-text">Проверить почту</span>
-            </div>
-            <button class="add-button">Добавить задачу</button>
-        </div>
-    </div>
     </div>
 
     <!-- Модальное окно создания заметки -->

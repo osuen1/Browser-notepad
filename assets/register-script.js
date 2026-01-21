@@ -5,7 +5,7 @@ function register() {
   const checkbox = document.getElementById("agree");
   const email = document.getElementById("email");
   let xhr = new XMLHttpRequest();
-  let url = "http://localhost:3030/register.html";
+  let url = "http://localhost:3030/register";
 
   if (password_input.value != confirm_password_input.value) {
     // Заменить на более красивое сообщение
