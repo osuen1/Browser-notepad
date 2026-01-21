@@ -2,7 +2,7 @@ document.getElementById("new-note").addEventListener("click", () => {
     window.location.href = "/new_note"
 });
 
-const addTodoButton = document.getElementById("todo-add-btn");
+let todos = JSON.parse(localStorage.getItem("todos")) || [];
 
 // Функция загрузки todos с сервера
 async function syncTodosFromServer() {
@@ -16,7 +16,7 @@ async function syncTodosFromServer() {
     const response = await fetch("/api/todos/get", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: userId }), // ИСПРАВЛЕНО: user_id вместо User_id
+      body: JSON.stringify({ User_id: userId }), // ИСПРАВЛЕНО: user_id вместо User_id
     });
 
     if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
@@ -57,7 +57,7 @@ async function addTodo() {
   }
 
   const payload = {
-    user_id: userId, // ИСПРАВЛЕНО: user_id вместо User_id
+    User_id: userId,
     Text: task.trim(),
     IsDone: false
   };
@@ -203,3 +203,15 @@ function renderTodo() {
 
   console.log(`Отрендерено ${todos.length} задач`);
 }
+
+function getUserId() {
+  const userId = parseInt(localStorage.getItem("user_id"));
+  return userId;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  syncTodosFromServer();
+  renderTodo();
+});
+
+document.getElementById("todo-add-btn").addEventListener("click", addTodo);
