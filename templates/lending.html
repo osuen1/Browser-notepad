@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Browser Notepad — Ваши заметки всегда с вами</title>
     <link rel="stylesheet" href="/assets/style-lending.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <header class="header">
-        <nav class="container">
+        <nav class="container glass-nav">
             <div class="logo">Browser<span>Notepad</span></div>
             <div class="nav-right">
                 <ul class="nav-links">
@@ -21,106 +21,144 @@
                     <span class="icon-sun">☀️</span>
                     <span class="icon-moon">🌙</span>
                 </button>
-                <a href="https://github.com/osuen1/Browser-notepad" target="_blank" class="btn-secondary github-btn">GitHub</a>
+                <a href="https://github.com/osuen1/Browser-notepad" target="_blank" class="btn-secondary github-btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                    GitHub
+                </a>
             </div>
         </nav>
     </header>
 
     <main>
         <section class="hero">
+            <div class="hero-background"></div>
             <div class="container hero-content animate-on-scroll">
                 <h1>Твои мысли. В безопасности. <span class="accent">Всегда.</span></h1>
-                <p>Минималистичный инструмент для быстрых заметок, разработанный специалистами по ИБ.</p>
+                <p class="hero-subtitle">Минималистичный инструмент для быстрых заметок с встроенным AI-ассистентом, разработанный специалистами по ИБ.</p>
                 <div class="hero-btns">
-                    <a href="https://osuen1.github.io/Browser-notepad/" target="_blank" class="btn-primary">Начать писать</a>
+                    <a href="/login" class="btn-primary glass-btn">
+                        Начать писать
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 4l6 6-6 6"/>
+                        </svg>
+                    </a>
                 </div>
-                <div class="browser-mockup animate-on-scroll delay-200">
+
+                <div class="browser-mockup glass-card animate-on-scroll delay-200">
                     <div class="browser-header">
-                        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                        <div class="browser-controls">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
                         <span class="address-bar">browser-notepad.io</span>
+                        <div class="browser-icons">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 3a5 5 0 1 0 0 10A5 5 0 0 0 8 3z"/>
+                            </svg>
+                        </div>
                     </div>
                     <div class="browser-body">
-                        <p class="placeholder-text">Весь текст сохраняется автоматически в вашем браузере...</p>
+                        <div class="typing-text">Здесь уже мог быть ваш первый текст<span class="cursor">|</span></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="features" class="features container">
-            <div class="feature-card animate-on-scroll">
-                <div class="icon">🔄</div>
-                <h3>Умная сессия</h3>
-                <p>Даже после закрытия вкладки или перезагрузки компьютера ваш текст мгновенно восстановится при открытии.</p>
-            </div>
-            
-            <div class="feature-card animate-on-scroll delay-100">
-                <div class="icon">🛡️</div>
-                <h3>ИБ-защита</h3>
-                <p>Данные изолированы в «песочнице» вашего браузера. Никаких утечек и скрытой передачи на серверы.</p>
-            </div>
+        <section id="features" class="features-section">
+            <div class="container">
+                <h2 class="section-title animate-on-scroll">Возможности</h2>
+                <div class="features">
+                    <div class="feature-card glass-card animate-on-scroll">
+                        <div class="icon">🤖</div>
+                        <h3>AI-ассистент</h3>
+                        <p>Встроенный искусственный интеллект помогает систематизировать заметки, создавать резюме и отвечать на вопросы по содержимому.</p>
+                    </div>
 
-            <div class="feature-card animate-on-scroll delay-200">
-                <div class="icon">🔐</div>
-                <h3>Приватность</h3>
-                <p>Доступ к локальному хранилищу имеете только вы. Приложение не собирает телеметрию и куки.</p>
-            </div>
+                    <div class="feature-card glass-card animate-on-scroll delay-100">
+                        <div class="icon">🔄</div>
+                        <h3>Умная сессия</h3>
+                        <p>Даже после закрытия вкладки или перезагрузки компьютера ваш текст мгновенно восстановится при открытии.</p>
+                    </div>
+                    
+                    <div class="feature-card glass-card animate-on-scroll delay-200">
+                        <div class="icon">🛡️</div>
+                        <h3>ИБ-защита</h3>
+                        <p>Данные изолированы в «песочнице» вашего браузера. Никаких утечек и скрытой передачи на серверы.</p>
+                    </div>
 
-            <div class="feature-card animate-on-scroll">
-                <div class="icon">🌓</div>
-                <h3>Темная тема</h3>
-                <p>Полноценная поддержка ночного режима для комфортной работы и снижения нагрузки на зрение.</p>
-            </div>
+                    <div class="feature-card glass-card animate-on-scroll">
+                        <div class="icon">🔐</div>
+                        <h3>Приватность</h3>
+                        <p>Доступ к локальному хранилищу имеете только вы. Приложение не собирает телemetрию и куки.</p>
+                    </div>
 
-            <div class="feature-card animate-on-scroll delay-100">
-                <div class="icon">✈️</div>
-                <h3>Offline-режим</h3>
-                <p>Приложение полностью автономно. Пишите заметки в самолете или там, где связь недоступна.</p>
-            </div>
+                    <div class="feature-card glass-card animate-on-scroll delay-100">
+                        <div class="icon">🌓</div>
+                        <h3>Темная тема</h3>
+                        <p>Полноценная поддержка ночного режима для комфортной работы и снижения нагрузки на зрение.</p>
+                    </div>
 
-            <div class="feature-card animate-on-scroll delay-200">
-                <div class="icon">🚀</div>
-                <h3>Zero-Bloat</h3>
-                <p>Чистый JavaScript без лишних библиотек. Максимальная скорость работы и чистый интерфейс.</p>
+                    <div class="feature-card glass-card animate-on-scroll delay-200">
+                        <div class="icon">✈️</div>
+                        <h3>Offline-режим</h3>
+                        <p>Приложение полностью автономно. Пишите заметки в самолете или там, где связь недоступна.</p>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <section id="about" class="authors container animate-on-scroll">
-            <h2 class="section-title">Создатели проекта</h2>
-            <div class="authors-grid">
-                
-                <div class="author-card">
-                    <div class="author-photo">
-                        <img src="https://github.com/osuen1.png" alt="Степан Акимов">
+        <section id="about" class="authors-section">
+            <div class="container">
+                <h2 class="section-title animate-on-scroll">Создатели проекта</h2>
+                <div class="authors-grid">
+                    
+                    <div class="author-card glass-card animate-on-scroll">
+                        <div class="author-photo">
+                            <img src="https://github.com/osuen1.png" alt="Степан Акимов">
+                        </div>
+                        <h3>Акимов Степан</h3>
+                        <p class="role">Lead Developer, IS Specialist</p>
+                        <p class="bio">Автор архитектуры проекта и главный разработчик.</p>
+                        <div class="socials">
+                            <a href="https://github.com/osuen1" target="_blank" class="github-link glass-btn-sm">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                                </svg>
+                                GitHub
+                            </a>
+                            <span class="email-badge" data-email="st.akimov1@gmail.com">st.akimov1@gmail.com</span>
+                        </div>
                     </div>
-                    <h3>Акимов Степан (osuen1)</h3>
-                    <p class="role">Lead Developer, IS Specialist</p>
-                    <p class="bio">Автор архитектуры проекта и главный разработчик.</p>
-                    <div class="socials">
-                        <a href="https://github.com/osuen1" target="_blank" class="github-link">GitHub</a>
-                        <span class="email-badge">st.akimov1@gmail.com</span>
-                    </div>
-                </div>
 
-                <div class="author-card">
-                    <div class="author-photo">
-                        <img src="https://github.com/danbeldania.png" alt="Даниил Беляков">
+                    <div class="author-card glass-card animate-on-scroll delay-100">
+                        <div class="author-photo">
+                            <img src="https://github.com/danbeldania.png" alt="Даниил Беляков">
+                        </div>
+                        <h3>Беляков Даниил</h3>
+                        <p class="role">IS Specialist, Manager</p>
+                        <p class="bio">Соавтор проекта. Аналитика безопасности, управление рисками.</p>
+                        <div class="socials">
+                            <a href="https://github.com/danbeldania" target="_blank" class="github-link glass-btn-sm">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                                </svg>
+                                GitHub
+                            </a>
+                            <span class="email-badge" data-email="belyakov.is@internet.ru">belyakov.is@internet.ru</span>
+                        </div>
                     </div>
-                    <h3>Беляков Даниил</h3>
-                    <p class="role">IS Specialist, Manager</p>
-                    <p class="bio">Соавтор проекта. Аналитика безопасности, управление рисками.</p>
-                    <div class="socials">
-                        <a href="https://github.com/danbeldania" target="_blank" class="github-link">GitHub</a>
-                        <span class="email-badge">belyakov.is@internet.ru</span>
-                    </div>
-                </div>
 
+                </div>
             </div>
         </section>
     </main>
 
     <footer class="footer">
-        <div class="container">
-            <p>&copy; 2026 Browser Notepad.</p>
+        <div class="container glass-footer">
+            <p>&copy; 2026 Browser Notepad. Crafted with ❤️</p>
         </div>
     </footer>
 
