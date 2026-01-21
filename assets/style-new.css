@@ -1009,3 +1009,77 @@ body {
 .todo-delete-btn:hover {
   color: #ff4757;
 }
+
+.todo-page-container {
+  flex: 1;
+  padding: 70px;
+  overflow-y: auto;
+}
+
+.todo-input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+#todo-new-input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: #2c3038;
+  color: #fff;
+  font-size: 14px;
+}
+
+.todo-list-full {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.todo-item-full {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background: #2c3038;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.todo-item-full:hover {
+  background: #353945;
+}
+
+.todo-item-full.completed .todo-text {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.todo-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.todo-text {
+  flex: 1;
+  font-size: 14px;
+  color: #fff;
+}
+
+.todo-delete-btn {
+  background: transparent;
+  border: none;
+  color: #ff6b6b;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.todo-delete-btn:hover {
+  background: rgba(255, 107, 107, 0.1);
+  color: #ff4757;
+}

@@ -110,27 +110,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно создания заметки -->
-    <div class="modal-overlay" id="note-modal">
-        <div class="modal-content">
-            <h3>Создать новую заметку</h3>
-            <input type="text" id="note-title-input" placeholder="Название заметки..." />
-            <label>Выберите папку:</label>
-            <select id="folder-select">
-                <option value="">В корне</option>
-                <!-- Папки будут добавлены здесь -->
-            </select>
-            <div class="modal-buttons">
-                <button class="toolbar-button" id="save-note-btn">
-                    Создать
-                </button>
-                <button class="toolbar-button" id="cancel-note-btn">
-                    Отмена
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Модальное окно создания тега -->
     <div class="modal-overlay" id="tag-modal">
         <div class="modal-content">
@@ -168,7 +147,10 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script src="/assets/calendar.js"></script>
     <script src="/assets/todo_script.js"></script>
+    <!-- <script src="/assets/note-script.js"></script> -->
 </body>
 
 </html>
