@@ -990,3 +990,9 @@ body {
     color: var(--accent-color);
     border-color: var(--accent-color);
 }
+
+.todo-wrapper {
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+}

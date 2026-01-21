@@ -41,6 +41,18 @@ type FolderData struct {
 	// Child_folders []FolderData `json:"Child_folders"`
 }
 
+type TodoData struct {
+	User_id   int    `json:"User_id"`
+	Text 	  string `json:"Text"`
+	IsDone    bool   `json:"IsDone"`
+	Id        string `json:"Id"`
+}
+
+type TodoRespose struct {
+	User_id  int        `json:"User_id"`
+	TodoData []TodoData `json:"TodoData"`
+}
+
 type Login_info struct { // парсим приходящий от js json
 	Email       string `json:"Email"`
 	Login       string `json:"Login"`
@@ -48,7 +60,7 @@ type Login_info struct { // парсим приходящий от js json
 	NewPassword string `json:"NewPassword"`
 }
 
-type Login_response struct {
+type Response struct {
 	User_id int    `json:"user_id"`
 	Status  bool   `json:"status"`
 	Message string `json:"message,omitempty"`
@@ -199,7 +211,7 @@ func DeleteNoteHandler(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			}
 			
-			response := Login_response{
+			response := Response{
 				Status: true,
 				Message: "Заметка успешно удалена",
 			}
@@ -273,7 +285,7 @@ func GetFoldersHandler(w http.ResponseWriter, r *http.Request) {
 func DeleteFolderHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost && server.cookie_handler != nil && server.db != nil {
 		var req FolderData
-		var response Login_response
+		var response Response
 		
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -284,7 +296,7 @@ func DeleteFolderHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		
-		response = Login_response{
+		response = Response{
 			Status: true,
 			Message: "Папка успешно удалена",
 		}
@@ -296,7 +308,7 @@ func DeleteFolderHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func TodoListHandler(w http.ResponseWriter, r *http.Request) {
+func TodoPageHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		todoList.Execute(w, nil)
 	}
@@ -315,7 +327,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		if err := decoder.Decode(&data_json); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		} else {
-			var response Login_response
+			var response Response
 
 			// получаем захешированный пароль из базы данных
 			user_id, _, password, user_email := db.Find_user(server.db, data_json.Login)
@@ -358,10 +370,75 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func TodoCreateHadler (w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		var req TodoData
+
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+
+		// Проверка на существование TODO
+		if err := db.Add_Todo(server.db, req.Id, req.User_id, req.Text, req.IsDone); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		response := Response {
+			User_id: req.User_id,
+			Status: true,
+			Message: "Todo успешно создан",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func GetTodoHandler (w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		var req Response
+		var response TodoRespose
+
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		todos, err := db.Get_todo(server.db, req.User_id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		response.User_id = req.User_id
+
+		for _, todo := range todos {
+			inter := TodoData{
+				User_id: req.User_id,
+				Text: todo[1].(string),
+				IsDone: todo[2].(bool),
+				Id: todo[0].(string),
+			}
+
+			response.TodoData = append(response.TodoData, inter)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	init_server()
 	var data_json Login_info
-	var responseJson Login_response
+	var responseJson Response
 
 	if r.Method == http.MethodGet {
 		register_page.Execute(w, nil)
@@ -443,7 +520,7 @@ func ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 
 func ResetApiHandler(w http.ResponseWriter, r *http.Request) {
 	var dataJson Login_info
-	var response Login_response
+	var response Response
 	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
 	if r.Method == http.MethodPost {

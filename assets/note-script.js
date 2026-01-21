@@ -11,46 +11,46 @@ let tags = JSON.parse(localStorage.getItem("tags")) || [
 ];
 
 let noteTags = {}; // Хранит теги для каждой заметки: { noteId: [tagId1, tagId2, ...] }
+let todos = JSON.parse(localStorage.getItem("todos")) || [];
 
 
 let notes = JSON.parse(localStorage.getItem("notes")) || [];
-let syncTimeout; 
+let syncTimeout;
 let isPreviewMode = false;
 
 let todoListLink = document.getElementById("todo-list-link").addEventListener("click", () => {
-  todoListLink.classList.add(".tab.active");
   window.location.href = "/todolist";
 })
 
 
 function updatePreview() {
-    const rawText = document.getElementById("notes-content").value;
-    const previewContainer = document.getElementById("notes-preview");
-    
-    // Используем библиотеку marked для парсинга
-    // sanitize: true защищает от XSS (в современных версиях это делается через опции или доп. библиотеки)
-    previewContainer.innerHTML = marked.parse(rawText);
+  const rawText = document.getElementById("notes-content").value;
+  const previewContainer = document.getElementById("notes-preview");
+
+  // Используем библиотеку marked для парсинга
+  // sanitize: true защищает от XSS (в современных версиях это делается через опции или доп. библиотеки)
+  previewContainer.innerHTML = marked.parse(rawText);
 }
 
 function togglePreview() {
-    const editor = document.getElementById("notes-content");
-    const preview = document.getElementById("notes-preview");
-    const toggleBtn = document.getElementById("toggle-preview-btn");
+  const editor = document.getElementById("notes-content");
+  const preview = document.getElementById("notes-preview");
+  const toggleBtn = document.getElementById("toggle-preview-btn");
 
-    isPreviewMode = !isPreviewMode;
+  isPreviewMode = !isPreviewMode;
 
-    if (isPreviewMode) {
-        updatePreview();
-        editor.style.display = "none";
-        preview.style.display = "block";
-        toggleBtn.innerHTML = '<i class="fas fa-edit"></i>'; // Меняем иконку на карандаш
-        toggleBtn.title = "Редактировать";
-    } else {
-        editor.style.display = "block";
-        preview.style.display = "none";
-        toggleBtn.innerHTML = '<i class="fas fa-eye"></i>'; // Меняем обратно на глаз
-        toggleBtn.title = "Предпросмотр";
-    }
+  if (isPreviewMode) {
+    updatePreview();
+    editor.style.display = "none";
+    preview.style.display = "block";
+    toggleBtn.innerHTML = '<i class="fas fa-edit"></i>'; // Меняем иконку на карандаш
+    toggleBtn.title = "Редактировать";
+  } else {
+    editor.style.display = "block";
+    preview.style.display = "none";
+    toggleBtn.innerHTML = '<i class="fas fa-eye"></i>'; // Меняем обратно на глаз
+    toggleBtn.title = "Предпросмотр";
+  }
 }
 
 // Функция сохранения тегов
@@ -63,7 +63,7 @@ function saveTags() {
 function loadTags() {
   const savedTags = localStorage.getItem("tags");
   const savedNoteTags = localStorage.getItem("noteTags");
-  
+
   if (savedTags) tags = JSON.parse(savedTags);
   if (savedNoteTags) noteTags = JSON.parse(savedNoteTags);
 }
@@ -81,7 +81,7 @@ function createTag(name, color) {
     color: color,
     count: 0
   };
-  
+
   tags.push(newTag);
   saveTags();
   renderSidebarTags();
@@ -92,37 +92,37 @@ function createTag(name, color) {
 function renderSidebarTags() {
   const tagsList = document.querySelector('.tags-list');
   if (!tagsList) return;
-  
+
   tagsList.innerHTML = '';
-  
+
   tags.forEach(tag => {
     const tagElement = document.createElement('li');
     tagElement.className = 'tag-item';
     tagElement.style.setProperty('--tag-color', tag.color);
-    
+
     tagElement.innerHTML = `
       <i class="fas fa-tag" style="color: ${tag.color}"></i> 
       ${tag.name}
       <span class="item-count">${tag.count}</span>
     `;
-    
+
     tagElement.addEventListener('click', () => {
       document.querySelectorAll('.tag-item').forEach(item => item.classList.remove('active'));
       tagElement.classList.add('active');
       // Фильтрация заметок по тегу
       filterNotesByTag(tag.id);
     });
-    
+
     tagsList.appendChild(tagElement);
   });
 }
 
 // Функция фильтрации заметок по тегу
 function filterNotesByTag(tagId) {
-  const noteIds = Object.keys(noteTags).filter(noteId => 
+  const noteIds = Object.keys(noteTags).filter(noteId =>
     noteTags[noteId].includes(tagId)
   );
-  
+
   // Здесь можно добавить логику фильтрации отображения заметок
   console.log(`Заметки с тегом ${tagId}:`, noteIds);
 }
@@ -131,16 +131,16 @@ function filterNotesByTag(tagId) {
 function renderSelectedTags() {
   const container = document.getElementById('selected-tags-container');
   if (!container) return;
-  
+
   const activeNote = notes.find(n => n.isCurrent);
   if (!activeNote) {
     container.innerHTML = '';
     return;
   }
-  
+
   const currentTags = noteTags[activeNote.id] || [];
   container.innerHTML = '';
-  
+
   currentTags.forEach(tagId => {
     const tag = tags.find(t => t.id === tagId);
     if (tag) {
@@ -151,12 +151,12 @@ function renderSelectedTags() {
         ${tag.name}
         <i class="fas fa-times remove-tag" data-tag-id="${tag.id}"></i>
       `;
-      
+
       tagElement.querySelector('.remove-tag').addEventListener('click', (e) => {
         e.stopPropagation();
         removeTagFromNote(activeNote.id, tag.id);
       });
-      
+
       container.appendChild(tagElement);
     }
   });
@@ -167,16 +167,16 @@ function addTagToNote(noteId, tagId) {
   if (!noteTags[noteId]) {
     noteTags[noteId] = [];
   }
-  
+
   if (!noteTags[noteId].includes(tagId)) {
     noteTags[noteId].push(tagId);
-    
+
     // Увеличиваем счетчик использования тега
     const tag = tags.find(t => t.id === tagId);
     if (tag) {
       tag.count = (tag.count || 0) + 1;
     }
-    
+
     saveTags();
     renderSelectedTags();
     renderSidebarTags();
@@ -189,13 +189,13 @@ function removeTagFromNote(noteId, tagId) {
     const index = noteTags[noteId].indexOf(tagId);
     if (index > -1) {
       noteTags[noteId].splice(index, 1);
-      
+
       // Уменьшаем счетчик использования тега
       const tag = tags.find(t => t.id === tagId);
       if (tag && tag.count > 0) {
         tag.count--;
       }
-      
+
       saveTags();
       renderSelectedTags();
       renderSidebarTags();
@@ -207,12 +207,12 @@ function removeTagFromNote(noteId, tagId) {
 function renderAvailableTags() {
   const container = document.getElementById('available-tags-container');
   if (!container) return;
-  
+
   const activeNote = notes.find(n => n.isCurrent);
   const currentTags = activeNote ? noteTags[activeNote.id] || [] : [];
-  
+
   container.innerHTML = '';
-  
+
   tags.forEach(tag => {
     const isSelected = currentTags.includes(tag.id);
     const tagElement = document.createElement('button');
@@ -222,12 +222,12 @@ function renderAvailableTags() {
       tagElement.style.opacity = '0.6';
       tagElement.style.border = '2px solid white';
     }
-    
+
     tagElement.innerHTML = `
       ${tag.name}
       ${isSelected ? '<i class="fas fa-check"></i>' : ''}
     `;
-    
+
     tagElement.addEventListener('click', () => {
       if (activeNote) {
         if (isSelected) {
@@ -238,7 +238,7 @@ function renderAvailableTags() {
         renderAvailableTags();
       }
     });
-    
+
     container.appendChild(tagElement);
   });
 }
@@ -259,44 +259,44 @@ function getUserId() {
 
 // Функция для преобразования плоского списка папок от сервера в древовидную структуру
 function buildFolderTree(flatFolders) {
-    const folderMap = {};
-    const tree = [];
+  const folderMap = {};
+  const tree = [];
 
-    // 1. Создаем объект-карту, чтобы быстро находить папки по ID
-    flatFolders.forEach(f => {
-        // Важно: в Go поле называется FolderId, используем его
-        folderMap[f.FolderId] = {
-            id: f.FolderId,
-            name: f.Name,
-            parentId: f.ParentId,
-            children: []
-        };
-    });
+  // 1. Создаем объект-карту, чтобы быстро находить папки по ID
+  flatFolders.forEach(f => {
+    // Важно: в Go поле называется FolderId, используем его
+    folderMap[f.FolderId] = {
+      id: f.FolderId,
+      name: f.Name,
+      parentId: f.ParentId,
+      children: []
+    };
+  });
 
-    // 2. Проходим по всем папкам и распределяем их: либо в корень, либо в родителя
-    flatFolders.forEach(f => {
-        const folder = folderMap[f.FolderId];
-        if (f.ParentId && f.ParentId !== 0 && folderMap[f.ParentId]) {
-            // Если есть родитель — пушим в его массив children
-            folderMap[f.ParentId].children.push(folder);
-        } else {
-            // Если родителя нет (0) — это корневая папка
-            tree.push(folder);
-        }
-    });
+  // 2. Проходим по всем папкам и распределяем их: либо в корень, либо в родителя
+  flatFolders.forEach(f => {
+    const folder = folderMap[f.FolderId];
+    if (f.ParentId && f.ParentId !== 0 && folderMap[f.ParentId]) {
+      // Если есть родитель — пушим в его массив children
+      folderMap[f.ParentId].children.push(folder);
+    } else {
+      // Если родителя нет (0) — это корневая папка
+      tree.push(folder);
+    }
+  });
 
-    return tree;
+  return tree;
 }
 
 // Функция для удаления папки из дерева
 function removeFolderRecursive(list, id) {
-    return list.filter(f => {
-        if (f.id === id) return false;
-        if (f.children) {
-            f.children = removeFolderRecursive(f.children, id);
-        }
-        return true;
-    });
+  return list.filter(f => {
+    if (f.id === id) return false;
+    if (f.children) {
+      f.children = removeFolderRecursive(f.children, id);
+    }
+    return true;
+  });
 }
 // --- Работа с API (Сервер на Go) ---
 
@@ -388,14 +388,14 @@ async function syncDataFromServer() {
     });
 
     if (!foldersResponse.ok) throw new Error(`Ошибка сервера папок: ${foldersResponse.status}`);
-    
+
     const serverFolders = await foldersResponse.json();
 
     // 3. ПРЕОБРАЗОВАНИЕ: вместо простого .map используем нашу новую функцию
     if (serverFolders && Array.isArray(serverFolders)) {
-        folders = buildFolderTree(serverFolders);
+      folders = buildFolderTree(serverFolders);
     } else {
-        folders = [];
+      folders = [];
     }
 
     // 4. Сохраняем и перерисовываем интерфейс
@@ -410,49 +410,49 @@ async function syncDataFromServer() {
 
 // Функция вызова API сервера
 async function sendDeleteFolderToServer(folderId) {
-    const userId = getUserId();
-    // Структура должна совпадать с FolderData в page_handler.go (json:"FolderId")
-    const payload = { 
-        user_id: userId, 
-        FolderId: parseInt(folderId) 
-    };
+  const userId = getUserId();
+  // Структура должна совпадать с FolderData в page_handler.go (json:"FolderId")
+  const payload = {
+    user_id: userId,
+    FolderId: parseInt(folderId)
+  };
 
-    try {
-        const response = await fetch("/api/folders/delete", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
+  try {
+    const response = await fetch("/api/folders/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-        if (!response.ok) throw new Error("Ошибка при удалении на сервере");
-        return true;
-    } catch (error) {
-        console.error("❌ Ошибка удаления папки:", error);
-        return false;
-    }
+    if (!response.ok) throw new Error("Ошибка при удалении на сервере");
+    return true;
+  } catch (error) {
+    console.error("❌ Ошибка удаления папки:", error);
+    return false;
+  }
 }
 
 // Логика удаления из интерфейса и массива
 async function deleteFolder(folderId, folderName) {
-    if (!confirm(`Вы уверены, что хотите удалить папку "${folderName}" и всё её содержимое?`)) {
-        return;
-    }
+  if (!confirm(`Вы уверены, что хотите удалить папку "${folderName}" и всё её содержимое?`)) {
+    return;
+  }
 
-    const success = await sendDeleteFolderToServer(folderId);
-    if (success) {
-        // Рекурсивное удаление из локального массива folders
-        folders = removeFolderRecursive(folders, folderId);
-        
-        // Удаляем также все заметки, которые были в этой папке
-        notes = notes.filter(note => note.folderId !== folderId);
-        
-        saveFolders();
-        saveNotes();
-        renderFolders();
-        console.log(`✅ Папка ${folderId} удалена`);
-    } else {
-        alert("Не удалось удалить папку с сервера.");
-    }
+  const success = await sendDeleteFolderToServer(folderId);
+  if (success) {
+    // Рекурсивное удаление из локального массива folders
+    folders = removeFolderRecursive(folders, folderId);
+
+    // Удаляем также все заметки, которые были в этой папке
+    notes = notes.filter(note => note.folderId !== folderId);
+
+    saveFolders();
+    saveNotes();
+    renderFolders();
+    console.log(`✅ Папка ${folderId} удалена`);
+  } else {
+    alert("Не удалось удалить папку с сервера.");
+  }
 }
 
 // --- Управление заметками ---
@@ -509,28 +509,28 @@ function renderFolders(
 
     // Обработчик удаления
     folderElement.querySelector(".delete-folder").addEventListener("click", (e) => {
-        e.stopPropagation();
-        deleteFolder(folder.id, folder.name);
+      e.stopPropagation();
+      deleteFolder(folder.id, folder.name);
     });
 
     // Остальные обработчики (раскрытие, создание заметок и подпапок)
     const contentDiv = folderElement.querySelector(".folder-content");
     folderElement.querySelector(".folder-item").addEventListener("click", (e) => {
-        if (!e.target.closest(".folder-actions")) {
-          const isOpen = contentDiv.classList.toggle("open");
-          folderElement.querySelector(".toggle-icon").style.transform = isOpen ? "rotate(90deg)" : "rotate(0deg)";
-        }
+      if (!e.target.closest(".folder-actions")) {
+        const isOpen = contentDiv.classList.toggle("open");
+        folderElement.querySelector(".toggle-icon").style.transform = isOpen ? "rotate(90deg)" : "rotate(0deg)";
+      }
     });
 
     folderElement.querySelector(".create-note").addEventListener("click", (e) => {
-        e.stopPropagation();
-        createNoteInFolder(folder.id);
+      e.stopPropagation();
+      createNoteInFolder(folder.id);
     });
 
     folderElement.querySelector(".add-subfolder").addEventListener("click", (e) => {
-        e.stopPropagation();
-        const subName = prompt("Название подпапки:");
-        if (subName) addFolder(folder.id, subName);
+      e.stopPropagation();
+      const subName = prompt("Название подпапки:");
+      if (subName) addFolder(folder.id, subName);
     });
 
     // Рекурсия для вложенных папок и заметок
@@ -597,10 +597,10 @@ function createNoteInFolder(folderId) {
 
   notes.forEach((n) => (n.isCurrent = false));
   notes.unshift(newNote);
-  
+
   // Инициализируем теги для новой заметки
   noteTags[newNote.id] = [];
-  
+
   saveNotes();
   saveTags();
 
@@ -612,9 +612,9 @@ function createNoteInFolder(folderId) {
 
 function addFolder(parentId, name) {
   // Используем названия полей, которые легко мапятся на Go-структуру
-  const newLocalFolder = { 
-    FolderId: generateFolderId(), 
-    Name: name, 
+  const newLocalFolder = {
+    FolderId: generateFolderId(),
+    Name: name,
     Children: [],
     ParentId: parentId || 0,
     id: null // Сюда запишем ID для JS-логики после генерации
@@ -633,7 +633,7 @@ function addFolder(parentId, name) {
       parent.children.push(uiFolder);
     }
   }
-  
+
   saveFolders();
   renderFolders();
 
@@ -657,7 +657,7 @@ function countNotesInFolder(folderId) {
 }
 
 // --- Слушатели ---
-document.getElementById("notes-content").addEventListener("input", function() {
+document.getElementById("notes-content").addEventListener("input", function () {
   loadNotes();
   renderSelectedTags(); // Обновляем отображение тегов при изменении заметки
 });
@@ -671,22 +671,22 @@ document.getElementById("add-root-folder").addEventListener("click", () => {
 });
 
 document.getElementById("save-note-btn-manual").addEventListener("click", () => {
-    const activeNote = notes.find((n) => n.isCurrent);
-    if (activeNote) {
-      activeNote.content = document.getElementById("notes-content").value;
-      sendNoteToServer(activeNote);
-    }
+  const activeNote = notes.find((n) => n.isCurrent);
+  if (activeNote) {
+    activeNote.content = document.getElementById("notes-content").value;
+    sendNoteToServer(activeNote);
+  }
 });
 
 document.getElementById("delete-note-btn").addEventListener("click", async () => {
-    const activeNote = notes.find((n) => n.isCurrent);
-    if (activeNote && confirm(`Удалить "${activeNote.title}"?`)) {
-      if (await sendDeleteNoteToServer(activeNote.id)) {
-        notes = notes.filter((n) => n.id !== activeNote.id);
-        saveNotes();
-        renderFolders();
-      }
+  const activeNote = notes.find((n) => n.isCurrent);
+  if (activeNote && confirm(`Удалить "${activeNote.title}"?`)) {
+    if (await sendDeleteNoteToServer(activeNote.id)) {
+      notes = notes.filter((n) => n.id !== activeNote.id);
+      saveNotes();
+      renderFolders();
     }
+  }
 });
 
 document.getElementById("sync-notes-btn").addEventListener("click", syncDataFromServer);
@@ -698,10 +698,15 @@ document.getElementById("logout-btn").addEventListener("click", () => {
 
 window.onload = () => {
   if (!localStorage.getItem("folders") && !localStorage.getItem("notes")) {
-      syncDataFromServer();
+    syncDataFromServer();
   } else {
-      renderFolders();
+    renderFolders();
   }
+
+  todos = JSON.parse(localStorage.getItem("todos")) || [];
+  renderTodo();
+  syncTodosFromServer();
+
   renderCalendar();
 };
 
@@ -778,6 +783,210 @@ function renderCalendar() {
   }
 }
 
+// Функция загрузки todos с сервера
+async function syncTodosFromServer() {
+  const userId = getUserId();
+  if (!userId) {
+    console.warn("User_id не найден.");
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/todos/get", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId }), // ИСПРАВЛЕНО: user_id вместо User_id
+    });
+
+    if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
+
+    const data = await response.json();
+    console.log("Полученные с сервера todos:", data);
+
+    // ИСПРАВЛЕНО: правильная обработка ответа
+    if (data && Array.isArray(data)) {
+      todos = data.map(todo => ({
+        Id: todo.Id,
+        Text: todo.Text,
+        IsDone: todo.IsDone
+      }));
+    } else if (data && Array.isArray(data.TodoData)) {
+      todos = data.TodoData;
+    } else {
+      todos = [];
+    }
+
+    localStorage.setItem("todos", JSON.stringify(todos));
+    renderTodo();
+    console.log("✅ Todos синхронизированы с сервера");
+  } catch (error) {
+    console.error("❌ Ошибка синхронизации todos:", error);
+  }
+}
+
+// Функция отправки новой задачи на сервер
+async function addTodo() {
+  const task = prompt("Введите задачу");
+  if (!task?.trim()) return;
+
+  const userId = getUserId();
+  if (!userId) {
+    alert("Пожалуйста, войдите в систему");
+    return;
+  }
+
+  const payload = {
+    user_id: userId, // ИСПРАВЛЕНО: user_id вместо User_id
+    Text: task.trim(),
+    IsDone: false
+  };
+
+  console.log("Отправка todo:", payload);
+
+  try {
+    const response = await fetch("/api/todo/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Ошибка сервера:", errorText);
+      throw new Error(`Ошибка сервера: ${response.status}`);
+    }
+
+    const savedTodo = await response.json();
+    console.log("Сохраненная задача:", savedTodo);
+    
+    todos.push(savedTodo);
+    localStorage.setItem("todos", JSON.stringify(todos));
+    renderTodo();
+    
+    console.log("✅ Задача добавлена!");
+  } catch (error) {
+    console.error("❌ Ошибка при добавлении задачи:", error);
+    alert(`Не удалось добавить задачу: ${error.message}`);
+  }
+}
+
+// Функция удаления задачи с сервера
+async function deleteTodo(todoId) {
+  const userId = getUserId();
+  if (!userId) return false;
+
+  const payload = {
+    user_id: userId,
+    Id: todoId
+  };
+
+  try {
+    const response = await fetch("/api/todo/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error("Ошибка при удалении на сервере");
+    
+    // Удаляем локально
+    todos = todos.filter(t => t.Id !== todoId);
+    localStorage.setItem("todos", JSON.stringify(todos));
+    renderTodo();
+    
+    console.log("✅ Задача удалена с сервера");
+    return true;
+  } catch (error) {
+    console.error("❌ Ошибка удаления задачи:", error);
+    return false;
+  }
+}
+
+// Функция обновления статуса задачи
+async function updateTodoStatus(todoId, isDone) {
+  const userId = getUserId();
+  if (!userId) return false;
+
+  const payload = {
+    user_id: userId,
+    Id: todoId,
+    IsDone: isDone
+  };
+
+  try {
+    const response = await fetch("/api/todo/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error("Ошибка при обновлении");
+    
+    console.log("✅ Статус задачи обновлен");
+    return true;
+  } catch (error) {
+    console.error("❌ Ошибка обновления задачи:", error);
+    return false;
+  }
+}
+
+// ИСПРАВЛЕННАЯ функция рендеринга TODO
+function renderTodo() {
+  const container = document.getElementById("todo-handler");
+  if (!container) {
+    console.warn("Контейнер todo-handler не найден");
+    return;
+  }
+  
+  container.innerHTML = "";
+
+  // ИСПРАВЛЕНО: forEach вместо .for
+  todos.forEach((todo) => {
+    const todoElement = document.createElement("div");
+    todoElement.className = "todo-item";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "todo-checkbox";
+    checkbox.checked = todo.IsDone;
+
+    checkbox.addEventListener("change", async () => {
+      todo.IsDone = checkbox.checked;
+      await updateTodoStatus(todo.Id, todo.IsDone);
+      localStorage.setItem("todos", JSON.stringify(todos));
+    });
+
+    const text = document.createElement("span");
+    text.className = "todo-text";
+    text.textContent = todo.Text;
+    if (todo.IsDone) {
+      text.style.textDecoration = "line-through";
+      text.style.opacity = "0.6";
+    }
+
+    // Кнопка удаления
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "todo-delete-btn";
+    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+    deleteBtn.addEventListener("click", async () => {
+      if (confirm("Удалить задачу?")) {
+        await deleteTodo(todo.Id);
+      }
+    });
+
+    todoElement.appendChild(checkbox);
+    todoElement.appendChild(text);
+    todoElement.appendChild(deleteBtn);
+    container.appendChild(todoElement);
+  });
+
+  console.log(`Отрендерено ${todos.length} задач`);
+}
+
+document.getElementById("new-todo").addEventListener("click", () => {
+  addTodo();
+});
+
 // Слушатели для навигации календаря (предыдущий/следующий месяц, сегодня)
 document.getElementById("prev-month")?.addEventListener("click", () => {
   currentDisplayDate.setMonth(currentDisplayDate.getMonth() - 1); // Переход на предыдущий месяц
@@ -795,22 +1004,24 @@ document.getElementById("today-btn")?.addEventListener("click", () => {
 });
 
 
-
 document.addEventListener('DOMContentLoaded', () => {
   // Загружаем теги при загрузке страницы
   loadTags();
   renderSidebarTags();
-  
+
+  todos = JSON.parse(localStorage.getItem("todos")) || [];
+  renderTodo();
+
   document.getElementById("toggle-preview-btn")?.addEventListener("click", togglePreview);
   document.getElementById("notes-content").addEventListener("input", () => {
-          if (isPreviewMode) updatePreview();
-      });
-  
+    if (isPreviewMode) updatePreview();
+  });
+
   // Кнопка создания тега
   document.getElementById('create-tag-btn')?.addEventListener('click', () => {
     document.getElementById('tag-modal').style.display = 'flex';
   });
-  
+
   // Кнопка выбора тегов для заметки
   document.getElementById('add-tags-btn')?.addEventListener('click', () => {
     const activeNote = notes.find(n => n.isCurrent);
@@ -818,11 +1029,11 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Сначала создайте или выберите заметку');
       return;
     }
-    
+
     renderAvailableTags();
     document.getElementById('tag-select-modal').style.display = 'flex';
   });
-  
+
   // Выбор цвета тега
   document.querySelectorAll('.color-option').forEach(option => {
     option.addEventListener('click', () => {
@@ -831,37 +1042,37 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('tag-color-input').value = option.dataset.color;
     });
   });
-  
+
   // Сохранение нового тега
   document.getElementById('save-tag-btn')?.addEventListener('click', () => {
     const name = document.getElementById('tag-name-input').value.trim();
     const color = document.getElementById('tag-color-input').value;
-    
+
     if (!name) {
       alert('Введите название тега');
       return;
     }
-    
+
     createTag(name, color);
     document.getElementById('tag-name-input').value = '';
     document.getElementById('tag-modal').style.display = 'none';
   });
-  
+
   // Отмена создания тега
   document.getElementById('cancel-tag-btn')?.addEventListener('click', () => {
     document.getElementById('tag-modal').style.display = 'none';
   });
-  
+
   // Применение выбранных тегов
   document.getElementById('confirm-tags-btn')?.addEventListener('click', () => {
     document.getElementById('tag-select-modal').style.display = 'none';
   });
-  
+
   // Отмена выбора тегов
   document.getElementById('cancel-select-tags-btn')?.addEventListener('click', () => {
     document.getElementById('tag-select-modal').style.display = 'none';
   });
-  
+
   // Закрытие модальных окон при клике вне их
   document.querySelectorAll('.modal-overlay').forEach(modal => {
     modal.addEventListener('click', (e) => {

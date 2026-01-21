@@ -198,3 +198,35 @@ func Get_token(pool *pgxpool.Pool, email string) (token string, err error) {
 	}
 	return token, nil
 }
+
+func Add_Todo(pool *pgxpool.Pool, id string, user_id int, text string, isDone bool) error {
+	if _, err := pool.Exec(context.Background(), "INSERT INTO todo (id, user_id, text, isdone) VALUES ($1, $2, $3, $4)", id, user_id, text, isDone); err != nil {
+		fmt.Print("An error in Add_Todo: ", err)
+		return err
+	}
+	return nil
+}
+
+ func Get_todo(pool *pgxpool.Pool, user_id int) ([][]interface{}, error) {
+	
+	rows, err := pool.Query(context.Background(), "SELECT id, text, isdone FROM todo WHERE user_id = $1", user_id)
+	if err != nil {
+		fmt.Print("An error in Get_todo: ", err)
+		return nil, err
+	}
+
+	var todos [][]interface{}
+	var id string
+	var text string
+	var isDone bool
+
+	for rows.Next() {
+		if err := rows.Scan(&id, &text, &isDone); err != nil {
+			fmt.Print("An error in scaning variables: ", err)
+			return nil, err
+		}
+		todos = append(todos, []interface{}{id, text, isDone})
+	}
+
+	return todos, nil
+ }

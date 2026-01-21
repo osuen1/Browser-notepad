@@ -24,7 +24,7 @@ CREATE TABLE folders (
 	Foreign Key (id) REFERENCES users(user_id)
 );
 
-CREATE TABLE IF NOT EXISTS public.settings
+CREATE TABLE IF NOT EXISTS settings
 (
     id serial NOT NULL,
     user_id integer NOT NULL,
@@ -35,6 +35,16 @@ CREATE TABLE IF NOT EXISTS public.settings
     Foreign Key (user_id) REFERENCES users(user_id)
 );
 
+CREATE TABLE IF NOT EXISTS todo
+(
+    id TEXT NOT NULL,
+    user_id integer NOT NULL,
+    text character varying(70) NOT NULL,
+    PRIMARY KEY (id),
+    Foreign Key (user_id) REFERENCES users(user_id)
+);
+
+ALTER TABLE todo ADD COLUMN isDone BOOLEAN;
 
 ALTER TABLE users ADD COLUMN email CHAR(30);
 ALTER TABLE users ADD COLUMN token CHAR(50);

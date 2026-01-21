@@ -27,7 +27,7 @@ func main() {
 	mux.HandleFunc("/register.html", serv.RegisterHandler)
 	mux.HandleFunc("/forgotpassword", serv.ForgotPasswordHandler)
 	mux.HandleFunc("/resetpassword", serv.ResetPasswordHandler)
-	mux.HandleFunc("/todolist", serv.TodoListHandler)
+	mux.HandleFunc("/todolist", serv.TodoPageHandler)
 	
 	
 	mux.HandleFunc("/api/folders/create", serv.CreateFolderHandler)
@@ -37,6 +37,8 @@ func main() {
     mux.HandleFunc("/api/notes/create", serv.CreateNoteHandler)
     mux.HandleFunc("/api/notes/delete", serv.DeleteNoteHandler)
     mux.HandleFunc("/api/reset-password", serv.ResetApiHandler)
+	mux.HandleFunc("/api/todo/create", serv.TodoCreateHadler)
+	mux.HandleFunc("/api/todos/get", serv.GetTodoHandler)
     
 
 	fmt.Print("Сервер запущен на порту: ", port, "\n")
