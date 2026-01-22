@@ -49,6 +49,10 @@ type TodoData struct {
 	Id        string `json:"Id"`
 }
 
+type TodoDelete struct {
+	Id        []string `json:"Id"`
+}
+
 type TodoRespose struct {
 	User_id  int        `json:"User_id"`
 	TodoData []TodoData `json:"TodoData"`
@@ -445,6 +449,37 @@ func GetTodoHandler(w http.ResponseWriter, r *http.Request) {
 			response.TodoData = append(response.TodoData, inter)
 		}
 
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		var req TodoDelete
+		
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		
+		fmt.Print(req)
+		
+		for _, id := range req.Id {
+			if err := db.Delete_todo(server.db, id); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}	
+		}
+		
+		response := Response{
+			Status: true,
+			Message: "Todo deleted successfully",
+		}
+		
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

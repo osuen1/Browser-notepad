@@ -92,20 +92,15 @@ async function addTodo() {
 }
 
 // Функция удаления задачи с сервера
-async function deleteTodo(todoId) {
-  const userId = getUserId();
-  if (!userId) return false;
-
-  const payload = {
-    user_id: userId,
-    Id: todoId
-  };
+async function deleteTodo(todos) {
+  const userId = todos.User_id;
+  const todoIds = todos.map(todo => todo.Id);
 
   try {
     const response = await fetch("/api/todo/delete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ User_id: userId, Id: todoIds }),
     });
 
     if (!response.ok) throw new Error("Ошибка при удалении на сервере");
@@ -150,6 +145,31 @@ async function updateTodoStatus(todoId, isDone) {
     return false;
   }
 }
+
+// Функция отправки выполненных задач на сервер
+async function sendCompletedTodos() {
+  const userId = getUserId();
+  if (!userId) {
+    console.warn("User_id не найден");
+    return;
+  }
+
+  // 1. выбираем выполненные заметки
+  const completedTodos = todos.filter(todo => todo.IsDone);
+
+  if (completedTodos.length === 0) {
+    console.log("Нет выполненных задач для отправки");
+    return;
+  }
+
+  const payload = {
+    User_id: userId,
+    Todos: completedTodos
+  };
+
+  deleteTodo(payload);
+}
+
 
 // ИСПРАВЛЕННАЯ функция рендеринга TODO
 function renderTodo() {
@@ -219,4 +239,11 @@ document.getElementById("todo-add-btn").addEventListener("click", addTodo);
 document.getElementById("logout-btn").addEventListener("click", () => {
     localStorage.clear();
     window.location.replace("/login");
+});
+
+document.getElementById("clear-completed-btn").addEventListener("click", () => {
+  const completedTodos = todos.filter(todo => todo.IsDone);
+  if (completedTodos.length > 0 && confirm("Удалить завершенные задачи?")) {
+    deleteTodo(completedTodos);
+  }
 });

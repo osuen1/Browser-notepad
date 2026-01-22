@@ -229,6 +229,14 @@ func Add_Todo(pool *pgxpool.Pool, id string, user_id int, text string, isDone bo
 	return todos, nil
  }
  
+ func Delete_todo(pool *pgxpool.Pool, todo_id string) error {
+ 	if _, err := pool.Exec(context.Background(), "DELETE FROM todo WHERE id = $1", todo_id); err != nil {
+ 		fmt.Print("An error in Delete_todo: ", err)
+ 		return err
+ 	}
+ 	return nil
+ }
+ 
  func Add_tag(pool *pgxpool.Pool, note_id string, name string, colour string) error {
  	if _, err := pool.Exec(context.Background(), "INSERT INTO tags (note_id, name, colour) VALUES ($1, $2, $3)", note_id, name, colour); err != nil {
 		fmt.Print("An error in Add_tag: ", err)

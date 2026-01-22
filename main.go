@@ -39,6 +39,7 @@ func main() {
     mux.HandleFunc("/api/reset-password", serv.ResetApiHandler)
 	mux.HandleFunc("/api/todo/create", serv.TodoCreateHadler)
 	mux.HandleFunc("/api/todos/get", serv.GetTodoHandler)
+	mux.HandleFunc("/api/todo/delete", serv.DeleteTodoHandler)
     
 
 	fmt.Print("Сервер запущен на порту: ", port, "\n")
