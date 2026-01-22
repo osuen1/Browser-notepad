@@ -9,6 +9,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -317,6 +318,8 @@ func TodoPageHandler(w http.ResponseWriter, r *http.Request) {
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var data_json Login_info
 	init_server()
+	counter := 0
+	maxAttempts := 3
 
 	if r.Method == http.MethodGet {
 		log_page.Execute(w, nil)
@@ -359,7 +362,22 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			} else {
 				response.Status = false
-				response.Message = "Invalid login or password"
+				counter++
+				
+				if counter >= maxAttempts {
+					response.Message = "Too many attempts. Please try again later."
+					w.Header().Set("Content-Type", "application/json")
+					if err := json.NewEncoder(w).Encode(response); err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+					}
+					
+					timeout := time.After(10 * time.Second)
+					<- timeout
+					
+					counter = 0
+				}
+				
+				response.Message = fmt.Sprintf("Invalid login or password. %d attempts left", maxAttempts-counter)
 
 				w.Header().Set("Content-Type", "application/json")
 				if err := json.NewEncoder(w).Encode(response); err != nil {
