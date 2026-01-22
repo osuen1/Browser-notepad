@@ -6,6 +6,7 @@ let tags = JSON.parse(localStorage.getItem("tags")) || [
 ];
 
 let isPreviewMode = false;
+let noteTags = {}; // Хранит теги для каждой заметки: { noteId: [tagId1, tagId2, ...] }
 
 // --- Логика Markdown и Предпросмотра ---
 
@@ -182,4 +183,75 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Инициализация UI
   renderTags();
+});
+
+document.getElementById('add-tags-btn')?.addEventListener('click', () => {
+  const activeNote = notes.find(n => n.isCurrent);
+  if (!activeNote) {
+    alert('Сначала создайте или выберите заметку');
+    return;
+  }
+
+  renderAvailableTags();
+  document.getElementById('tag-select-modal').style.display = 'flex';
+});
+
+document.getElementById("todo-list-link").addEventListener("click", () => {
+  window.location.href = '/todolist';
+});
+
+document.getElementById('create-tag-btn')?.addEventListener('click', () => {
+  document.getElementById('tag-modal').style.display = 'flex';
+});
+
+document.querySelectorAll('.color-option').forEach(option => {
+    option.addEventListener('click', () => {
+      document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+      option.classList.add('selected');
+      document.getElementById('tag-color-input').value = option.dataset.color;
+    });
+  });
+
+  // Сохранение нового тега
+  document.getElementById('save-tag-btn')?.addEventListener('click', () => {
+    const name = document.getElementById('tag-name-input').value.trim();
+    const color = document.getElementById('tag-color-input').value;
+
+    if (!name) {
+      alert('Введите название тега');
+      return;
+    }
+
+    createTag(name, color);
+    document.getElementById('tag-name-input').value = '';
+    document.getElementById('tag-modal').style.display = 'none';
+  });
+
+  // Отмена создания тега
+  document.getElementById('cancel-tag-btn')?.addEventListener('click', () => {
+    document.getElementById('tag-modal').style.display = 'none';
+  });
+
+  // Применение выбранных тегов
+  document.getElementById('confirm-tags-btn')?.addEventListener('click', () => {
+    document.getElementById('tag-select-modal').style.display = 'none';
+  });
+
+  // Отмена выбора тегов
+  document.getElementById('cancel-select-tags-btn')?.addEventListener('click', () => {
+    document.getElementById('tag-select-modal').style.display = 'none';
+  });
+
+  // Закрытие модальных окон при клике вне их
+  document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  });
+  
+document.getElementById("logout-btn").addEventListener("click", () => {
+    localStorage.clear();
+    window.location.replace("/login");
 });

@@ -54,9 +54,7 @@ func Add_note(pool *pgxpool.Pool, note_id string, user_id int, date string, data
 	
 	_, err := pool.Exec(context.Background(), "INSERT INTO note (id, user_id, date, text, folder_id, title, tags) VALUES ($1, $2, $3, $4, $5, $6, $7)", note_id, user_id, date, data, folder_id, title, tags)
 	if err != nil {
-		if err != pgx.ErrNoRows {
-			return fmt.Errorf("error adding note: %v", err)
-		}
+		return fmt.Errorf("error adding note: %v", err)
 	}
 	return nil
 }
@@ -74,7 +72,7 @@ func Get_notes(pool *pgxpool.Pool, user_id int) ([][]string, []int) {
 	var date string
 	var data string
 	var folder_id int
-
+	
 	for rows.Next() {
 		if err := rows.Scan(&note_id, &title, &date, &data, &folder_id); err != nil {
 			fmt.Print("An error in scaning variables: ", err)
@@ -230,3 +228,46 @@ func Add_Todo(pool *pgxpool.Pool, id string, user_id int, text string, isDone bo
 
 	return todos, nil
  }
+ 
+ func Delete_todo(pool *pgxpool.Pool, todo_id string) error {
+ 	if _, err := pool.Exec(context.Background(), "DELETE FROM todo WHERE id = $1", todo_id); err != nil {
+ 		fmt.Print("An error in Delete_todo: ", err)
+ 		return err
+ 	}
+ 	return nil
+ }
+ 
+ func Add_tag(pool *pgxpool.Pool, note_id string, name string, colour string) error {
+ 	if _, err := pool.Exec(context.Background(), "INSERT INTO tags (note_id, name, colour) VALUES ($1, $2, $3)", note_id, name, colour); err != nil {
+		fmt.Print("An error in Add_tag: ", err)
+		return err
+	}
+	return nil
+}
+
+func Get_tags(pool *pgxpool.Pool, note_id []string) ([][]interface{}, error) {
+	var tags [][]interface{}
+	
+	for _, id := range note_id {
+		rows, err := pool.Query(context.Background(), "SELECT id, name, colour FROM tags WHERE note_id = $1", id)
+		if err != nil {
+			fmt.Print("An error in Get_tags: ", err)
+			return nil, err
+		}
+		defer rows.Close()
+		
+		var tag_id string
+		var tag_name string
+		var tag_colour string
+
+		for rows.Next() {
+			if err := rows.Scan(&tag_id, &tag_name, &tag_colour); err != nil {
+				fmt.Print("An error in scaning variables: ", err)
+				return nil, err
+			}
+			tags = append(tags, []interface{}{id, tag_id, tag_name, tag_colour})
+		}
+	}
+	
+	return tags, nil
+}

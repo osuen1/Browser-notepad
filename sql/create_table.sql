@@ -12,7 +12,7 @@ CREATE TABLE note (
     text TEXT NOT NULL,
     folder_id INTEGER NOT NULL,
     title TEXT NOT NULL,
-    tags []TEXT
+    tags TEXT[],
     FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 CREATE TABLE folders (
@@ -42,6 +42,16 @@ CREATE TABLE IF NOT EXISTS todo
     text character varying(70) NOT NULL,
     PRIMARY KEY (id),
     Foreign Key (user_id) REFERENCES users(user_id)
+);
+
+CREATE TABLE IF NOT EXISTS tags
+(
+    id serial PRIMARY KEY NOT NULL,
+    note_id integer NOT NULL,
+    name character varying(20) NOT NULL,
+    colour character varying(10) NOT NULL,
+    
+    FOREIGN KEY (note_id) REFERENCES note(id) ON DELETE CASCADE
 );
 
 ALTER TABLE todo ADD COLUMN isDone BOOLEAN;
