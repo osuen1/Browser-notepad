@@ -333,3 +333,11 @@ document.addEventListener("DOMContentLoaded", () => {
   syncDataFromServer();
   renderFolders();
 });
+
+document.getElementById("save-note-btn-manual").addEventListener("click", () => {
+  const activeNote = notes.find((n) => n.isCurrent);
+  if (activeNote) {
+    activeNote.content = document.getElementById("notes-content").value;
+    sendNoteToServer(activeNote);
+  }
+});

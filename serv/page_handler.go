@@ -20,7 +20,7 @@ import (
 )
 
 type Tags struct {
-	Name  string `json:"Name"`
+	Name  string  `json:"Name"`
 	Colour string `json:"Colour"`
 }
 
@@ -167,6 +167,8 @@ func CreateNoteHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
+	
+	fmt.Print(req)
 
 	if server.db != nil {
 		if result, err := db.Check_note(server.db, req.ID_note); err != nil {
