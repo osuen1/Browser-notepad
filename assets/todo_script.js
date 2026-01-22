@@ -215,3 +215,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.getElementById("todo-add-btn").addEventListener("click", addTodo);
+
+document.getElementById("logout-btn").addEventListener("click", () => {
+    localStorage.clear();
+    window.location.replace("/login");
+});

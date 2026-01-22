@@ -250,3 +250,8 @@ document.querySelectorAll('.color-option').forEach(option => {
       }
     });
   });
+  
+document.getElementById("logout-btn").addEventListener("click", () => {
+    localStorage.clear();
+    window.location.replace("/login");
+});
