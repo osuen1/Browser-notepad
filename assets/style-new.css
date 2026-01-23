@@ -529,7 +529,7 @@ body {
 
 .calendar-nav {
     display: flex;
-    gap: 4px;
+    gap: 5px;
 }
 
 .calendar-nav button {
@@ -541,6 +541,10 @@ body {
     border-radius: 3px;
     cursor: pointer;
     transition: all 0.2s;
+}
+
+#today-btn {
+    width: 70px;
 }
 
 .calendar-nav button:hover {
