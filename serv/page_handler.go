@@ -173,20 +173,25 @@ func CreateNoteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if server.db != nil {
+		var tags []string
+		for _, tag := range req.Tags {
+			tags = append(tags, tag.Name, tag.Colour)
+		}
+		
 		if result, err := db.Check_note(server.db, req.ID_note); err != nil {
 			fmt.Print("Ошибка базы даных. Невозможно найти заметку")
 		} else if result {
-			if err := db.Update_note(server.db, req.ID_note, req.Data); err != nil {
-				fmt.Print("Ошибка базы даных. Невозможно обновить заметку")
+			err_note := db.Update_note(server.db, req.ID_note, req.Data, tags)
+			err_tag := db.Update_tags_in_note(server.db, req.ID_note, tags)
+			if err_note != nil || err_tag != nil {
+				fmt.Printf("Ошибка записи в БД: %v\n", err_note)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
 			}
 		} else if !result {
-			var tags []string
-			for _, tag := range req.Tags {
-				tags = append(tags, tag.Name, tag.Colour)
-			}
-			
-			err := db.Add_note(server.db, req.ID_note, req.User_id, req.Date, req.Data, req.Folder_id, req.Title, tags)
-			if err != nil {
+			err_note := db.Add_note(server.db, req.ID_note, req.User_id, req.Date, req.Data, req.Folder_id, req.Title, tags)
+			err_tag := db.Add_tag(server.db, req.ID_note, tags)
+			if err_note != nil || err_tag != nil {
 				fmt.Printf("Ошибка записи в БД: %v\n", err)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return

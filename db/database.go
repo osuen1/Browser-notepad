@@ -91,8 +91,8 @@ func Delete_note(pool *pgxpool.Pool, note_id string) error {
 	return nil
 }
 
-func Update_note(pool *pgxpool.Pool, note_id string, new_data string) error {
-	if _, err := pool.Exec(context.Background(), "UPDATE note SET text = $1 WHERE id = $2", new_data, note_id); err != nil {
+func Update_note(pool *pgxpool.Pool, note_id string, new_data string, new_tags []string) error {
+	if _, err := pool.Exec(context.Background(), "UPDATE note SET text = $1, tags = $2 WHERE id = $3", new_data, new_tags, note_id); err != nil {
 		fmt.Print("An error in Update_note: ", err)
 		return err
 	}
@@ -237,8 +237,8 @@ func Add_Todo(pool *pgxpool.Pool, id string, user_id int, text string, isDone bo
  	return nil
  }
  
- func Add_tag(pool *pgxpool.Pool, note_id string, name string, colour string) error {
- 	if _, err := pool.Exec(context.Background(), "INSERT INTO tags (note_id, name, colour) VALUES ($1, $2, $3)", note_id, name, colour); err != nil {
+ func Add_tag(pool *pgxpool.Pool, note_id string, tags []string) error {
+ 	if _, err := pool.Exec(context.Background(), "INSERT INTO tags (note_id, tags) VALUES ($1, $2)", note_id, tags); err != nil {
 		fmt.Print("An error in Add_tag: ", err)
 		return err
 	}
@@ -249,7 +249,7 @@ func Get_tags(pool *pgxpool.Pool, note_id []string) ([][]interface{}, error) {
 	var tags [][]interface{}
 	
 	for _, id := range note_id {
-		rows, err := pool.Query(context.Background(), "SELECT id, name, colour FROM tags WHERE note_id = $1", id)
+		rows, err := pool.Query(context.Background(), "SELECT id, tags FROM tags WHERE note_id = $1", id)
 		if err != nil {
 			fmt.Print("An error in Get_tags: ", err)
 			return nil, err
@@ -270,4 +270,13 @@ func Get_tags(pool *pgxpool.Pool, note_id []string) ([][]interface{}, error) {
 	}
 	
 	return tags, nil
+}
+
+func Update_tags_in_note(pool *pgxpool.Pool, id_note string, tags []string) (error) {
+	if _, err := pool.Exec(context.Background(), "UPDATE tags SET tags = $1 WHERE note_id = $2", tags, id_note); err != nil {
+		fmt.Print("An error in Update_tags_in_note: ", err)
+		return err
+	}
+	
+	return nil
 }
