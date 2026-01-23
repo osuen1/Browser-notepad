@@ -46,12 +46,10 @@ CREATE TABLE IF NOT EXISTS todo
 
 CREATE TABLE IF NOT EXISTS tags
 (
-    id serial PRIMARY KEY NOT NULL,
-    note_id integer NOT NULL,
-    name character varying(20) NOT NULL,
-    colour character varying(10) NOT NULL,
-    
-    FOREIGN KEY (note_id) REFERENCES note(id) ON DELETE CASCADE
+    id serial NOT NULL PRIMARY KEY UNIQUE,
+    note_id character varying(20) NOT NULL,
+    tags text[] NOT NULL,
+    FOREIGN KEY(note_id) REFERENCES note(id) ON DELETE CASCADE
 );
 
 ALTER TABLE todo ADD COLUMN isDone BOOLEAN;
