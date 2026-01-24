@@ -245,28 +245,16 @@ func Add_Todo(pool *pgxpool.Pool, id string, user_id int, text string, isDone bo
 	return nil
 }
 
-func Get_tags(pool *pgxpool.Pool, note_id []string) ([][]interface{}, error) {
-	var tags [][]interface{}
+func Get_tags(pool *pgxpool.Pool, note_id string) ([]string, error) {
+	var tags []string
 	
-	for _, id := range note_id {
-		rows, err := pool.Query(context.Background(), "SELECT id, tags FROM tags WHERE note_id = $1", id)
-		if err != nil {
-			fmt.Print("An error in Get_tags: ", err)
-			return nil, err
+	err := pool.QueryRow(context.Background(), "SELECT tags FROM tags WHERE note_id = $1", note_id).Scan(&tags)
+	if err != nil {
+		if err == pgx.ErrNoRows {	
+			// fmt.Print("An error in Get_tags: ", err)
+			return []string{}, err
 		}
-		defer rows.Close()
-		
-		var tag_id string
-		var tag_name string
-		var tag_colour string
-
-		for rows.Next() {
-			if err := rows.Scan(&tag_id, &tag_name, &tag_colour); err != nil {
-				fmt.Print("An error in scaning variables: ", err)
-				return nil, err
-			}
-			tags = append(tags, []interface{}{id, tag_id, tag_name, tag_colour})
-		}
+		return nil, err
 	}
 	
 	return tags, nil

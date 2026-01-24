@@ -346,30 +346,71 @@ async function syncDataFromServer() {
   if (!userId) return;
 
   try {
-    // Загрузка заметок
+    // 1. Загрузка заметок (включая теги из GetNotesHandler)
     const nResp = await fetch("/api/notes/get", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id: userId }),
     });
+
     if (nResp.ok) {
       const serverNotes = await nResp.json();
-      notes = serverNotes.map(sn => ({
-        id: sn.ID_note.toString(),
-        title: sn.Title,
-        content: sn.Data,
-        folderId: sn.Folder_id,
-        isCurrent: false,
-      }));
+      
+      // Очищаем текущие связи тегов перед импортом
+      noteTags = {};
+
+      notes = serverNotes.map(sn => {
+        const noteId = sn.ID_note.toString();
+        
+        // Парсинг тегов, пришедших с сервера
+        if (sn.Tags && Array.isArray(sn.Tags)) {
+          sn.Tags.forEach(serverTag => {
+            if (!serverTag.Name) return;
+
+            // Ищем, существует ли уже такой тег в нашей системе
+            let existingTag = tags.find(t => t.name === serverTag.Name);
+            
+            if (!existingTag) {
+              // Если тега нет, создаем его локально
+              existingTag = {
+                id: generateTagId(),
+                name: serverTag.Name,
+                color: serverTag.Colour || "#4ECDC4",
+                count: 0
+              };
+              tags.push(existingTag);
+            }
+
+            // Привязываем тег к заметке
+            if (!noteTags[noteId]) noteTags[noteId] = [];
+            if (!noteTags[noteId].includes(existingTag.id)) {
+              noteTags[noteId].push(existingTag.id);
+              existingTag.count++;
+            }
+          });
+        }
+
+        return {
+          id: noteId,
+          title: sn.Title,
+          content: sn.Data,
+          folderId: sn.Folder_id,
+          isCurrent: false,
+        };
+      });
+
       saveNotes();
+      saveTags(); // Сохраняем обновленные теги и их связи
+      renderSidebarTags();
     }
 
-    // Загрузка папок
+    // 2. Загрузка папок (без изменений)
     const fResp = await fetch("/api/folders/get", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id: userId }),
     });
+
     if (fResp.ok) {
       const serverFolders = await fResp.json();
       folders = buildFolderTree(serverFolders);
