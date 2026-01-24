@@ -9,6 +9,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gorilla/sessions"
@@ -20,37 +21,37 @@ import (
 )
 
 type Tags struct {
-	Name  string  `json:"Name"`
+	Name   string `json:"Name"`
 	Colour string `json:"Colour"`
 }
 
 type NoteData struct {
-	User_id   int      `json:"user_id"`
-	Title     string   `json:"Title"`
-	Date      string   `json:"Date"`
-	Data      string   `json:"Data"`
-	ID_note   string   `json:"ID_note"`
-	Folder_id int      `json:"Folder_id"`
-	Tags      []Tags   `json:"Tags"`
+	User_id   int    `json:"user_id"`
+	Title     string `json:"Title"`
+	Date      string `json:"Date"`
+	Data      string `json:"Data"`
+	ID_note   string `json:"ID_note"`
+	Folder_id int    `json:"Folder_id"`
+	Tags      []Tags `json:"Tags"`
 }
 
 type FolderData struct {
-	User_id       int          `json:"user_id"`
-	Name          string       `json:"Name"`
-	Folder_id     int          `json:"FolderId"`
-	Parent_id     int          `json:"ParentId"`
+	User_id   int    `json:"user_id"`
+	Name      string `json:"Name"`
+	Folder_id int    `json:"FolderId"`
+	Parent_id int    `json:"ParentId"`
 	// Child_folders []FolderData `json:"Child_folders"`
 }
 
 type TodoData struct {
-	User_id   int    `json:"User_id"`
-	Text 	  string `json:"Text"`
-	IsDone    bool   `json:"IsDone"`
-	Id        string `json:"Id"`
+	User_id int    `json:"User_id"`
+	Text    string `json:"Text"`
+	IsDone  bool   `json:"IsDone"`
+	Id      string `json:"Id"`
 }
 
 type TodoDelete struct {
-	Id        []string `json:"Id"`
+	Id []string `json:"Id"`
 }
 
 type TodoRespose struct {
@@ -71,10 +72,21 @@ type Response struct {
 	Message string `json:"message,omitempty"`
 }
 
+type LoginAttempt struct {
+	Count       int
+	LastAttempt time.Time
+}
+
 type Server struct {
 	db             *pgxpool.Pool
 	cookie_handler *sessions.CookieStore
 }
+
+const maxLoginAttempts = 3
+const loginAttemptsDuritation = 10 * time.Minute
+
+var loginAttempts = make(map[string]*LoginAttempt)
+var loginAttemptsMutex sync.Mutex
 
 var lending = template.Must(template.ParseFiles("templates/lending.html"))
 var log_page = template.Must(template.ParseFiles("templates/login.html"))
@@ -132,46 +144,45 @@ func GetNotesHandler(w http.ResponseWriter, r *http.Request) {
 
 		if server.db != nil {
 			notes, all_tags, folder_ids := db.Get_notes(server.db, data.User_id)
-			
+
 			for index, note := range notes {
 				var tags_struct_array []Tags
-				
+
 				id_note, title, date, text := note[0], note[1], note[2], note[3]
 				folder_id := folder_ids[index]
 				current_tags := all_tags[index]
-				
+
 				// tags, err := db.Get_tags(server.db, id_note)
 				// if err != nil {
 				// 	// fmt.Print("An error in Get_notes_handler: ", err)
 				// 	continue
 				// }
-				
+
 				if len(current_tags) == 2 {
-					tags_struct := Tags {
-						Name: current_tags[0],
+					tags_struct := Tags{
+						Name:   current_tags[0],
 						Colour: current_tags[1],
 					}
 					tags_struct_array = append(tags_struct_array, tags_struct)
 				} else {
-					tags_struct := Tags {
-						Name: "",
+					tags_struct := Tags{
+						Name:   "",
 						Colour: "",
 					}
 					tags_struct_array = append(tags_struct_array, tags_struct)
 				}
-				
-				
+
 				response = append(response, NoteData{
-					User_id: data.User_id,
-					Title: title,
-					Date: date,
-					Data: text,
-					ID_note: id_note,
+					User_id:   data.User_id,
+					Title:     title,
+					Date:      date,
+					Data:      text,
+					ID_note:   id_note,
 					Folder_id: folder_id,
-					Tags: tags_struct_array,
+					Tags:      tags_struct_array,
 				})
 			}
-			
+
 			w.Header().Set("Content-Type", "application/json")
 			if err := json.NewEncoder(w).Encode(response); err != nil {
 				fmt.Print("An error in Get_notes_handler: ", err)
@@ -202,7 +213,7 @@ func CreateNoteHandler(w http.ResponseWriter, r *http.Request) {
 		for _, tag := range req.Tags {
 			tags = append(tags, tag.Name, tag.Colour)
 		}
-		
+
 		if result, err := db.Check_note(server.db, req.ID_note); err != nil {
 			fmt.Print("Ошибка базы даных. Невозможно найти заметку")
 		} else if result {
@@ -225,7 +236,7 @@ func CreateNoteHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusCreated)
 			json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 		}
-		
+
 	} else {
 		http.Error(w, "Forbidden: Database not initialized or user not logged in", http.StatusForbidden)
 	}
@@ -245,16 +256,16 @@ func DeleteNoteHandler(w http.ResponseWriter, r *http.Request) {
 				fmt.Print("An error in Delete_note_handler: ", err)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			}
-			
+
 			response := Response{
-				Status: true,
+				Status:  true,
 				Message: "Заметка успешно удалена",
 			}
-			
+
 			if err := json.NewEncoder(w).Encode(response); err != nil {
 				fmt.Print("An error in Delete_note_handler: ", err)
 			}
-			
+
 		} else {
 			http.Error(w, "u not login", http.StatusForbidden)
 		}
@@ -264,12 +275,12 @@ func DeleteNoteHandler(w http.ResponseWriter, r *http.Request) {
 func CreateFolderHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost && server.db != nil && server.cookie_handler != nil {
 		var req FolderData
-		
+
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		
+
 		if err := db.Create_folder(server.db, req.Folder_id, req.Name, req.User_id, req.Parent_id); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -283,33 +294,33 @@ func GetFoldersHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost && server.db != nil && server.cookie_handler != nil {
 		var response []FolderData
 		var req FolderData
-		
+
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "An error in GetFoldersHandler", http.StatusBadRequest)
 		}
-		
+
 		info := db.Get_folders(server.db, req.User_id)
-		
+
 		for _, folder := range info {
 			folder_id, err := strconv.Atoi(folder[0])
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			
+
 			parent_id, err := strconv.Atoi(folder[2])
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			
+
 			response = append(response, FolderData{
 				Folder_id: folder_id,
-				Name: folder[1],
+				Name:      folder[1],
 				Parent_id: parent_id,
 			})
 		}
-		
+
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -321,21 +332,21 @@ func DeleteFolderHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost && server.cookie_handler != nil && server.db != nil {
 		var req FolderData
 		var response Response
-		
+
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		
+
 		if err := db.Delete_folder(server.db, req.Folder_id); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		
+
 		response = Response{
-			Status: true,
+			Status:  true,
 			Message: "Папка успешно удалена",
 		}
-		
+
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -352,8 +363,6 @@ func TodoPageHandler(w http.ResponseWriter, r *http.Request) {
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var data_json Login_info
 	init_server()
-	counter := 0
-	maxAttempts := 3
 
 	if r.Method == http.MethodGet {
 		log_page.Execute(w, nil)
@@ -363,60 +372,87 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body) // декодируем JSON с клиента
 		if err := decoder.Decode(&data_json); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		loginAttemptsMutex.Lock()
+		attempt, exists := loginAttempts[data_json.Login]
+
+		if exists && time.Since(attempt.LastAttempt) < loginAttemptsDuritation && attempt.Count >= maxLoginAttempts {
+			loginAttemptsMutex.Lock()
+			response := Response{
+				Status:  false,
+				Message: "Too many attempts. Please try again later.",
+			}
+			loginAttemptsMutex.Unlock()
+
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+		}
+
+		if exists && time.Since(attempt.LastAttempt) >= loginAttemptsDuritation {
+			delete(loginAttempts, data_json.Login)
+			attempt = nil
+		}
+
+		loginAttemptsMutex.Unlock()
+		var response Response
+
+		// получаем захешированный пароль из базы данных
+		user_id, _, password, user_email := db.Find_user(server.db, data_json.Login)
+
+		// проверка пароля
+		if status := Check_password(password, data_json.Password); status == true {
+			loginAttemptsMutex.Lock()
+			delete(loginAttempts, data_json.Login)
+			loginAttemptsMutex.Unlock()
+
+			response.Status = true
+			response.User_id = user_id
+			w.Header().Set("Content-Type", "application/json")
+
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+
+			session, _ := server.cookie_handler.Get(r, "session-name")
+			session.Values["user_id"] = user_id
+			session.Save(r, w)
+
+			// Вынести определение mailer в main
+			mailer := mail.New_Dialer()
+			if err := mailer.Send_enter_mail(user_email); err != nil {
+				http.Error(w, "An error with send email", http.StatusInternalServerError)
+				fmt.Print(err)
+			}
+
+			token := Generate_token()
+			if err := db.Update_token(server.db, user_id, token); err != nil {
+				fmt.Print(err)
+			}
 		} else {
-			var response Response
+			loginAttemptsMutex.Lock()
+			if attempt == nil {
+				attempt = &LoginAttempt{}
+				loginAttempts[data_json.Login] = attempt
+			}
+			attempt.Count++
+			attempt.LastAttempt = time.Now()
+            attemptsLeft := maxLoginAttempts - attempt.Count
+            loginAttemptsMutex.Unlock()
 
-			// получаем захешированный пароль из базы данных
-			user_id, _, password, user_email := db.Find_user(server.db, data_json.Login)
+			response.Status = false
 
-			// проверка пароля
-			if status := Check_password(password, data_json.Password); status == true {
-				response.Status = true
-				response.User_id = user_id
-				w.Header().Set("Content-Type", "application/json")
-
-				if err := json.NewEncoder(w).Encode(response); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-				}
-
-				session, _ := server.cookie_handler.Get(r, "session-name")
-				session.Values["user_id"] = user_id
-				session.Save(r, w)
-
-				// Вынести определение mailer в main
-				mailer := mail.New_Dialer()
-				if err := mailer.Send_enter_mail(user_email); err != nil {
-					http.Error(w, "An error with send email", http.StatusInternalServerError)
-					fmt.Print(err)
-				}
-
-				token := Generate_token()
-				if err := db.Update_token(server.db, user_id, token); err != nil {
-					fmt.Print(err)
-				}
+			if attemptsLeft > 0 {
+				response.Message = fmt.Sprintf("Invalid login or password. %d attempts left", attemptsLeft)
 			} else {
-				response.Status = false
-				counter++
-				
-				if counter >= maxAttempts {
-					response.Message = "Too many attempts. Please try again later."
-					w.Header().Set("Content-Type", "application/json")
-					if err := json.NewEncoder(w).Encode(response); err != nil {
-						http.Error(w, err.Error(), http.StatusInternalServerError)
-					}
-					
-					timeout := time.After(10 * time.Second)
-					<- timeout
-					
-					counter = 0
-				}
-				
-				response.Message = fmt.Sprintf("Invalid login or password. %d attempts left", maxAttempts-counter)
+				response.Message = "Too many attempts. Please try again later."
+			}
 
-				w.Header().Set("Content-Type", "application/json")
-				if err := json.NewEncoder(w).Encode(response); err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-				}
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 		}
 	}
@@ -436,9 +472,9 @@ func TodoCreateHadler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		response := Response {
+		response := Response{
 			User_id: req.User_id,
-			Status: true,
+			Status:  true,
 			Message: "Todo успешно создан",
 		}
 
@@ -471,9 +507,9 @@ func GetTodoHandler(w http.ResponseWriter, r *http.Request) {
 		for _, todo := range todos {
 			inter := TodoData{
 				User_id: req.User_id,
-				Text: todo[1].(string),
-				IsDone: todo[2].(bool),
-				Id: todo[0].(string),
+				Text:    todo[1].(string),
+				IsDone:  todo[2].(bool),
+				Id:      todo[0].(string),
 			}
 
 			response.TodoData = append(response.TodoData, inter)
@@ -490,26 +526,26 @@ func GetTodoHandler(w http.ResponseWriter, r *http.Request) {
 func DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		var req TodoDelete
-		
+
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		
+
 		fmt.Print(req)
-		
+
 		for _, id := range req.Id {
 			if err := db.Delete_todo(server.db, id); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
-			}	
+			}
 		}
-		
+
 		response := Response{
-			Status: true,
+			Status:  true,
 			Message: "Todo deleted successfully",
 		}
-		
+
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -542,7 +578,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 		if result == true {
 			db.Add_user(server.db, data_json.Login, Hash_password(data_json.Password), data_json.Email, Generate_token())
-			
+
 			responseJson.Status = true
 			responseJson.Message = "Registration successful"
 
