@@ -121,7 +121,6 @@ func NoteHandler(w http.ResponseWriter, r *http.Request) { // отрисовка
 func GetNotesHandler(w http.ResponseWriter, r *http.Request) {
 	var data NoteData
 	var response []NoteData
-	var tags_struct_array []Tags
 
 	if r.Method == http.MethodPost {
 		decoder := json.NewDecoder(r.Body)
@@ -132,21 +131,25 @@ func GetNotesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if server.db != nil {
-			notes, folder_ids := db.Get_notes(server.db, data.User_id)
+			notes, all_tags, folder_ids := db.Get_notes(server.db, data.User_id)
 			
 			for index, note := range notes {
+				var tags_struct_array []Tags
+				
 				id_note, title, date, text := note[0], note[1], note[2], note[3]
 				folder_id := folder_ids[index]
-				tags, err := db.Get_tags(server.db, id_note)
-				if err != nil {
-					fmt.Print("An error in Get_notes_handler: ", err)
-					continue
-				}
+				current_tags := all_tags[index]
 				
-				if len(tags) == 2 {
+				// tags, err := db.Get_tags(server.db, id_note)
+				// if err != nil {
+				// 	// fmt.Print("An error in Get_notes_handler: ", err)
+				// 	continue
+				// }
+				
+				if len(current_tags) == 2 {
 					tags_struct := Tags {
-						Name: tags[0],
-						Colour: tags[1],
+						Name: current_tags[0],
+						Colour: current_tags[1],
 					}
 					tags_struct_array = append(tags_struct_array, tags_struct)
 				} else {
@@ -156,6 +159,7 @@ func GetNotesHandler(w http.ResponseWriter, r *http.Request) {
 					}
 					tags_struct_array = append(tags_struct_array, tags_struct)
 				}
+				
 				
 				response = append(response, NoteData{
 					User_id: data.User_id,
@@ -167,8 +171,6 @@ func GetNotesHandler(w http.ResponseWriter, r *http.Request) {
 					Tags: tags_struct_array,
 				})
 			}
-			
-			fmt.Print(response)
 			
 			w.Header().Set("Content-Type", "application/json")
 			if err := json.NewEncoder(w).Encode(response); err != nil {

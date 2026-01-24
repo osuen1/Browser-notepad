@@ -59,29 +59,33 @@ func Add_note(pool *pgxpool.Pool, note_id string, user_id int, date string, data
 	return nil
 }
 
-func Get_notes(pool *pgxpool.Pool, user_id int) ([][]string, []int) {
-	rows, err := pool.Query(context.Background(), "SELECT id, title, date, text, folder_id FROM note WHERE user_id = $1", user_id)
+func Get_notes(pool *pgxpool.Pool, user_id int) ([][]string, [][]string, []int) {
+	rows, err := pool.Query(context.Background(), "SELECT id, title, date, text, folder_id, tags FROM note WHERE user_id = $1", user_id)
 	if err != nil {
 		fmt.Print("An error in Get_notes: ", err)
 	}
 	
 	var notes_details [][]string
+	var all_tags [][]string
+	
 	var folder_id_array []int
 	var note_id string
 	var title string
 	var date string
 	var data string
 	var folder_id int
+	var tags []string
 	
 	for rows.Next() {
-		if err := rows.Scan(&note_id, &title, &date, &data, &folder_id); err != nil {
+		if err := rows.Scan(&note_id, &title, &date, &data, &folder_id, &tags); err != nil {
 			fmt.Print("An error in scaning variables: ", err)
 		}
 		notes_details = append(notes_details, []string{note_id, title, date, data})
 		folder_id_array = append(folder_id_array, folder_id)
+		all_tags = append(all_tags, tags)
 	}
 
-	return notes_details, folder_id_array
+	return notes_details, all_tags, folder_id_array
 }
 
 func Delete_note(pool *pgxpool.Pool, note_id string) error {

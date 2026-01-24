@@ -375,7 +375,7 @@ async function syncDataFromServer() {
               existingTag = {
                 id: generateTagId(),
                 name: serverTag.Name,
-                color: serverTag.Colour || "#4ECDC4",
+                color: serverTag.Colour,
                 count: 0
               };
               tags.push(existingTag);
