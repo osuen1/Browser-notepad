@@ -1091,3 +1091,60 @@ li {
   background: rgba(255, 107, 107, 0.1);
   color: #ff4757;
 }
+
+/* Стили для всплывающего окна предпросмотра заметки */
+.note-preview-tooltip {
+  position: fixed;
+  z-index: 1000;
+  background-color: var(--secondary-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 12px;
+  max-width: 320px;
+  max-height: 300px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.2s ease-in-out;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.note-preview-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.note-preview-title {
+  font-weight: 600;
+  color: var(--accent-color);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.note-preview-text {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+}

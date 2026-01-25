@@ -363,6 +363,15 @@ function renderNotesInFolder(folderId, container) {
       </div>
     `;
 
+    // Предпросмотр при наведении
+    noteElement.addEventListener("mouseenter", (e) => {
+      showNotePreview(note, e);
+    });
+
+    noteElement.addEventListener("mouseleave", () => {
+      hideNotePreview();
+    });
+
     noteElement.addEventListener("click", () => {
       notes.forEach((n) => (n.isCurrent = false));
       note.isCurrent = true;
@@ -374,6 +383,35 @@ function renderNotesInFolder(folderId, container) {
 
     container.appendChild(noteElement);
   });
+}
+
+function showNotePreview(note, event) {
+  // Удаляем старый превью если он существует
+  hideNotePreview();
+
+  if (!note.content) return; // Если нет содержимого, не показываем превью
+
+  const preview = document.createElement("div");
+  preview.id = "note-preview-tooltip";
+  preview.className = "note-preview-tooltip";
+  
+  // Берем первые 150 символов для preview
+  const previewText = note.content.substring(0, 150);
+  const hasMore = note.content.length > 150;
+  
+  preview.innerHTML = `
+    <div class="note-preview-content">
+      <div class="note-preview-title">${note.title}</div>
+      <div class="note-preview-text">${previewText}${hasMore ? '...' : ''}</div>
+    </div>
+  `;
+
+  document.body.appendChild(preview);
+
+  // Позиционируем превью относительно курсора
+  const rect = event.target.getBoundingClientRect();
+  preview.style.top = (rect.bottom + 8) + "px";
+  preview.style.left = (rect.left + 10) + "px";
 }
 
 function createNoteInFolder(folderId) {
@@ -439,6 +477,13 @@ document.getElementById("save-note-btn-manual").addEventListener("click", () => 
     sendNoteToServer(activeNote);
   }
 });
+
+function hideNotePreview() {
+  const preview = document.getElementById("note-preview-tooltip");
+  if (preview) {
+    preview.remove();
+  }
+}
 
 document.getElementById("delete-note-btn").addEventListener("click", () => {
   const activeNote = notes.find((n) => n.isCurrent);
