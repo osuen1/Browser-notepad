@@ -273,8 +273,8 @@ func Update_tags_in_note(pool *pgxpool.Pool, id_note string, tags []string) (err
 	return nil
 }
 
-func Upload_file(pool *pgxpool.Pool, file_name string, file_size int, file_type string, folder_id int, user_id int) error {
-	if _, err := pool.Exec(context.Background(), "INSERT INTO files (file_name, file_size, file_type, folder_id, user_id) VALUES ($1, $2, $3, $4, $5)", file_name, file_size, file_type, folder_id, user_id); err != nil {
+func Upload_file(pool *pgxpool.Pool, file_name string, file_size int, file_type string, folder_id int, user_id int, data []byte) error {
+	if _, err := pool.Exec(context.Background(), "INSERT INTO files (file_name, file_size, file_type, folder_id, user_id, data) VALUES ($1, $2, $3, $4, $5, $6)", file_name, file_size, file_type, folder_id, user_id, data); err != nil {
 		fmt.Print("An error in Upload_file: ", err)
 		return err
 	}
@@ -283,7 +283,7 @@ func Upload_file(pool *pgxpool.Pool, file_name string, file_size int, file_type 
 }
 
 func Get_files(pool *pgxpool.Pool, user_id int) ([][]interface{}, error) {
-	rows, err := pool.Query(context.Background(), "SELECT file_name, file_size, file_type, folder_id FROM files WHERE user_id = $1", user_id)
+	rows, err := pool.Query(context.Background(), "SELECT file_name, file_size, file_type, folder_id, data FROM files WHERE user_id = $1", user_id)
 	if err != nil {
 		fmt.Print("An error in Get_files: ", err)
 		return nil, err
@@ -294,10 +294,11 @@ func Get_files(pool *pgxpool.Pool, user_id int) ([][]interface{}, error) {
 	var file_size int
 	var file_type string
 	var folder_id int
+	var data []byte
 
 
 	for rows.Next() {
-		if err := rows.Scan(&file_name, &file_size, &file_type, &folder_id); err != nil {
+		if err := rows.Scan(&file_name, &file_size, &file_type, &folder_id, &data); err != nil {
 			fmt.Print("An error in scaning variables: ", err)
 			return nil, err
 		}
@@ -307,6 +308,7 @@ func Get_files(pool *pgxpool.Pool, user_id int) ([][]interface{}, error) {
 			file_name,
 			file_size,
 			file_type,
+			data,
 		})
 	}
 

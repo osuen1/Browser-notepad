@@ -99,7 +99,7 @@ li {
 
 /* Упрощенный левый бар */
 .sidebar-left {
-    width: 240px;
+    width: 267px;
     background-color: var(--secondary-color);
     border-right: 1px solid var(--border-color);
     margin-top: 36px;
@@ -1147,4 +1147,43 @@ li {
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
+}
+
+/* Стили для загрузки и просмотра PDF */
+.upload-pdf {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: var(--primary-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.upload-pdf:hover {
+  border-color: var(--accent-color);
+  background: rgba(228, 209, 183, 0.05);
+}
+
+#view-pdf-btn {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+#view-pdf-btn:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background-color: rgba(228, 209, 183, 0.08);
 }

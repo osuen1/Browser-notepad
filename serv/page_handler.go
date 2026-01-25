@@ -83,6 +83,7 @@ type FileData struct {
 	File_size int    `json:"File_size"`
 	File_type string `json:"File_type"`
 	User_id   int    `json:"User_id"`
+	Data      []byte `json:"Data"`
 }
 
 type Server struct {
@@ -685,7 +686,7 @@ func CreateFileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if server.db != nil {
-		if err := db.Upload_file(server.db, req.File_name, req.File_size, req.File_type, req.Folder_id, req.User_id); err != nil {
+		if err := db.Upload_file(server.db, req.File_name, req.File_size, req.File_type, req.Folder_id, req.User_id, req.Data); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -725,6 +726,7 @@ func GetFilesHandler(w http.ResponseWriter, r *http.Request) {
 				File_name: file[1].(string),
 				File_size: file[2].(int),
 				File_type: file[3].(string),
+				Data:      file[4].([]byte),
 				User_id:   req.User_id,
 			})
 		}

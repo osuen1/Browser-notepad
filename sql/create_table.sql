@@ -64,6 +64,8 @@ CREATE TABLE IF NOT EXISTS files (
     Foreign Key (user_id) REFERENCES users(user_id)
 );
 
+ALTER TABLE files ADD COLUMN data BYTEA;
+
 ALTER TABLE todo ADD COLUMN isDone BOOLEAN;
 
 ALTER TABLE users ADD COLUMN email CHAR(30);
