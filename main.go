@@ -40,6 +40,9 @@ func main() {
 	mux.HandleFunc("/api/todo/create", serv.TodoCreateHadler)
 	mux.HandleFunc("/api/todos/get", serv.GetTodoHandler)
 	mux.HandleFunc("/api/todo/delete", serv.DeleteTodoHandler)
+	mux.HandleFunc("/api/files/upload", serv.CreateFileHandler)
+	mux.HandleFunc("/api/files/get", serv.GetFilesHandler)
+	mux.HandleFunc("/api/files/delete", serv.DeleteFileHandler)
     
 
 	fmt.Print("Сервер запущен на порту: ", port, "\n")

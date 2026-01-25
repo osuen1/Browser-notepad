@@ -77,6 +77,14 @@ type LoginAttempt struct {
 	LastAttempt time.Time
 }
 
+type FileData struct {
+	Folder_id int    `json:"Folder_id"`
+	File_name string `json:"File_name"`
+	File_size int    `json:"File_size"`
+	File_type string `json:"File_type"`
+	User_id   int    `json:"User_id"`
+}
+
 type Server struct {
 	db             *pgxpool.Pool
 	cookie_handler *sessions.CookieStore
@@ -439,8 +447,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			attempt.Count++
 			attempt.LastAttempt = time.Now()
-            attemptsLeft := maxLoginAttempts - attempt.Count
-            loginAttemptsMutex.Unlock()
+			attemptsLeft := maxLoginAttempts - attempt.Count
+			loginAttemptsMutex.Unlock()
 
 			response.Status = false
 
@@ -655,6 +663,111 @@ func ResetApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		response.Status = true
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+func CreateFileHandler(w http.ResponseWriter, r *http.Request) {
+	var req FileData
+	var response Response
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if server.db != nil {
+		if err := db.Upload_file(server.db, req.File_name, req.File_size, req.File_type, req.Folder_id, req.User_id); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		response = Response{
+			Status:  true,
+			Message: "File successfully uploaded",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func GetFilesHandler(w http.ResponseWriter, r *http.Request) {
+	var req Response
+	var response []FileData
+
+	if r.Method == http.MethodPost {
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		files, err := db.Get_files(server.db, req.User_id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		for _, file := range files {
+			response = append(response, FileData{
+				Folder_id: file[0].(int),
+				File_name: file[1].(string),
+				File_size: file[2].(int),
+				File_type: file[3].(string),
+				User_id:   req.User_id,
+			})
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func DeleteFileHandler(w http.ResponseWriter, r *http.Request) {
+	var req FileData
+	var response Response
+
+	if r.Method == http.MethodPost {
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if err := db.Delete_file(server.db, req.File_name); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+
+			response = Response{
+				Status:  false,
+				Message: "An error occurred while deleting the file",
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+
+			return
+		}
+
+		response = Response{
+			Status:  true,
+			Message: "File successfully deleted",
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
