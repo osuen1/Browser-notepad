@@ -485,6 +485,47 @@ function hideNotePreview() {
   }
 }
 
+function downloadNoteAsMarkdown() {
+  const activeNote = notes.find((n) => n.isCurrent);
+  if (!activeNote) {
+    alert("Сначала создайте или выберите заметку");
+    return;
+  }
+
+  // Создаем содержимое файла с названием заметки как заголовок
+  const content = `# ${activeNote.title}\n\n${activeNote.content}`;
+
+  // Создаем Blob из содержимого
+  const blob = new Blob([content], { type: "text/markdown" });
+
+  // Создаем URL для скачивания
+  const url = URL.createObjectURL(blob);
+
+  // Создаем временный элемент ссылки и кликаем на него
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${activeNote.title}.md`;
+  document.body.appendChild(link);
+  link.click();
+
+  // Очищаем ресурсы
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  console.log(`✅ Заметка "${activeNote.title}" скачана`);
+}
+
+// Обработчик горячей клавиши Command+S (Mac) / Ctrl+S (остальные)
+document.addEventListener("keydown", (e) => {
+  const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+  const isCtrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
+
+  if (isCtrlOrCmd && e.key === "s") {
+    e.preventDefault(); // Отменяем стандартное сохранение браузера
+    downloadNoteAsMarkdown();
+  }
+});
+
 document.getElementById("delete-note-btn").addEventListener("click", () => {
   const activeNote = notes.find((n) => n.isCurrent);
   if (activeNote && confirm(`Удалить заметку "${activeNote.title}"?`)) {
