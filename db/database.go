@@ -23,7 +23,7 @@ func Db_connect() (pool *pgxpool.Pool) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
 	}
-	
+
 	return pool
 }
 
@@ -46,12 +46,12 @@ func Find_user(pool *pgxpool.Pool, login string) (id int, username string, passw
 	return id, username, password, email
 }
 
-// Логика заметок 
+// Логика заметок
 
 func Add_note(pool *pgxpool.Pool, note_id string, user_id int, date string, data string, folder_id int, title string, tags []string) error {
 	// Возможно, будем использовать разные таблицы для разных пользователей в будущем
 	// row := pool.QueryRow(context.Background(), "CREATE TABLE IF NOT EXISTS notes (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, date TEXT NOT NULL, text TEXT NOT NULL, FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE)")
-	
+
 	_, err := pool.Exec(context.Background(), "INSERT INTO note (id, user_id, date, text, folder_id, title, tags) VALUES ($1, $2, $3, $4, $5, $6, $7)", note_id, user_id, date, data, folder_id, title, tags)
 	if err != nil {
 		return fmt.Errorf("error adding note: %v", err)
@@ -64,10 +64,10 @@ func Get_notes(pool *pgxpool.Pool, user_id int) ([][]string, [][]string, []int) 
 	if err != nil {
 		fmt.Print("An error in Get_notes: ", err)
 	}
-	
+
 	var notes_details [][]string
 	var all_tags [][]string
-	
+
 	var folder_id_array []int
 	var note_id string
 	var title string
@@ -75,7 +75,7 @@ func Get_notes(pool *pgxpool.Pool, user_id int) ([][]string, [][]string, []int) 
 	var data string
 	var folder_id int
 	var tags []string
-	
+
 	for rows.Next() {
 		if err := rows.Scan(&note_id, &title, &date, &data, &folder_id, &tags); err != nil {
 			fmt.Print("An error in scaning variables: ", err)
@@ -105,7 +105,7 @@ func Update_note(pool *pgxpool.Pool, note_id string, new_data string, new_tags [
 
 func Check_note(pool *pgxpool.Pool, note_id string) (bool, error) {
 	var result bool
-	
+
 	err := pool.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM note WHERE id = $1)", note_id).Scan(&result)
 	if err != nil {
 		fmt.Print("An error in Check_note: ", err)
@@ -120,33 +120,33 @@ func Create_folder(pool *pgxpool.Pool, folder_id int, folder_name string, user_i
 	if _, err := pool.Exec(context.Background(), "INSERT INTO folders (id, user_id, name, parent_id) VALUES ($1, $2, $3, $4)", folder_id, user_id, folder_name, parent_id); err != nil {
 		fmt.Print("An error in Create_folder: ", err)
 	}
-	
+
 	return nil
 }
 
-func Get_folders(pool *pgxpool.Pool, user_id int) ([][]string) {
+func Get_folders(pool *pgxpool.Pool, user_id int) [][]string {
 	rows, err := pool.Query(context.Background(), "SELECT id, name, parent_id FROM folders WHERE user_id = $1", user_id)
 	if err != nil {
 		fmt.Print("An error in Get_folders: ", err)
 		return nil
 	}
 	defer rows.Close()
-	
-	var info [][] string
+
+	var info [][]string
 	var folder_id int
 	var name string
 	var parent_id int
-	
+
 	for rows.Next() {
-		
+
 		if err := rows.Scan(&folder_id, &name, &parent_id); err != nil {
 			fmt.Print("An error in Get_folders: ", err)
 			return nil
 		}
-		
+
 		info = append(info, []string{strconv.Itoa(folder_id), name, strconv.Itoa(parent_id)})
 	}
-	
+
 	return info
 }
 
@@ -154,11 +154,11 @@ func Delete_folder(pool *pgxpool.Pool, folder_id int) error {
 	if _, err := pool.Exec(context.Background(), "DELETE FROM folders WHERE id = $1", folder_id); err != nil {
 		return fmt.Errorf("An error in Delete_folder: %v", err)
 	}
-	
+
 	if _, err := pool.Exec(context.Background(), "DELETE FROM note WHERE folder_id = $1", folder_id); err != nil {
 		return fmt.Errorf("An error in Delete_folder: %v", err)
 	}
-	
+
 	return nil
 }
 
@@ -170,15 +170,15 @@ func Update_password(pool *pgxpool.Pool, email string, new_password string) erro
 	return nil
 }
 
-func Check_username(pool *pgxpool.Pool, username string) (bool, error) {	
+func Check_username(pool *pgxpool.Pool, username string) (bool, error) {
 	// вернет false если пользователь найден
 	var result bool
-	
+
 	err := pool.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)", username).Scan(&result)
 	if err != nil {
 		return false, fmt.Errorf("An error in Check_username: %v", err)
 	}
-	
+
 	fmt.Print(!result)
 	return !result, nil
 }
@@ -209,8 +209,8 @@ func Add_Todo(pool *pgxpool.Pool, id string, user_id int, text string, isDone bo
 	return nil
 }
 
- func Get_todo(pool *pgxpool.Pool, user_id int) ([][]interface{}, error) {
-	
+func Get_todo(pool *pgxpool.Pool, user_id int) ([][]interface{}, error) {
+
 	rows, err := pool.Query(context.Background(), "SELECT id, text, isdone FROM todo WHERE user_id = $1", user_id)
 	if err != nil {
 		fmt.Print("An error in Get_todo: ", err)
@@ -231,18 +231,18 @@ func Add_Todo(pool *pgxpool.Pool, id string, user_id int, text string, isDone bo
 	}
 
 	return todos, nil
- }
- 
- func Delete_todo(pool *pgxpool.Pool, todo_id string) error {
- 	if _, err := pool.Exec(context.Background(), "DELETE FROM todo WHERE id = $1", todo_id); err != nil {
- 		fmt.Print("An error in Delete_todo: ", err)
- 		return err
- 	}
- 	return nil
- }
- 
- func Add_tag(pool *pgxpool.Pool, note_id string, tags []string) error {
- 	if _, err := pool.Exec(context.Background(), "INSERT INTO tags (note_id, tags) VALUES ($1, $2)", note_id, tags); err != nil {
+}
+
+func Delete_todo(pool *pgxpool.Pool, todo_id string) error {
+	if _, err := pool.Exec(context.Background(), "DELETE FROM todo WHERE id = $1", todo_id); err != nil {
+		fmt.Print("An error in Delete_todo: ", err)
+		return err
+	}
+	return nil
+}
+
+func Add_tag(pool *pgxpool.Pool, note_id string, tags []string) error {
+	if _, err := pool.Exec(context.Background(), "INSERT INTO tags (note_id, tags) VALUES ($1, $2)", note_id, tags); err != nil {
 		fmt.Print("An error in Add_tag: ", err)
 		return err
 	}
@@ -251,24 +251,73 @@ func Add_Todo(pool *pgxpool.Pool, id string, user_id int, text string, isDone bo
 
 func Get_tags(pool *pgxpool.Pool, note_id string) ([]string, error) {
 	var tags []string
-	
+
 	err := pool.QueryRow(context.Background(), "SELECT tags FROM tags WHERE note_id = $1", note_id).Scan(&tags)
 	if err != nil {
-		if err == pgx.ErrNoRows {	
+		if err == pgx.ErrNoRows {
 			// fmt.Print("An error in Get_tags: ", err)
 			return []string{}, err
 		}
 		return nil, err
 	}
-	
+
 	return tags, nil
 }
 
-func Update_tags_in_note(pool *pgxpool.Pool, id_note string, tags []string) (error) {
+func Update_tags_in_note(pool *pgxpool.Pool, id_note string, tags []string) error {
 	if _, err := pool.Exec(context.Background(), "UPDATE tags SET tags = $1 WHERE note_id = $2", tags, id_note); err != nil {
 		fmt.Print("An error in Update_tags_in_note: ", err)
 		return err
 	}
-	
+
+	return nil
+}
+
+func Upload_file(pool *pgxpool.Pool, file_name string, file_size int, file_type string, folder_id int, user_id int, data []byte) error {
+	if _, err := pool.Exec(context.Background(), "INSERT INTO files (user_id, folder_id, file_name, file_size, file_type, data) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT(user_id, folder_id, file_name) DO UPDATE SET file_size=$4, data=$6", user_id, folder_id, file_name, file_size, file_type, data); err != nil {
+		fmt.Print("An error in Upload_file: ", err)
+		return err
+	}
+
+	return nil
+}
+
+func Get_files(pool *pgxpool.Pool, user_id int) ([][]interface{}, error) {
+	rows, err := pool.Query(context.Background(), "SELECT file_name, file_size, file_type, folder_id, data FROM files WHERE user_id = $1 ORDER BY created_at DESC", user_id)
+	if err != nil {
+		fmt.Print("An error in Get_files: ", err)
+		return nil, err
+	}
+
+	var files [][]interface{}
+	var file_name string
+	var file_size int
+	var file_type string
+	var folder_id int
+	var data []byte
+
+	for rows.Next() {
+		if err := rows.Scan(&file_name, &file_size, &file_type, &folder_id, &data); err != nil {
+			fmt.Print("An error in scaning variables: ", err)
+			return nil, err
+		}
+
+		files = append(files, []interface{}{
+			folder_id,
+			file_name,
+			file_size,
+			file_type,
+			data,
+		})
+	}
+
+	return files, nil
+}
+
+func Delete_file(pool *pgxpool.Pool, user_id int, file_name string, folder_id int) error {
+	if _, err := pool.Exec(context.Background(), "DELETE FROM files WHERE user_id = $1 AND file_name = $2 AND folder_id = $3", user_id, file_name, folder_id); err != nil {
+		fmt.Print("An error in Delete_file: ", err)
+		return err
+	}
 	return nil
 }

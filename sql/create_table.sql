@@ -52,6 +52,23 @@ CREATE TABLE IF NOT EXISTS tags
     FOREIGN KEY(note_id) REFERENCES note(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS files
+(
+    id serial NOT NULL PRIMARY KEY,
+    user_id integer NOT NULL,
+    folder_id integer NOT NULL,
+    file_name character varying(100) NOT NULL,
+    file_type character varying(50) NOT NULL,
+    file_size integer NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE,
+    UNIQUE(user_id, folder_id, file_name)
+);
+
+ALTER TABLE files ADD COLUMN data BYTEA;
+
 ALTER TABLE todo ADD COLUMN isDone BOOLEAN;
 
 ALTER TABLE users ADD COLUMN email CHAR(30);
