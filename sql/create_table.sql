@@ -52,16 +52,19 @@ CREATE TABLE IF NOT EXISTS tags
     FOREIGN KEY(note_id) REFERENCES note(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS files (
-    id SERIAL PRIMARY KEY NOT NULL,
-    user_id INTEGER NOT NULL,
-    file_name VARCHAR(100) NOT NULL,
-    file_size INTEGER NOT NULL,
-    file_type VARCHAR(50) NOT NULL,
-    folder_id INTEGER NOT NULL,
+CREATE TABLE IF NOT EXISTS files
+(
+    id serial NOT NULL PRIMARY KEY,
+    user_id integer NOT NULL,
+    folder_id integer NOT NULL,
+    file_name character varying(100) NOT NULL,
+    file_type character varying(50) NOT NULL,
+    file_size integer NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    Foreign Key (folder_id) REFERENCES folders(id),
-    Foreign Key (user_id) REFERENCES users(user_id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE,
+    UNIQUE(user_id, folder_id, file_name)
 );
 
 ALTER TABLE files ADD COLUMN data BYTEA;

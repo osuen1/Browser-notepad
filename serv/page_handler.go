@@ -82,8 +82,8 @@ type FileData struct {
 	File_name string `json:"File_name"`
 	File_size int    `json:"File_size"`
 	File_type string `json:"File_type"`
-	User_id   int    `json:"User_id"`
 	Data      []byte `json:"Data"`
+	User_id   int    `json:"User_id"`
 }
 
 type Server struct {
@@ -705,7 +705,7 @@ func CreateFileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetFilesHandler(w http.ResponseWriter, r *http.Request) {
-	var req Response
+	var req FileData
 	var response []FileData
 
 	if r.Method == http.MethodPost {
@@ -727,7 +727,6 @@ func GetFilesHandler(w http.ResponseWriter, r *http.Request) {
 				File_size: file[2].(int),
 				File_type: file[3].(string),
 				Data:      file[4].([]byte),
-				User_id:   req.User_id,
 			})
 		}
 
@@ -749,7 +748,7 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := db.Delete_file(server.db, req.File_name); err != nil {
+		if err := db.Delete_file(server.db, req.User_id, req.File_name, req.Folder_id); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 
 			response = Response{

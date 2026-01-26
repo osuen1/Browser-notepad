@@ -299,6 +299,7 @@ function renderFolders(foldersList = folders, container = document.getElementByI
       <div class="folder-content" id="content-${folder.id}">
           <ul class="subfolders-list"></ul>
           <ul class="note-list"></ul>
+          <ul class="file-list"></ul>
       </div>
     `;
 
@@ -334,6 +335,7 @@ function renderFolders(foldersList = folders, container = document.getElementByI
       renderFolders(folder.children, folderElement.querySelector(".subfolders-list"));
     }
     renderNotesInFolder(folder.id, folderElement.querySelector(".note-list"));
+    renderFilesInFolder(folder.id, folderElement.querySelector(".file-list"));
   });
 }
 
@@ -382,6 +384,59 @@ function renderNotesInFolder(folderId, container) {
     });
 
     container.appendChild(noteElement);
+  });
+}
+
+function renderFilesInFolder(folderId, container) {
+  container.innerHTML = "";
+  const folderFiles = getPdfsFromFolder(folderId);
+
+  folderFiles.forEach((file) => {
+    const fileElement = document.createElement("li");
+    fileElement.className = "file-item";
+
+    const fileSizeKB = (file.fileSize / 1024).toFixed(2);
+
+    fileElement.innerHTML = `
+      <div style="display: flex; align-items: center; width: 100%; gap: 8px;">
+        <i class="fas fa-file-pdf file-icon"></i>
+        <div style="flex: 1; min-width: 0;">
+          <div class="file-name" title="${file.fileName}">${file.fileName}</div>
+          <div class="file-size">${fileSizeKB} KB</div>
+        </div>
+        <div class="file-actions" style="display: flex; gap: 4px;">
+          <button class="file-action-btn view-file" title="Просмотреть">
+            <i class="fas fa-eye"></i>
+          </button>
+          <button class="file-action-btn download-file" title="Скачать">
+            <i class="fas fa-download"></i>
+          </button>
+          <button class="file-action-btn delete-file" title="Удалить">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Обработчики событий
+    fileElement.querySelector(".view-file").addEventListener("click", (e) => {
+      e.stopPropagation();
+      viewPdfFromServer(file.fileName);
+    });
+
+    fileElement.querySelector(".download-file").addEventListener("click", (e) => {
+      e.stopPropagation();
+      downloadPdfFromServer(file.fileName);
+    });
+
+    fileElement.querySelector(".delete-file").addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (confirm(`Удалить файл "${file.fileName}"?`)) {
+        deletePdfFromServer(file.fileName, file.folderId);
+      }
+    });
+
+    container.appendChild(fileElement);
   });
 }
 

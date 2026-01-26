@@ -1,12 +1,12 @@
-// --- Переменная для хранения загруженного PDF ---
-let currentPdfBase64 = null;
-let currentPdfFileName = null;
-// --- Конвертация PDF в бинарный формат (Base64) ---
+// --- Переменные для хранения файлов ---
+let userPdfs = [];
+
+// --- Конвертация PDF в бинарный формат (Base64) ---
 
 function convertPdfToBinary(file) {
   return new Promise((resolve, reject) => {
     if (!file || file.type !== "application/pdf") {
-      reject(new Error("Пожалуйста, выберите PDF файл"));
+      reject(new Error("Пожалуйста, выберите PDF файл"));
       return;
     }
 
@@ -14,8 +14,6 @@ function convertPdfToBinary(file) {
 
     reader.onload = (event) => {
       try {
-        // Конвертируем файл в base64 (бинарный формат для передачи)
-        // Используем readAsArrayBuffer вместо устаревшего readAsBinaryString
         const arrayBuffer = event.target.result;
         const bytes = new Uint8Array(arrayBuffer);
         let binaryString = "";
@@ -41,19 +39,13 @@ function convertPdfToBinary(file) {
 
 function convertBinaryToPdf(base64String, fileName) {
   try {
-    // Конвертируем base64 обратно в бинарную строку
     const binaryString = atob(base64String);
-    
-    // Конвертируем бинарную строку в массив байтов
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i);
     }
 
-    // Создаем Blob из массива байтов
     const blob = new Blob([bytes], { type: "application/pdf" });
-
-    // Создаем URL для просмотра или скачивания
     return URL.createObjectURL(blob);
   } catch (error) {
     console.error("❌ Ошибка при конвертации PDF:", error);
@@ -67,58 +59,9 @@ function viewPdfFromBase64(base64String, fileName = "document.pdf") {
   const pdfUrl = convertBinaryToPdf(base64String, fileName);
   
   if (pdfUrl) {
-    // Открываем PDF в новой вкладке
     window.open(pdfUrl, "_blank");
   } else {
-    alert("Ошибка при открытии PDF файла");
-  }
-}
-
-// --- Отправка PDF на сервер в формате JSON ---
-
-async function sendPdfToServer(file) {
-  const userId = getUserId();
-  if (!userId) {
-    console.warn("User_id не найден.");
-    return false;
-  }
-
-  try {
-    // Конвертируем PDF в base64
-    const base64String = await convertPdfToBinary(file);
-
-    // Получаем ID папки из активной заметки
-    const activeNote = notes.find((n) => n.isCurrent);
-    const folderId = activeNote ? activeNote.folderId : 0;
-
-    // Создаем JSON payload
-    const payload = {
-      Folder_id: folderId,
-      File_name: file.name,
-      File_size: file.size,
-      File_type: file.type,
-      User_id: userId,
-      Data: base64String
-    };
-
-    // Отправляем на сервер
-    const response = await fetch("/api/files/upload", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      console.warn(`⚠️ Сервер не принял файл (${response.status}). Файл загружен локально.`);
-      return true; // Продолжаем работу локально
-    }
-
-    const result = await response.json();
-    console.log("✅ PDF файл успешно загружен на сервер:", result);
-    return true;
-  } catch (error) {
-    console.warn("⚠️ Ошибка отправки на сервер, используем локальное хранилище:", error);
-    return true; // Продолжаем работу локально даже если ошибка
+    alert("Ошибка при открытии PDF файла");
   }
 }
 
@@ -129,106 +72,239 @@ function downloadPdfFromBase64(base64String, fileName = "document.pdf") {
     const pdfUrl = convertBinaryToPdf(base64String, fileName);
     
     if (pdfUrl) {
-      // Создаем временный элемент ссылки и кликаем на него
       const link = document.createElement("a");
       link.href = pdfUrl;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
 
-      // Очищаем ресурсы
       document.body.removeChild(link);
       URL.revokeObjectURL(pdfUrl);
 
-      console.log(`✅ PDF файл "${fileName}" скачан`);
+      console.log(`✅ PDF файл "${fileName}" скачан`);
     }
   } catch (error) {
     console.error("❌ Ошибка при скачивании PDF:", error);
   }
 }
 
-// --- Обработчик для загрузки файла через input ---
+// --- Отправка PDF на сервер ---
 
-function setupPdfUploadHandler(inputElementId, callback) {
-  const inputElement = document.getElementById(inputElementId);
+async function sendPdfToServer(file, folderId) {
+  const userId = getUserId();
+  if (!userId) {
+    console.warn("User_id не найден.");
+    return false;
+  }
+
+  try {
+    const base64String = await convertPdfToBinary(file);
+
+    const payload = {
+      Folder_id: folderId,
+      File_name: file.name,
+      File_size: file.size,
+      File_type: file.type,
+      User_id: userId,
+      Data: base64String
+    };
+
+    console.log("📤 Отправляем файл на сервер:", payload);
+
+    const response = await fetch("/api/files/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.warn(`⚠️ Сервер не принял файл (${response.status}): ${errorText}`);
+      return true;
+    }
+
+    const result = await response.json();
+    console.log("✅ PDF файл успешно загружен на сервер:", result);
+    return true;
+  } catch (error) {
+    console.warn("⚠️ Ошибка отправки на сервер, используем локальное хранилище:", error);
+    return true;
+  }
+}
+
+// --- Получение PDF файлов с сервера ---
+
+async function getPdfsFromServer() {
+  const userId = getUserId();
+  if (!userId) {
+    console.warn("User_id не найден.");
+    return [];
+  }
+
+  try {
+    const payload = { User_id: userId };
+    console.log("📥 Запрашиваем файлы с сервера для user_id:", userId);
+
+    const response = await fetch("/api/files/get", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      console.warn(`⚠️ Ошибка получения файлов (${response.status})`);
+      return [];
+    }
+
+    const files = await response.json();
+    console.log("📦 Получено файлов с сервера:", files);
+    
+    if (!files || !Array.isArray(files)) {
+      console.warn("⚠️ Сервер вернул некорректные данные");
+      userPdfs = [];
+      return [];
+    }
+    
+    const processedFiles = files.map(file => ({
+      folderId: file.Folder_id,
+      fileName: file.File_name,
+      fileSize: file.File_size,
+      fileType: file.File_type,
+      userId: file.User_id,
+      data: file.Data
+    }));
+
+    userPdfs = processedFiles;
+    console.log("✅ PDF файлы обработаны:", processedFiles);
+    return processedFiles;
+  } catch (error) {
+    console.error("❌ Ошибка при получении PDF файлов:", error);
+    return [];
+  }
+}
+
+// --- Получение PDF из конкретной папки ---
+
+function getPdfsFromFolder(folderId) {
+  return userPdfs.filter(f => f.folderId === folderId);
+}
+
+// --- Получение PDF по имени ---
+
+function getPdfByName(fileName) {
+  return userPdfs.find(f => f.fileName === fileName);
+}
+
+// --- Просмотр PDF с сервера ---
+
+function viewPdfFromServer(fileName) {
+  const file = getPdfByName(fileName);
   
-  if (!inputElement) {
-    console.error(`Элемент с ID "${inputElementId}" не найден`);
+  if (file && file.data) {
+    viewPdfFromBase64(file.data, file.fileName);
+  } else {
+    alert("PDF файл не найден");
+  }
+}
+
+// --- Скачивание PDF с сервера ---
+
+function downloadPdfFromServer(fileName) {
+  const file = getPdfByName(fileName);
+  
+  if (file && file.data) {
+    downloadPdfFromBase64(file.data, file.fileName);
+  } else {
+    alert("PDF файл не найден на сервере");
+  }
+}
+
+// --- Удаление файла на сервере ---
+
+async function deletePdfFromServer(fileName, folderId) {
+  const userId = getUserId();
+  if (!userId) return false;
+
+  try {
+    const response = await fetch("/api/files/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        User_id: userId,
+        File_name: fileName,
+        Folder_id: folderId
+      })
+    });
+
+    if (!response.ok) {
+      console.warn(`⚠️ Ошибка удаления файла (${response.status})`);
+      return false;
+    }
+
+    // Удаляем из локального массива
+    userPdfs = userPdfs.filter(f => f.fileName !== fileName);
+    renderFolders();
+    console.log(`✅ PDF "${fileName}" удален`);
+    return true;
+  } catch (error) {
+    console.error("❌ Ошибка при удалении PDF:", error);
+    return false;
+  }
+}
+
+// --- Обработчик для загрузки файла ---
+
+function openFileUploadDialog() {
+  const activeNote = notes.find((n) => n.isCurrent);
+  if (!activeNote) {
+    alert("Сначала выберите папку (создайте или откройте заметку в папке)");
     return;
   }
 
-  inputElement.addEventListener("change", async (event) => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".pdf";
+  
+  input.onchange = async (event) => {
     const file = event.target.files[0];
-    
     if (!file) return;
 
     try {
-      const base64String = await convertPdfToBinary(file);
-      
-      // Отправляем на сервер
-      const success = await sendPdfToServer(file);
-      
-      if (success && callback) {
-        callback(base64String, file.name);
+      const success = await sendPdfToServer(file, activeNote.folderId);
+      if (success) {
+        await getPdfsFromServer();
+        renderFolders();
+        console.log(`✅ Файл "${file.name}" загружен в папку`);
       }
     } catch (error) {
       alert(`Ошибка: ${error.message}`);
     }
-  });
+  };
+  
+  input.click();
 }
 
-// --- Вспомогательные функции ---
+// --- Вспомогательная функция ---
 
 function getUserId() {
   return parseInt(localStorage.getItem("user_id"));
 }
 
-// --- Инициализация обработчиков ---
+// --- Инициализация при загрузке страницы ---
 
-// Инициализация загрузки PDF
-setupPdfUploadHandler("pdf-upload", (base64, fileName) => {
-  console.log("✅ PDF загружен:", fileName);
-  // Сохраняем загруженный PDF
-  currentPdfBase64 = base64;
-  currentPdfFileName = fileName;
-  
-  // Визуальное подтверждение
-  const viewBtn = document.getElementById("view-pdf-btn");
-  if (viewBtn) {
-    viewBtn.style.backgroundColor = "rgba(78, 205, 196, 0.2)";
-    viewBtn.innerHTML = '<i class="fas fa-check"></i> PDF загружен: ' + fileName;
-  }
-});
+async function initializePdfs() {
+  console.log("🔄 Инициализация PDF файлов...");
+  const files = await getPdfsFromServer();
+  console.log("✅ Инициализация завершена, файлов загружено:", files.length);
+}
 
-// Обработчик для кнопки просмотра PDF
+// Инициализация при загрузке DOM
 document.addEventListener("DOMContentLoaded", () => {
-  const viewPdfBtn = document.getElementById("view-pdf-btn");
-  if (viewPdfBtn) {
-    viewPdfBtn.addEventListener("click", () => {
-      if (currentPdfBase64 && currentPdfFileName) {
-        viewPdfFromBase64(currentPdfBase64, currentPdfFileName);
-      } else {
-        alert("Пожалуйста, сначала загрузите PDF файл");
-      }
-    });
+  initializePdfs();
+
+  // Обработчик кнопки загрузки файлов
+  const uploadPdfBtn = document.getElementById("upload-pdf-btn");
+  if (uploadPdfBtn) {
+    uploadPdfBtn.addEventListener("click", openFileUploadDialog);
   }
 });
-
-// Пример использования:
-/*
-// В HTML добавить:
-// <input type="file" id="pdf-upload" accept=".pdf">
-// <button id="view-pdf-btn">Просмотреть PDF</button>
-
-// В JavaScript инициализировать:
-setupPdfUploadHandler("pdf-upload", (base64, fileName) => {
-  console.log("PDF загружен:", fileName);
-  // Используйте base64String по необходимости
-});
-
-// Для просмотра:
-// viewPdfFromBase64(base64String, fileName);
-
-// Для скачивания:
-// downloadPdfFromBase64(base64String, fileName);
-*/

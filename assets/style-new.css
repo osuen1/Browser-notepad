@@ -289,6 +289,74 @@ li {
     margin-left: auto;
 }
 
+/* Стили для файлов */
+.file-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 3px;
+    background-color: rgba(228, 209, 183, 0.08);
+    color: var(--text-color);
+    font-size: 12px;
+    border-left: 2px solid var(--accent-color);
+}
+
+.file-item:hover {
+    background-color: rgba(228, 209, 183, 0.12);
+    border-left-color: #f5a261;
+}
+
+.file-icon {
+    color: #e07c3f;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.file-name {
+    font-weight: 500;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-size {
+    font-size: 10px;
+    color: var(--text-secondary);
+}
+
+.file-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.file-item:hover .file-actions {
+    opacity: 1;
+}
+
+.file-action-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 2px 4px;
+    font-size: 11px;
+    transition: all 0.2s;
+    border-radius: 2px;
+}
+
+.file-action-btn:hover {
+    color: var(--accent-color);
+    background-color: rgba(228, 209, 183, 0.1);
+}
+
 .note-action-btn {
     background: none;
     border: 1px solid var(--border-color);
