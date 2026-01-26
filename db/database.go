@@ -321,3 +321,21 @@ func Delete_file(pool *pgxpool.Pool, user_id int, file_name string, folder_id in
 	}
 	return nil
 }
+
+func Add_user_statistics(pool *pgxpool.Pool, user_id int, goals string) error {
+	if _, err := pool.Exec(context.Background(), "INSERT INTO statistics (user_id, goals) VALUES ($1, $2)", user_id, goals); err != nil {
+		fmt.Print("An error in Add_user_statistics: ", err)
+		return err
+	}
+
+	return nil
+}
+
+func Profile_update(pool *pgxpool.Pool, user_id int, field string, value string) error {
+	if _, err := pool.Exec(context.Background(), "UPDATE users SET "+field+" = $1 WHERE user_id = $2", value, user_id); err != nil {
+		fmt.Print("An error in Profile_update: ", err)
+		return err
+	}
+
+	return nil
+}

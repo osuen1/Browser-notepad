@@ -86,6 +86,12 @@ type FileData struct {
 	User_id   int    `json:"User_id"`
 }
 
+type ProfileRequest struct {
+	User_id int    `json:"User_id"`
+	Field   string `json:"Field"`
+	Value   string `json:"Value"`
+}
+
 type Server struct {
 	db             *pgxpool.Pool
 	cookie_handler *sessions.CookieStore
@@ -772,6 +778,24 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+func ProfileHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		var req ProfileRequest
+
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if server.db != nil {
+			if err := db.Profile_update(server.db, req.User_id, req.Field, req.Value); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		}
 	}
 }

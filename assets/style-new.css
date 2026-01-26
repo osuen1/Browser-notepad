@@ -74,6 +74,23 @@ li {
     color: #ff6b6b;
 }
 
+.profile-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    margin-right: 4px;
+}
+
+.profile-btn:hover {
+    background-color: rgba(228, 209, 183, 0.15);
+    color: var(--accent-color);
+}
+
 .tab {
     padding: 6px 16px;
     margin-right: 4px;
@@ -771,6 +788,10 @@ li {
     z-index: 1000;
 }
 
+.modal-overlay.active {
+    display: flex;
+}
+
 .modal-content {
     background: var(--secondary-color);
     padding: 24px;
@@ -1254,4 +1275,181 @@ li {
   border-color: var(--accent-color);
   color: var(--accent-color);
   background-color: rgba(228, 209, 183, 0.08);
+}
+
+/* ========== Стили для профиля ========== */
+
+.profile-modal-content {
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: var(--text-color);
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+  color: var(--accent-color);
+}
+
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-field label {
+  font-weight: 500;
+  color: var(--text-color);
+  font-size: 13px;
+}
+
+.profile-field input,
+.profile-field select {
+  background-color: var(--note-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.profile-field input:focus,
+.profile-field select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(228, 209, 183, 0.1);
+}
+
+.field-display {
+  background-color: var(--note-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.save-field-btn {
+  background-color: rgba(78, 205, 196, 0.2);
+  border: 1px solid var(--border-color);
+  color: #4ECDC4;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+  align-self: flex-start;
+}
+
+.save-field-btn:hover {
+  background-color: rgba(78, 205, 196, 0.3);
+  border-color: #4ECDC4;
+}
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--note-bg);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent-color);
+}
+
+.danger-zone {
+  padding: 16px;
+  border: 1px solid #ff6b6b;
+  border-radius: 6px;
+  background-color: rgba(255, 107, 107, 0.05);
+}
+
+.danger-zone h3 {
+  margin: 0 0 12px 0;
+  color: #ff6b6b;
+  font-size: 14px;
+}
+
+.delete-account-btn {
+  background-color: rgba(255, 107, 107, 0.2);
+  border: 1px solid #ff6b6b;
+  color: #ff6b6b;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+}
+
+.delete-account-btn:hover {
+  background-color: rgba(255, 107, 107, 0.3);
+  transform: translateY(-1px);
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.cancel-btn {
+  background-color: var(--note-bg);
+  border: 1px solid var(--border-color);
 }

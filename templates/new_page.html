@@ -16,6 +16,9 @@
         <div class="tab"><i class="fas fa-sticky-note"></i></div>
         <div class="tab" id="todo-list-link"><i class="fas fa-tasks"></i></div>
         <div class="tab"><i class="fas fa-calendar"></i></div>
+        <button class="profile-btn" id="profile-btn" title="Настройки профиля">
+            <i class="fas fa-user-circle"></i>
+        </button>
         <button class="logout-btn" id="logout-btn" title="Выйти из аккаунта">
             <i class="fas fa-sign-out-alt"></i> <span>Выйти</span>
         </button>
@@ -189,6 +192,83 @@
         </div>
     </div>
 
+    <!-- Модальное окно настроек профиля -->
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+                <h2>Настройки профиля</h2>
+                <button class="modal-close-btn" id="close-profile-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="profile-section">
+                <div class="profile-field">
+                    <label for="profile-username">Имя пользователя:</label>
+                    <div class="field-display" id="profile-username-display">-</div>
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-email">Email:</label>
+                    <input type="email" id="profile-email" placeholder="your.email@example.com" />
+                    <button class="save-field-btn" data-field="email" title="Сохранить">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-password">Изменить пароль:</label>
+                    <input type="password" id="profile-password" placeholder="Новый пароль" />
+                    <button class="save-field-btn" data-field="password" title="Сохранить">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-theme">Тема:</label>
+                    <select id="profile-theme">
+                        <option value="light">Светлая</option>
+                        <option value="dark" selected>Тёмная</option>
+                    </select>
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-language">Язык:</label>
+                    <select id="profile-language">
+                        <option value="ru" selected>Русский</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Заметок:</span>
+                        <span class="stat-value" id="notes-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Папок:</span>
+                        <span class="stat-value" id="folders-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Файлов:</span>
+                        <span class="stat-value" id="files-count">0</span>
+                    </div>
+                </div>
+
+                <div class="danger-zone">
+                    <h3>Опасная зона</h3>
+                    <button class="delete-account-btn" id="delete-account-btn">
+                        <i class="fas fa-trash"></i> Удалить аккаунт
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="toolbar-button cancel-btn" id="close-profile-btn">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script src="/assets/note-script.js"></script>
@@ -196,6 +276,7 @@
     <script src="/assets/folders.js"></script>
     <script src="/assets/tags.js"></script>
     <script src="/assets/load-file.js"></script>
+    <script src="/assets/profile.js"></script>
 </body>
 
 </html>

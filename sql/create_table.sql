@@ -67,6 +67,25 @@ CREATE TABLE IF NOT EXISTS files
     UNIQUE(user_id, folder_id, file_name)
 );
 
+CREATE TABLE statistics (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    goals TEXT,
+
+    Foreign Key (user_id) REFERENCES users(user_id)
+);
+
+CREATE TABLE IF NOT EXISTS profile (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    email CHAR(30),
+    theme CHAR(20),
+    language CHAR(5),
+
+    Foreign Key (user_id) REFERENCES users(user_id)
+);
+
+
 ALTER TABLE files ADD COLUMN data BYTEA;
 
 ALTER TABLE todo ADD COLUMN isDone BOOLEAN;
