@@ -92,6 +92,13 @@ type ProfileRequest struct {
 	Value   string `json:"Value"`
 }
 
+type ProfileResponse struct {
+	Email    string `json:"Email"`
+	Theme    string `json:"Theme"`
+	Language string `json:"Language"`
+	Username string `json:"Username"`
+}
+
 type Server struct {
 	db             *pgxpool.Pool
 	cookie_handler *sessions.CookieStore
@@ -593,6 +600,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 		if result == true {
 			db.Add_user(server.db, data_json.Login, Hash_password(data_json.Password), data_json.Email, Generate_token())
+			db.Add_profile(server.db, data_json.Email, "", "", data_json.Login)
 
 			responseJson.Status = true
 			responseJson.Message = "Registration successful"
@@ -782,7 +790,7 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ProfileHandler(w http.ResponseWriter, r *http.Request) {
+func UpdateProfileHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		var req ProfileRequest
 
@@ -793,6 +801,79 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 		if server.db != nil {
 			if err := db.Profile_update(server.db, req.User_id, req.Field, req.Value); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+
+		respose := Response {
+			Status:  true,
+			Message: "Profile successfully updated",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(respose); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func DeleteProfileHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		var req ProfileRequest
+
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if server.db != nil {
+			if err := db.Delete_profile(server.db, req.User_id); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+
+		respose := Response {
+			Status:  true,
+			Message: "Profile successfully deleted",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(respose); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		var req ProfileRequest
+		var response ProfileResponse
+
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if server.db != nil {
+			profile, err := db.Get_profile(server.db, req.User_id)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			response = ProfileResponse{
+				Email:    profile[0],
+				Theme:    profile[1],
+				Language: profile[2],
+				Username: profile[3],
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(response); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}

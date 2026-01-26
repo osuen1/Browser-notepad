@@ -43,6 +43,8 @@ func main() {
 	mux.HandleFunc("/api/files/upload", serv.CreateFileHandler)
 	mux.HandleFunc("/api/files/get", serv.GetFilesHandler)
 	mux.HandleFunc("/api/files/delete", serv.DeleteFileHandler)
+	mux.HandleFunc("/api/profile/update", serv.UpdateProfileHandler)
+	mux.HandleFunc("/api/profile/get", serv.GetProfileHandler)
     
 
 	fmt.Print("Сервер запущен на порту: ", port, "\n")

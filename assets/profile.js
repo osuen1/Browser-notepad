@@ -5,6 +5,58 @@ const profileBtn = document.getElementById('profile-btn');
 const closeProfileModalBtn = document.getElementById('close-profile-modal');
 const closeProfileBtn = document.getElementById('close-profile-btn');
 
+// Загрузка данных профиля
+function loadProfileData() {
+  const username = localStorage.getItem('username') || 'Пользователь';
+  const email = localStorage.getItem('email') || '';
+  const theme = localStorage.getItem('theme') || 'dark';
+  const language = localStorage.getItem('language') || 'ru';
+
+  document.getElementById('profile-username-display').textContent = username;
+  document.getElementById('profile-email').value = email;
+  document.getElementById('profile-theme').value = theme;
+  document.getElementById('profile-language').value = language;
+}
+
+// --- Получение настроек профиля с сервера ---
+
+async function fetchProfileSettings() {
+  const userId = parseInt(localStorage.getItem('user_id'));
+  
+  if (!userId) {
+    console.warn("User_id не найден");
+    return null;
+  }
+
+  try {
+    const response = await fetch('/api/profile/get', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ User_id: userId })
+    });
+
+    if (!response.ok) {
+      console.warn(`⚠️ Ошибка получения настроек профиля (${response.status})`);
+      return null;
+    }
+
+    const settings = await response.json();
+    console.log("✅ Настройки профиля получены:", settings);
+    
+    // Обновляем localStorage с полученными данными
+    // if (settings.Username) localStorage.setItem('username', settings.Username);
+    // if (settings.Email) localStorage.setItem('email', settings.Email);
+    // if (settings.Theme) localStorage.setItem('theme', settings.Theme);
+    // if (settings.Language) localStorage.setItem('language', settings.Language);
+
+    return settings;
+  } catch (error) {
+    console.error("❌ Ошибка при получении настроек профиля:", error);
+    return null;
+  }
+}
+
+
 // Открыть модальное окно профиля
 profileBtn.addEventListener('click', () => {
   openProfileModal();
@@ -17,6 +69,8 @@ closeProfileModalBtn.addEventListener('click', () => {
 
 closeProfileBtn.addEventListener('click', () => {
   closeProfileModal();
+  saveProfileField("theme", document.getElementById('profile-theme').value);
+  saveProfileField("language", document.getElementById('profile-language').value);
 });
 
 // Закрыть при клике на фон
@@ -34,20 +88,6 @@ function openProfileModal() {
 
 function closeProfileModal() {
   profileModal.classList.remove('active');
-}
-
-// --- Загрузка данных профиля ---
-
-function loadProfileData() {
-  const username = localStorage.getItem('username') || 'Пользователь';
-  const email = localStorage.getItem('email') || '';
-  const theme = localStorage.getItem('theme') || 'dark';
-  const language = localStorage.getItem('language') || 'ru';
-
-  document.getElementById('profile-username-display').textContent = username;
-  document.getElementById('profile-email').value = email;
-  document.getElementById('profile-theme').value = theme;
-  document.getElementById('profile-language').value = language;
 }
 
 // --- Обновление статистики ---
@@ -82,7 +122,7 @@ document.querySelectorAll('.save-field-btn').forEach(btn => {
 });
 
 async function saveProfileField(field, value) {
-  const userId = localStorage.getItem('user_id');
+  const userId = parseInt(localStorage.getItem('user_id'));
   
   try {
     const response = await fetch('/api/profile/update', {
@@ -220,3 +260,7 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+
+window.onload = async () => {
+  fetchProfileSettings()
+}

@@ -331,11 +331,73 @@ func Add_user_statistics(pool *pgxpool.Pool, user_id int, goals string) error {
 	return nil
 }
 
+func Add_profile(pool *pgxpool.Pool, email string, theme string, language string, username string) error {
+	if theme == "" {
+		theme = "dark"
+	}
+
+	if language == "" {
+		language = "ru"
+	}
+	
+	user_id := pool.QueryRow(context.Background(), "SELECT user_id FROM users WHERE username = $1", username).Scan()
+	if user_id != nil {
+		if user_id == pgx.ErrNoRows {
+			fmt.Print("User not found", user_id)
+			return user_id
+		}
+	}
+
+	if _, err := pool.Exec(context.Background(), 
+	"INSERT INTO profile (user_id, email, theme, language, username) VALUES ($1, $2, $3, $4, $5)", 
+	user_id, email, theme, language, username); err != nil {
+		fmt.Print("An error in Add_profile: ", err)
+		return err
+	}
+
+	return nil
+}
+
+func Check_profile(pool *pgxpool.Pool, user_id int) (bool, error) {
+	var exists bool
+
+	err := pool.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM profile WHERE user_id = $1)", user_id).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("An error in Check_profile: %v", err)
+	}
+
+	return exists, nil
+}
+
 func Profile_update(pool *pgxpool.Pool, user_id int, field string, value string) error {
-	if _, err := pool.Exec(context.Background(), "UPDATE users SET "+field+" = $1 WHERE user_id = $2", value, user_id); err != nil {
+	if _, err := pool.Exec(context.Background(), "UPDATE profile SET "+field+" = $1 WHERE user_id = $2", value, user_id); err != nil {
 		fmt.Print("An error in Profile_update: ", err)
 		return err
 	}
 
 	return nil
+}
+
+func Delete_profile(pool *pgxpool.Pool, user_id int) error {
+	if _, err := pool.Exec(context.Background(), "DELETE FROM profile WHERE user_id = $1", user_id); err != nil {
+		fmt.Print("An error in Delete_profile: ", err)
+		return err
+	}
+	
+	return nil
+}
+
+func Get_profile(pool *pgxpool.Pool, user_id int) ([]string, error) {
+	var email string
+	var theme string
+	var language string
+	var username string
+
+	err := pool.QueryRow(context.Background(), "SELECT email, theme, language, username FROM profile WHERE user_id = $1", user_id).Scan(&email, &theme, &language, &username)
+	if err != nil {
+		fmt.Print("An error in Get_profile: ", err)
+		return nil, err
+	}
+
+	return []string{email, theme, language, username}, nil
 }
