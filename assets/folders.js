@@ -595,3 +595,8 @@ document.getElementById("delete-note-btn").addEventListener("click", () => {
     renderSelectedTags();
   }
 });
+
+document.getElementById('add-root-folder').addEventListener('click', () => {
+  const folderName = prompt('Название папки:');
+  if (folderName) addFolder(null, folderName);
+});
