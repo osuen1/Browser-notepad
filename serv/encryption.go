@@ -38,7 +38,7 @@ func Generate_token() string {
 }
 
 
-func Generete_userid() (string, error) {
+func Generete_user_id() (string, error) {
 	seed := make([]byte, 16)
 	if _, err := rand.Read(seed); err != nil {
 		fmt.Fprintf(os.Stderr, "There is some error with generating userid: %v", err)

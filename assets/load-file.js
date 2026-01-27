@@ -287,7 +287,7 @@ function openFileUploadDialog() {
 // --- Вспомогательная функция ---
 
 function getUserId() {
-  return parseInt(localStorage.getItem("user_id"));
+  return localStorage.getItem("user_id");
 }
 
 // --- Инициализация при загрузке страницы ---

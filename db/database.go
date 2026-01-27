@@ -27,8 +27,8 @@ func Db_connect() (pool *pgxpool.Pool) {
 	return pool
 }
 
-func Add_user(pool *pgxpool.Pool, login string, password string, email string, token string) (status bool) {
-	row := pool.QueryRow(context.Background(), "INSERT INTO users (username, password, email, token) VALUES ($1, $2, $3, $4)", login, password, email, token)
+func Add_user(pool *pgxpool.Pool, user_id string, login string, password string, email string, token string) (status bool) {
+	row := pool.QueryRow(context.Background(), "INSERT INTO users (user_id, username, password, email, token) VALUES ($1, $2, $3, $4, $5)", user_id, login, password, email, token)
 	if err := row.Scan(&status); err != nil {
 		return false
 	}
@@ -36,7 +36,7 @@ func Add_user(pool *pgxpool.Pool, login string, password string, email string, t
 	return true
 }
 
-func Find_user(pool *pgxpool.Pool, login string) (id int, username string, password string, email string) {
+func Find_user(pool *pgxpool.Pool, login string) (id string, username string, password string, email string) {
 	row := pool.QueryRow(context.Background(), "SELECT user_id, username, password, email FROM users WHERE username = $1", login)
 	if err := row.Scan(&id, &username, &password, &email); err != nil {
 		// Эта функция должна прокидывать на клиент ошибку отсутствия пользоателя с требованием зарегистрироаться
@@ -48,7 +48,7 @@ func Find_user(pool *pgxpool.Pool, login string) (id int, username string, passw
 
 // Логика заметок
 
-func Add_note(pool *pgxpool.Pool, note_id string, user_id int, date string, data string, folder_id int, title string, tags []string) error {
+func Add_note(pool *pgxpool.Pool, note_id string, user_id string, date string, data string, folder_id int, title string, tags []string) error {
 	// Возможно, будем использовать разные таблицы для разных пользователей в будущем
 	// row := pool.QueryRow(context.Background(), "CREATE TABLE IF NOT EXISTS notes (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, date TEXT NOT NULL, text TEXT NOT NULL, FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE)")
 
@@ -59,7 +59,7 @@ func Add_note(pool *pgxpool.Pool, note_id string, user_id int, date string, data
 	return nil
 }
 
-func Get_notes(pool *pgxpool.Pool, user_id int) ([][]string, [][]string, []int) {
+func Get_notes(pool *pgxpool.Pool, user_id string) ([][]string, [][]string, []int) {
 	rows, err := pool.Query(context.Background(), "SELECT id, title, date, text, folder_id, tags FROM note WHERE user_id = $1", user_id)
 	if err != nil {
 		fmt.Print("An error in Get_notes: ", err)
@@ -116,7 +116,7 @@ func Check_note(pool *pgxpool.Pool, note_id string) (bool, error) {
 
 // Логика папок
 
-func Create_folder(pool *pgxpool.Pool, folder_id int, folder_name string, user_id int, parent_id int) error {
+func Create_folder(pool *pgxpool.Pool, folder_id int, folder_name string, user_id string, parent_id int) error {
 	if _, err := pool.Exec(context.Background(), "INSERT INTO folders (id, user_id, name, parent_id) VALUES ($1, $2, $3, $4)", folder_id, user_id, folder_name, parent_id); err != nil {
 		fmt.Print("An error in Create_folder: ", err)
 	}
@@ -124,7 +124,7 @@ func Create_folder(pool *pgxpool.Pool, folder_id int, folder_name string, user_i
 	return nil
 }
 
-func Get_folders(pool *pgxpool.Pool, user_id int) [][]string {
+func Get_folders(pool *pgxpool.Pool, user_id string) [][]string {
 	rows, err := pool.Query(context.Background(), "SELECT id, name, parent_id FROM folders WHERE user_id = $1", user_id)
 	if err != nil {
 		fmt.Print("An error in Get_folders: ", err)
@@ -183,7 +183,7 @@ func Check_username(pool *pgxpool.Pool, username string) (bool, error) {
 	return !result, nil
 }
 
-func Update_token(pool *pgxpool.Pool, user_id int, token string) error {
+func Update_token(pool *pgxpool.Pool, user_id string, token string) error {
 	_, err := pool.Exec(context.Background(), "UPDATE users SET token = $1 WHERE user_id = $2", token, user_id)
 	if err != nil {
 		return err
@@ -201,7 +201,7 @@ func Get_token(pool *pgxpool.Pool, email string) (token string, err error) {
 	return token, nil
 }
 
-func Add_Todo(pool *pgxpool.Pool, id string, user_id int, text string, isDone bool) error {
+func Add_Todo(pool *pgxpool.Pool, id string, user_id string, text string, isDone bool) error {
 	if _, err := pool.Exec(context.Background(), "INSERT INTO todo (id, user_id, text, isdone) VALUES ($1, $2, $3, $4)", id, user_id, text, isDone); err != nil {
 		fmt.Print("An error in Add_Todo: ", err)
 		return err
@@ -209,7 +209,7 @@ func Add_Todo(pool *pgxpool.Pool, id string, user_id int, text string, isDone bo
 	return nil
 }
 
-func Get_todo(pool *pgxpool.Pool, user_id int) ([][]interface{}, error) {
+func Get_todo(pool *pgxpool.Pool, user_id string) ([][]interface{}, error) {
 
 	rows, err := pool.Query(context.Background(), "SELECT id, text, isdone FROM todo WHERE user_id = $1", user_id)
 	if err != nil {
@@ -273,7 +273,7 @@ func Update_tags_in_note(pool *pgxpool.Pool, id_note string, tags []string) erro
 	return nil
 }
 
-func Upload_file(pool *pgxpool.Pool, file_name string, file_size int, file_type string, folder_id int, user_id int, data []byte) error {
+func Upload_file(pool *pgxpool.Pool, file_name string, file_size int, file_type string, folder_id int, user_id string, data []byte) error {
 	if _, err := pool.Exec(context.Background(), "INSERT INTO files (user_id, folder_id, file_name, file_size, file_type, data) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT(user_id, folder_id, file_name) DO UPDATE SET file_size=$4, data=$6", user_id, folder_id, file_name, file_size, file_type, data); err != nil {
 		fmt.Print("An error in Upload_file: ", err)
 		return err
@@ -282,7 +282,7 @@ func Upload_file(pool *pgxpool.Pool, file_name string, file_size int, file_type 
 	return nil
 }
 
-func Get_files(pool *pgxpool.Pool, user_id int) ([][]interface{}, error) {
+func Get_files(pool *pgxpool.Pool, user_id string) ([][]interface{}, error) {
 	rows, err := pool.Query(context.Background(), "SELECT file_name, file_size, file_type, folder_id, data FROM files WHERE user_id = $1 ORDER BY created_at DESC", user_id)
 	if err != nil {
 		fmt.Print("An error in Get_files: ", err)
@@ -314,7 +314,7 @@ func Get_files(pool *pgxpool.Pool, user_id int) ([][]interface{}, error) {
 	return files, nil
 }
 
-func Delete_file(pool *pgxpool.Pool, user_id int, file_name string, folder_id int) error {
+func Delete_file(pool *pgxpool.Pool, user_id string, file_name string, folder_id int) error {
 	if _, err := pool.Exec(context.Background(), "DELETE FROM files WHERE user_id = $1 AND file_name = $2 AND folder_id = $3", user_id, file_name, folder_id); err != nil {
 		fmt.Print("An error in Delete_file: ", err)
 		return err
@@ -322,7 +322,7 @@ func Delete_file(pool *pgxpool.Pool, user_id int, file_name string, folder_id in
 	return nil
 }
 
-func Add_user_statistics(pool *pgxpool.Pool, user_id int, goals string) error {
+func Add_user_statistics(pool *pgxpool.Pool, user_id string, goals string) error {
 	if _, err := pool.Exec(context.Background(), "INSERT INTO statistics (user_id, goals) VALUES ($1, $2)", user_id, goals); err != nil {
 		fmt.Print("An error in Add_user_statistics: ", err)
 		return err
@@ -358,7 +358,7 @@ func Add_profile(pool *pgxpool.Pool, email string, theme string, language string
 	return nil
 }
 
-func Check_profile(pool *pgxpool.Pool, user_id int) (bool, error) {
+func Check_profile(pool *pgxpool.Pool, user_id string) (bool, error) {
 	var exists bool
 
 	err := pool.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM profile WHERE user_id = $1)", user_id).Scan(&exists)
@@ -369,7 +369,7 @@ func Check_profile(pool *pgxpool.Pool, user_id int) (bool, error) {
 	return exists, nil
 }
 
-func Profile_update(pool *pgxpool.Pool, user_id int, field string, value string) error {
+func Profile_update(pool *pgxpool.Pool, user_id string, field string, value string) error {
 	if _, err := pool.Exec(context.Background(), "UPDATE profile SET "+field+" = $1 WHERE user_id = $2", value, user_id); err != nil {
 		fmt.Print("An error in Profile_update: ", err)
 		return err
@@ -378,7 +378,7 @@ func Profile_update(pool *pgxpool.Pool, user_id int, field string, value string)
 	return nil
 }
 
-func Delete_profile(pool *pgxpool.Pool, user_id int) error {
+func Delete_profile(pool *pgxpool.Pool, user_id string) error {
 	if _, err := pool.Exec(context.Background(), "DELETE FROM profile WHERE user_id = $1", user_id); err != nil {
 		fmt.Print("An error in Delete_profile: ", err)
 		return err
@@ -387,7 +387,7 @@ func Delete_profile(pool *pgxpool.Pool, user_id int) error {
 	return nil
 }
 
-func Get_profile(pool *pgxpool.Pool, user_id int) ([]string, error) {
+func Get_profile(pool *pgxpool.Pool, user_id string) ([]string, error) {
 	var email string
 	var theme string
 	var language string

@@ -26,7 +26,7 @@ type Tags struct {
 }
 
 type NoteData struct {
-	User_id   int    `json:"user_id"`
+	User_id   string `json:"user_id"`
 	Title     string `json:"Title"`
 	Date      string `json:"Date"`
 	Data      string `json:"Data"`
@@ -36,7 +36,7 @@ type NoteData struct {
 }
 
 type FolderData struct {
-	User_id   int    `json:"user_id"`
+	User_id   string `json:"user_id"`
 	Name      string `json:"Name"`
 	Folder_id int    `json:"FolderId"`
 	Parent_id int    `json:"ParentId"`
@@ -44,7 +44,7 @@ type FolderData struct {
 }
 
 type TodoData struct {
-	User_id int    `json:"User_id"`
+	User_id string `json:"User_id"`
 	Text    string `json:"Text"`
 	IsDone  bool   `json:"IsDone"`
 	Id      string `json:"Id"`
@@ -55,7 +55,7 @@ type TodoDelete struct {
 }
 
 type TodoRespose struct {
-	User_id  int        `json:"User_id"`
+	User_id  string     `json:"User_id"`
 	TodoData []TodoData `json:"TodoData"`
 }
 
@@ -67,7 +67,7 @@ type Login_info struct { // парсим приходящий от js json
 }
 
 type Response struct {
-	User_id int    `json:"user_id"`
+	User_id string `json:"user_id"`
 	Status  bool   `json:"status"`
 	Message string `json:"message,omitempty"`
 }
@@ -83,11 +83,11 @@ type FileData struct {
 	File_size int    `json:"File_size"`
 	File_type string `json:"File_type"`
 	Data      []byte `json:"Data"`
-	User_id   int    `json:"User_id"`
+	User_id   string `json:"User_id"`
 }
 
 type ProfileRequest struct {
-	User_id int    `json:"User_id"`
+	User_id string `json:"User_id"`
 	Field   string `json:"Field"`
 	Value   string `json:"Value"`
 }
@@ -600,7 +600,12 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if result == true {
-			db.Add_user(server.db, data_json.Login, Hash_password(data_json.Password), data_json.Email, Generate_token())
+			user_id, err := Generete_user_id()
+			if err != nil {
+				http.Error(w, "An error in generating user id", http.StatusInternalServerError)
+			}
+
+			db.Add_user(server.db, user_id, data_json.Login, Hash_password(data_json.Password), data_json.Email, Generate_token())
 			db.Add_profile(server.db, data_json.Email, "", "", data_json.Login)
 
 			responseJson.Status = true
