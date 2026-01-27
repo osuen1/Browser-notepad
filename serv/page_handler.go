@@ -117,6 +117,7 @@ var new_page = template.Must(template.ParseFiles("templates/new_page.html"))
 var forgot_password_page = template.Must(template.ParseFiles("templates/forgot-password.html"))
 var resetPasswordPage = template.Must(template.ParseFiles("templates/reset-password.html"))
 var todoList = template.Must(template.ParseFiles("templates/todo_list.html"))
+var dashvoardPage = template.Must(template.ParseFiles("templates/dashboard.html"))
 
 var server Server
 
@@ -878,5 +879,11 @@ func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	}
+}
+
+func DashboardHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		dashvoardPage.Execute(w, nil)
 	}
 }

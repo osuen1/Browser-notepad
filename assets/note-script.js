@@ -56,23 +56,30 @@ document.getElementById('add-tags-btn')?.addEventListener('click', () => {
   document.getElementById('tag-select-modal').style.display = 'flex';
 });
 
-document.getElementById("todo-list-link").addEventListener("click", () => {
-  window.location.href = '/todolist';
-});
-
 document.getElementById('create-tag-btn')?.addEventListener('click', () => {
   document.getElementById('tag-modal').style.display = 'flex';
 });
 
 document.querySelectorAll('.color-option').forEach(option => {
-    option.addEventListener('click', () => {
-      document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
-      option.classList.add('selected');
-      document.getElementById('tag-color-input').value = option.dataset.color;
-    });
+  option.addEventListener('click', () => {
+    document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+    option.classList.add('selected');
+    document.getElementById('tag-color-input').value = option.dataset.color;
   });
+});
 
 document.getElementById("logout-btn").addEventListener("click", () => {
-    localStorage.clear();
-    window.location.replace("/login");
+  localStorage.clear();
+  window.location.replace("/login");
+});
+
+document.getElementById("todo-list-link").addEventListener("click", () => {
+  window.location.href = '/todolist';
+});
+
+document.getElementById("dashboard-link").addEventListener("click", () => {
+  window.location.href = '/dashboard';
+  const user_id = localStorage.getItem('user_id');
+  localStorage.clear();
+  localStorage.setItem('user_id', user_id);
 });

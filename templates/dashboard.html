@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Дашборд - Productivity App</title>
+    <link rel="stylesheet" href="/assets/style-new.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+
+<body>
+    <!-- Упрощенная строка вкладок -->
+    <div class="tabs-bar">
+        <div class="tab" onclick="window.location.href='/new_note'"><i class="fas fa-home"></i></div>
+        <div class="tab active"><i class="fas fa-sticky-note"></i></div>
+        <div class="tab" onclick="window.location.href='/todolist'"><i class="fas fa-tasks"></i></div>
+        <div class="tab"><i class="fas fa-calendar"></i></div>
+        <button class="profile-btn" id="profile-btn" title="Настройки профиля">
+            <i class="fas fa-user-circle"></i>
+        </button>
+        <button class="logout-btn" id="logout-btn" title="Выйти из аккаунта">
+            <i class="fas fa-sign-out-alt"></i> <span>Выйти</span>
+        </button>
+    </div>
+
+    <!-- Дашборд -->
+    <div class="dashboard-wrapper">
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <h1>Мой дашборд</h1>
+                <div class="dashboard-date" id="dashboard-date"></div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Статистика -->
+                <div class="dashboard-card stats-card">
+                    <h2>Статистика</h2>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-icon"><i class="fas fa-sticky-note"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-number" id="stat-notes">0</div>
+                                <div class="stat-label">Заметок</div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon"><i class="fas fa-folder"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-number" id="stat-folders">0</div>
+                                <div class="stat-label">Папок</div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon"><i class="fas fa-tasks"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-number" id="stat-todos">0</div>
+                                <div class="stat-label">Задач</div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon"><i class="fas fa-tag"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-number" id="stat-tags">0</div>
+                                <div class="stat-label">Тегов</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Прогресс задач -->
+                <div class="dashboard-card progress-card">
+                    <h2>Задачи</h2>
+                    <div class="progress-info">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <div class="progress-text" id="progress-text">0 из 0</div>
+                    </div>
+                    <div class="tasks-list" id="tasks-list">
+                        <p style="color: #999; text-align: center;">Нет задач</p>
+                    </div>
+                    <button class="view-all-btn" onclick="window.location.href='/todo_list'">Все задачи →</button>
+                </div>
+
+                <!-- Недавние заметки -->
+                <div class="dashboard-card recent-card">
+                    <h2>Недавние заметки</h2>
+                    <div class="recent-list" id="recent-notes">
+                        <p style="color: #999; text-align: center;">Нет заметок</p>
+                    </div>
+                    <button class="view-all-btn" onclick="window.location.href='/new_page'">Все заметки →</button>
+                </div>
+
+                <!-- Популярные теги -->
+                <div class="dashboard-card tags-card">
+                    <h2>Популярные теги</h2>
+                    <div class="tags-cloud" id="tags-cloud">
+                        <p style="color: #999; text-align: center;">Нет тегов</p>
+                    </div>
+                </div>
+
+                <!-- Быстрые действия -->
+                <div class="dashboard-card actions-card">
+                    <h2>Быстрые действия</h2>
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" onclick="window.location.href='/new_page'">
+                            <i class="fas fa-plus"></i>
+                            <span>Новая заметка</span>
+                        </button>
+                        <button class="quick-action-btn" onclick="window.location.href='/todo_list'">
+                            <i class="fas fa-tasks"></i>
+                            <span>Новая задача</span>
+                        </button>
+                        <button class="quick-action-btn" id="qa-new-folder">
+                            <i class="fas fa-folder-plus"></i>
+                            <span>Новая папка</span>
+                        </button>
+                        <button class="quick-action-btn" id="qa-new-tag">
+                            <i class="fas fa-tag"></i>
+                            <span>Новый тег</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно профиля -->
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+                <h2>Настройки профиля</h2>
+                <button class="modal-close-btn" id="close-profile-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="profile-section">
+                <div class="profile-field">
+                    <label for="profile-username">Имя пользователя:</label>
+                    <div class="field-display" id="profile-username-display">-</div>
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-email">Email:</label>
+                    <input type="email" id="profile-email" placeholder="your.email@example.com" />
+                    <button class="save-field-btn" data-field="email" title="Сохранить">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-password">Изменить пароль:</label>
+                    <input type="password" id="profile-password" placeholder="Новый пароль" />
+                    <button class="save-field-btn" data-field="password" title="Сохранить">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-theme">Тема:</label>
+                    <select id="profile-theme">
+                        <option value="light">Светлая</option>
+                        <option value="dark" selected>Тёмная</option>
+                    </select>
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-language">Язык:</label>
+                    <select id="profile-language">
+                        <option value="ru" selected>Русский</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Заметок:</span>
+                        <span class="stat-value" id="notes-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Папок:</span>
+                        <span class="stat-value" id="folders-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Файлов:</span>
+                        <span class="stat-value" id="files-count">0</span>
+                    </div>
+                </div>
+
+                <div class="danger-zone">
+                    <h3>Опасная зона</h3>
+                    <button class="delete-account-btn" id="delete-account-btn">
+                        <i class="fas fa-trash"></i> Удалить аккаунт
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="toolbar-button cancel-btn" id="close-profile-btn">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script src="/assets/init.js"></script>
+    <script src="/assets/profile.js"></script>
+    <script src="/assets/dashboard-page.js"></script>
+</body>
+
+</html>
