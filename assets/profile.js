@@ -12,10 +12,17 @@ function loadProfileData() {
   const theme = localStorage.getItem('theme') || 'dark';
   const language = localStorage.getItem('language') || 'ru';
 
-  document.getElementById('profile-username-display').textContent = username;
-  document.getElementById('profile-email').value = email;
-  document.getElementById('profile-theme').value = theme;
-  document.getElementById('profile-language').value = language;
+  console.log("Загрузка данных профиля:", { username, email, theme, language });
+
+  const usernameEl = document.getElementById('profile-username-display');
+  const emailEl = document.getElementById('profile-email');
+  const themeEl = document.getElementById('profile-theme');
+  const languageEl = document.getElementById('profile-language');
+
+  if (usernameEl) usernameEl.textContent = username;
+  if (emailEl) emailEl.value = email;
+  if (themeEl) themeEl.value = theme;
+  if (languageEl) languageEl.value = language;
 }
 
 // --- Получение настроек профиля с сервера ---
@@ -44,10 +51,10 @@ async function fetchProfileSettings() {
     console.log("✅ Настройки профиля получены:", settings);
     
     // Обновляем localStorage с полученными данными
-    // if (settings.Username) localStorage.setItem('username', settings.Username);
-    // if (settings.Email) localStorage.setItem('email', settings.Email);
-    // if (settings.Theme) localStorage.setItem('theme', settings.Theme);
-    // if (settings.Language) localStorage.setItem('language', settings.Language);
+    if (settings.Username) localStorage.setItem('username', settings.Username);
+    if (settings.Email) localStorage.setItem('email', settings.Email);
+    if (settings.Theme) localStorage.setItem('theme', settings.Theme);
+    if (settings.Language) localStorage.setItem('language', settings.Language);
 
     return settings;
   } catch (error) {
@@ -234,6 +241,7 @@ function showSaveNotification(message) {
   }, 2000);
 }
 
+
 // Анимация для уведомлений
 const style = document.createElement('style');
 style.textContent = `
@@ -261,6 +269,14 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-window.onload = async () => {
-  fetchProfileSettings()
-}
+// --- Инициализация при загрузке страницы ---
+document.addEventListener('DOMContentLoaded', () => {
+  // Применяем сохранённую тему сразу
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  applyTheme(savedTheme);
+  
+  // Загружаем данные в селекторы когда они готовы
+  setTimeout(() => {
+    loadProfileData();
+  }, 100);
+});
