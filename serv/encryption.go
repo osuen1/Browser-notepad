@@ -5,6 +5,7 @@ import (
 	"os"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 	
 	"golang.org/x/crypto/bcrypt"
 )
@@ -34,4 +35,15 @@ func Generate_token() string {
 	}
 
 	return base64.RawURLEncoding.EncodeToString(token)
+}
+
+
+func Generete_userid() (string, error) {
+	seed := make([]byte, 16)
+	if _, err := rand.Read(seed); err != nil {
+		fmt.Fprintf(os.Stderr, "There is some error with generating userid: %v", err)
+		return "", err
+	}
+
+	return hex.EncodeToString(seed), nil
 }
