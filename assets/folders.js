@@ -16,7 +16,7 @@ function generateFolderId() {
 }
 
 function getUserId() {
-  return parseInt(localStorage.getItem("user_id"));
+  return localStorage.getItem("user_id");
 }
 
 function saveNotes() {

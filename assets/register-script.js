@@ -62,20 +62,20 @@ function register() {
           // For example: { "status": "success", "message": "User registered successfully" }
           if (response && response.status == true) { // Adapt 'response.status' to your server's actual success indicator
             alert("Регистрация успешна: " + (response.message || ""));
-            window.location.href = "/login.html";
+            window.location.href = "/login";
           } else if (response && response.message) {
             // Server returned 2xx but indicated an application-level error (e.g., duplicate email)
             alert("Ошибка регистрации: " + response.message);
           } else {
             // General success, but no specific 'status' or 'message' field found.
             alert("Регистрация успешна!");
-            window.location.href = "/login.html";
+            window.location.href = "/login";
           }
         } catch (e) {
           console.error("Failed to parse JSON response on successful registration:", e);
           alert("Регистрация завершена, но произошла ошибка при обработке ответа сервера.");
           // If registration was theoretically successful but JSON parse failed, it might be safer to still redirect.
-          window.location.href = "/login.html";
+          window.location.href = "/login";
         }
       } else {
         // Server returned an error status (e.g., 4xx, 5xx)

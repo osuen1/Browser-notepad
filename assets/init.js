@@ -1,7 +1,7 @@
 // --- Инициализация: загрузка профиля ДО остальных скриптов ---
 
 async function initializeApp() {
-  const userId = parseInt(localStorage.getItem('user_id'));
+  const userId = localStorage.getItem('user_id');
   
   if (!userId) {
     console.warn("User_id не найден");

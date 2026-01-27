@@ -28,7 +28,7 @@ function loadProfileData() {
 // --- Получение настроек профиля с сервера ---
 
 async function fetchProfileSettings() {
-  const userId = parseInt(localStorage.getItem('user_id'));
+  const userId = localStorage.getItem('user_id');
   
   if (!userId) {
     console.warn("User_id не найден");
