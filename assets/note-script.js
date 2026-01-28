@@ -79,7 +79,4 @@ document.getElementById("todo-list-link").addEventListener("click", () => {
 
 document.getElementById("dashboard-link").addEventListener("click", () => {
   window.location.href = '/dashboard';
-  const user_id = localStorage.getItem('user_id');
-  localStorage.clear();
-  localStorage.setItem('user_id', user_id);
 });

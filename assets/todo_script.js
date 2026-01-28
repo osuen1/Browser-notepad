@@ -225,7 +225,7 @@ function renderTodo() {
 }
 
 function getUserId() {
-  const userId = parseInt(localStorage.getItem("user_id"));
+  const userId = localStorage.getItem("user_id");
   return userId;
 }
 

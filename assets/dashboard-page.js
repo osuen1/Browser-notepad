@@ -15,7 +15,7 @@ async function loadDashboardData() {
   window.tags = JSON.parse(localStorage.getItem('tags')) || [];
   window.todos = JSON.parse(localStorage.getItem('todos')) || [];
 
-  const userId = parseInt(localStorage.getItem('user_id'));
+  const userId = localStorage.getItem('user_id');
   
   if (!userId) {
     console.warn("User_id не найден");
