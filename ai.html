@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Productivity App</title>
+    <link rel="stylesheet" href="/assets/style-new.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+
+<body>
+    <!-- Упрощенная строка вкладок -->
+    <div class="tabs-bar">
+        <div class="tab active"><i class="fas fa-home"></i></div>
+        <div class="tab" id="dashboard-link"><i class="fas fa-sticky-note"></i></div>
+        <div class="tab" id="todo-list-link"><i class="fas fa-tasks"></i></div>
+        <div class="tab"><i class="fas fa-calendar"></i></div>
+        <div class="tab" id="ai-chat-link" title="AI Ассистент"><i class="fas fa-robot"></i></div>
+        <button class="profile-btn" id="profile-btn" title="Настройки профиля">
+            <i class="fas fa-user-circle"></i>
+        </button>
+        <button class="logout-btn" id="logout-btn" title="Выйти из аккаунта">
+            <i class="fas fa-sign-out-alt"></i> <span>Выйти</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <!-- Левый бар -->
+        <div class="sidebar-left">
+            <div class="explorer-section">
+                <div class="sidebar-title">Папки</div>
+                <ul class="folder-list" id="folder-list">
+                    <!-- Папки будут добавлены сюда -->
+                </ul>
+                <input type="text" id="new-folder-input" placeholder="Название папки" />
+                <button class="add-button" id="add-root-folder">
+                    Создать папку
+                </button>
+            </div>
+
+            <div class="tags-section">
+                <div class="sidebar-title">Теги</div>
+                <ul class="tags-list" id="tags-list">
+                    <!-- Теги будут добавлены динамически -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Центральная область -->
+        <div class="notes-area">
+            <div class="notes-header">
+                <span id="current-note-title">Новая заметка</span>
+                <div class="header-actions">
+                    <button class="toolbar-button" id="toggle-preview-btn" title="Предпросмотр">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="toolbar-button" id="sync-notes-btn" title="Синхронизировать с сервером">
+                        <i class="fas fa-sync"></i>
+                    </button>
+                    <button class="toolbar-button" id="upload-pdf-btn" title="Загрузить PDF файл">
+                        <i class="fas fa-file-pdf"></i>
+                    </button>
+                    <button class="toolbar-button" id="save-note-btn-manual" title="Сохранить">
+                        <i class="fas fa-save"></i>
+                    </button>
+                    <button class="toolbar-button" id="delete-note-btn" title="Удалить текущую заметку">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="toolbar-button" id="create-note-btn" title="Создать новую заметку">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="toolbar-button" id="create-tag-btn" title="Создать новый тег">
+                        <i class="fas fa-tag"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Контейнер для выбранных тегов -->
+            <div class="selected-tags-container" id="selected-tags-container"></div>
+
+            <!-- Кнопка для добавления тегов к заметке -->
+            <button class="tag-select-btn" id="add-tags-btn">
+                <i class="fas fa-tag"></i> Добавить теги
+            </button>
+
+            <div class="notes-editor">
+                <textarea class="notes-content" id="notes-content" placeholder="Начните писать здесь..."></textarea>
+                <div id="notes-preview" class="notes-content"
+                    style="display: none; overflow-y: auto; background: #3c414b;"></div>
+            </div>
+        </div>
+
+        <!-- Правый бар -->
+        <div class="sidebar-right">
+            <!-- Календарь -->
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <div class="calendar-month" id="calendar-month-year"></div>
+                    <div class="calendar-nav">
+                        <button id="prev-month">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button id="today-btn" title="Вернуться к текущей дате">
+                            Сегодня
+                        </button>
+                        <button id="next-month">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="calendar-grid" id="calendar-grid"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- События -->
+            <div class="events-section">
+                <div class="section-title">События</div>
+                <div class="event-item">
+                    <div class="event-time">09:30</div>
+                    <div class="event-text">Совещание</div>
+                </div>
+                <div class="event-item">
+                    <div class="event-time">12:00</div>
+                    <div class="event-text">Обед с клиентом</div>
+                </div>
+                <button class="add-button">Добавить событие</button>
+            </div>
+
+            <!-- Задачи -->
+            <div class="section-title">Задачи</div>
+            <div class="todo-section" id="todo-handler">
+            </div>
+            <button class="add-button" id="new-todo">Добавить задачу</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно создания заметки -->
+    <div class="modal-overlay" id="note-modal">
+        <div class="modal-content">
+            <h3>Создать новую заметку</h3>
+            <input type="text" id="note-title-input" placeholder="Название заметки..." />
+            <label>Выберите папку:</label>
+            <select id="folder-select">
+                <option value="">В корне</option>
+                <!-- Папки будут добавлены здесь -->
+            </select>
+            <div class="modal-buttons">
+                <button class="toolbar-button" id="save-note-btn">
+                    Создать
+                </button>
+                <button class="toolbar-button" id="cancel-note-btn">
+                    Отмена
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно создания тега -->
+    <div class="modal-overlay" id="tag-modal">
+        <div class="modal-content">
+            <h3>Создать новый тег</h3>
+            <input type="text" id="tag-name-input" placeholder="Название тега..." />
+            <label>Выберите цвет:</label>
+            <div class="color-picker" id="color-picker">
+                <div class="color-option" data-color="#FF6B6B"></div>
+                <div class="color-option" data-color="#4ECDC4"></div>
+                <div class="color-option" data-color="#45B7D1"></div>
+                <div class="color-option" data-color="#96CEB4"></div>
+                <div class="color-option" data-color="#FFEAA7"></div>
+                <div class="color-option" data-color="#DDA0DD"></div>
+                <div class="color-option" data-color="#F8A5C2"></div>
+                <div class="color-option" data-color="#778899"></div>
+            </div>
+            <input type="hidden" id="tag-color-input" value="#FF6B6B">
+            <div class="modal-buttons">
+                <button class="toolbar-button" id="save-tag-btn">Создать</button>
+                <button class="toolbar-button" id="cancel-tag-btn">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно выбора тегов для заметки -->
+    <div class="modal-overlay" id="tag-select-modal">
+        <div class="modal-content">
+            <h3>Выберите теги</h3>
+            <div class="tags-container" id="available-tags-container"></div>
+            <div class="modal-buttons">
+                <button class="toolbar-button" id="confirm-tags-btn">Применить</button>
+                <button class="toolbar-button" id="cancel-select-tags-btn">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно настроек профиля -->
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+                <h2>Настройки профиля</h2>
+                <button class="modal-close-btn" id="close-profile-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="profile-section">
+                <div class="profile-field">
+                    <label for="profile-username">Имя пользователя:</label>
+                    <div class="field-display" id="profile-username-display">-</div>
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-email">Email:</label>
+                    <input type="email" id="profile-email" placeholder="your.email@example.com" />
+                    <button class="save-field-btn" data-field="email" title="Сохранить">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-password">Изменить пароль:</label>
+                    <input type="password" id="profile-password" placeholder="Новый пароль" />
+                    <button class="save-field-btn" data-field="password" title="Сохранить">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-theme">Тема:</label>
+                    <select id="profile-theme">
+                        <option value="light">Светлая</option>
+                        <option value="dark" selected>Тёмная</option>
+                    </select>
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-language">Язык:</label>
+                    <select id="profile-language">
+                        <option value="ru" selected>Русский</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Заметок:</span>
+                        <span class="stat-value" id="notes-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Папок:</span>
+                        <span class="stat-value" id="folders-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Файлов:</span>
+                        <span class="stat-value" id="files-count">0</span>
+                    </div>
+                </div>
+
+                <div class="danger-zone">
+                    <h3>Опасная зона</h3>
+                    <button class="delete-account-btn" id="delete-account-btn">
+                        <i class="fas fa-trash"></i> Удалить аккаунт
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="toolbar-button cancel-btn" id="close-profile-btn">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- AI Chat Modal -->
+    <div class="modal-overlay" id="ai-chat-modal">
+        <div class="modal-content ai-chat-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-robot"></i> AI Ассистент</h2>
+                <button class="modal-close-btn" id="close-ai-chat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="ai-message">
+                        <div class="message-content">
+                            Привет! Я ваш AI ассистент. Я могу помочь вам:
+                            <ul>
+                                <li>Подытожить выбранные заметки</li>
+                                <li>Ответить на вопросы</li>
+                                <li>Помочь с организацией задач</li>
+                            </ul>
+                            Нажмите кнопку ниже, чтобы выбрать заметки для суммаризации!
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-actions">
+                    <button class="toolbar-button" id="select-notes-btn" title="Выбрать заметки для суммаризации">
+                        <i class="fas fa-list"></i> Выбрать заметки для суммаризации
+                    </button>
+                </div>
+                
+                <div class="chat-input-container">
+                    <textarea 
+                        id="chat-input" 
+                        placeholder="Введите ваш вопрос..." 
+                        rows="2"
+                    ></textarea>
+                    <button class="toolbar-button send-btn" id="send-chat-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes Selection Modal -->
+    <div class="modal-overlay" id="notes-selection-modal">
+        <div class="modal-content notes-selection-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-list"></i> Выбор заметок</h2>
+                <button class="modal-close-btn" id="close-notes-selection">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="selection-container">
+                <div class="search-box">
+                    <input type="text" id="notes-search" placeholder="Поиск заметок...">
+                    <i class="fas fa-search"></i>
+                </div>
+                
+                <div class="notes-list" id="notes-list-container">
+                    <!-- Notes will be populated here -->
+                </div>
+                
+                <div class="selection-footer">
+                    <div class="selected-info">
+                        Выбрано: <span id="selected-count">0</span> заметок
+                    </div>
+                    <div class="selection-buttons">
+                        <button class="toolbar-button secondary" id="select-all-btn">
+                            <i class="fas fa-check-square"></i> Выбрать все
+                        </button>
+                        <button class="toolbar-button secondary" id="clear-selection-btn">
+                            <i class="fas fa-square"></i> Очистить
+                        </button>
+                        <button class="toolbar-button primary" id="summarize-selected-btn" disabled>
+                            <i class="fas fa-magic"></i> Подытожить выбранные
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .ai-chat-content {
+            width: 600px;
+            max-width: 90vw;
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notes-selection-content {
+            width: 700px;
+            max-width: 95vw;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .selection-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #4a4d56;
+            border-radius: 8px;
+            background: #2a2d35;
+            color: #e0e0e0;
+            font-family: inherit;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7a7d86;
+        }
+
+        .notes-list {
+            flex: 1;
+            overflow-y: auto;
+            background: #2a2d35;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .note-item-select {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 5px;
+            background: #3c414b;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .note-item-select:hover {
+            background: #4a4f5a;
+        }
+
+        .note-item-select.selected {
+            background: #4ECDC4;
+            color: #1a1d24;
+        }
+
+        .note-checkbox {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .note-title-select {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .note-preview {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .selection-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-top: 1px solid #4a4d56;
+        }
+
+        .selected-info {
+            font-size: 14px;
+            color: #e0e0e0;
+        }
+
+        .selection-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .toolbar-button.secondary {
+            background: #3c414b;
+            color: #e0e0e0;
+        }
+
+        .toolbar-button.primary {
+            background: #4ECDC4;
+            color: #1a1d24;
+        }
+
+        .toolbar-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: #2a2d35;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .ai-message, .user-message {
+            margin-bottom: 15px;
+            display: flex;
+            animation: fadeIn 0.3s;
+        }
+
+        .ai-message {
+            justify-content: flex-start;
+        }
+
+        .user-message {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 85%;
+            padding: 10px 15px;
+            border-radius: 12px;
+            line-height: 1.5;
+        }
+
+        .ai-message .message-content {
+            background: #3c414b;
+            color: #e0e0e0;
+        }
+
+        .user-message .message-content {
+            background: #4ECDC4;
+            color: #1a1d24;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #4a4d56;
+            border-radius: 8px;
+            background: #2a2d35;
+            color: #e0e0e0;
+            resize: none;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        #chat-input:focus {
+            outline: none;
+            border-color: #4ECDC4;
+        }
+
+        .send-btn {
+            padding: 10px 20px;
+        }
+
+        .loading-message {
+            opacity: 0.6;
+            font-style: italic;
+        }
+
+        .message-content ul {
+            margin: 10px 0 0 0;
+            padding-left: 20px;
+        }
+
+        .message-content li {
+            margin: 5px 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script src="/assets/init.js"></script>
+    <script src="/assets/profile.js"></script>
+    <script src="/assets/note-script.js"></script>
+    <script src="/assets/calendar.js"></script>
+    <script src="/assets/folders.js"></script>
+    <script src="/assets/tags.js"></script>
+    <script src="/assets/load-file.js"></script>
+    <script src="/assets/ai-chat.js"></script>
+</body>
+
+</html>
