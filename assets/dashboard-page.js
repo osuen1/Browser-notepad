@@ -38,6 +38,7 @@ async function loadDashboardData() {
         title: note.Title,
         content: note.Data,
         folderId: note.Folder_id,
+        date: note.Date,
         isCurrent: false
       }));
       localStorage.setItem('notes', JSON.stringify(window.notes));
@@ -215,9 +216,9 @@ function updateRecentNotes() {
   } else {
     recentList.innerHTML = recent.map(note => `
       <div class="recent-item" data-note-id="${note.ID_note}">
-        <div class="recent-title">${note.Title || 'Без названия'}</div>
-        <div class="recent-preview">${(note.Data || '').substring(0, 60)}...</div>
-        <div class="recent-date">${formatDate(note.Date)}</div>
+        <div class="recent-title">${note.title || 'Без названия'}</div>
+        <div class="recent-preview">${(note.content || '').substring(0, 60)}...</div>
+        <div class="recent-date">${formatDate(note.date)}</div>
       </div>
     `).join('');
 
