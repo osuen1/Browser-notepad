@@ -113,7 +113,7 @@ var loginAttemptsMutex sync.Mutex
 var lending = template.Must(template.ParseFiles("templates/lending.html"))
 var log_page = template.Must(template.ParseFiles("templates/login.html"))
 var register_page = template.Must(template.ParseFiles("templates/register.html"))
-var new_page = template.Must(template.ParseFiles("templates/new_page.html"))
+var new_page = template.Must(template.ParseFiles("templates/ai.html"))
 var forgot_password_page = template.Must(template.ParseFiles("templates/forgot-password.html"))
 var resetPasswordPage = template.Must(template.ParseFiles("templates/reset-password.html"))
 var todoList = template.Must(template.ParseFiles("templates/todo_list.html"))
