@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"os"
+	// "os"
 	"regexp"
 	"strconv"
 	"sync"
@@ -131,7 +131,7 @@ func init_server() {
 	}
 
 	if server.cookie_handler == nil {
-		key, _ := hex.DecodeString(os.Getenv("COOKIE_KEY"))
+		key, _ := hex.DecodeString(Generate_token())
 		server.cookie_handler = sessions.NewCookieStore(key)
 	}
 }
