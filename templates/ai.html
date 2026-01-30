@@ -46,6 +46,7 @@
                 </ul>
             </div>
         </div>
+        <div class="sidebar-resizer left-resizer" id="left-resizer"></div>
 
         <!-- Центральная область -->
         <div class="notes-area">
@@ -91,6 +92,7 @@
             </div>
         </div>
 
+        <div class="sidebar-resizer right-resizer" id="right-resizer"></div>
         <!-- Правый бар -->
         <div class="sidebar-right">
             <!-- Календарь -->
@@ -202,7 +204,7 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="profile-section">
                 <div class="profile-field">
                     <label for="profile-username">Имя пользователя:</label>
@@ -281,7 +283,7 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="chat-container">
                 <div class="chat-messages" id="chat-messages">
                     <div class="ai-message">
@@ -296,19 +298,15 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="chat-actions">
                     <button class="toolbar-button" id="select-notes-btn" title="Выбрать заметки для суммаризации">
                         <i class="fas fa-list"></i> Выбрать заметки для суммаризации
                     </button>
                 </div>
-                
+
                 <div class="chat-input-container">
-                    <textarea 
-                        id="chat-input" 
-                        placeholder="Введите ваш вопрос..." 
-                        rows="2"
-                    ></textarea>
+                    <textarea id="chat-input" placeholder="Введите ваш вопрос..." rows="2"></textarea>
                     <button class="toolbar-button send-btn" id="send-chat-btn">
                         <i class="fas fa-paper-plane"></i>
                     </button>
@@ -326,17 +324,17 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="selection-container">
                 <div class="search-box">
                     <input type="text" id="notes-search" placeholder="Поиск заметок...">
                     <i class="fas fa-search"></i>
                 </div>
-                
+
                 <div class="notes-list" id="notes-list-container">
                     <!-- Notes will be populated here -->
                 </div>
-                
+
                 <div class="selection-footer">
                     <div class="selected-info">
                         Выбрано: <span id="selected-count">0</span> заметок
@@ -504,7 +502,8 @@
             margin-bottom: 10px;
         }
 
-        .ai-message, .user-message {
+        .ai-message,
+        .user-message {
             margin-bottom: 15px;
             display: flex;
             animation: fadeIn 0.3s;
@@ -583,8 +582,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 
@@ -596,6 +602,7 @@
     <script src="/assets/tags.js"></script>
     <script src="/assets/load-file.js"></script>
     <script src="/assets/ai-chat.js"></script>
+    <script src="/assets/resize-bars.js"></script>
 </body>
 
 </html>

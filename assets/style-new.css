@@ -1851,3 +1851,108 @@ li {
     grid-template-columns: 1fr;
   }
 }
+
+/* Добавляем в конец файла */
+
+/* Стили для изменяемых боковых панелей */
+.sidebar-left, .sidebar-right {
+    position: relative;
+    min-width: 200px;
+    max-width: 500px;
+    resize: horizontal;
+    overflow: auto;
+}
+
+/* Разделители для изменения размера */
+.sidebar-resizer {
+    position: relative;
+    background-color: var(--border-color);
+    cursor: col-resize;
+    transition: background-color 0.2s;
+    z-index: 10;
+}
+
+.sidebar-resizer:hover,
+.sidebar-resizer.resizing {
+    background-color: var(--accent-color);
+}
+
+.left-resizer {
+    width: 6px;
+    margin-left: -3px;
+    margin-right: -3px;
+}
+
+.right-resizer {
+    width: 6px;
+    margin-left: -3px;
+    margin-right: -3px;
+}
+
+/* Для плавного изменения размера */
+.container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.notes-area {
+    flex: 1;
+    min-width: 300px;
+    overflow: auto;
+}
+
+/* Убираем стандартный resize handle у баров */
+.sidebar-left::-webkit-resizer,
+.sidebar-right::-webkit-resizer {
+    display: none;
+}
+
+/* Скрываем полосы прокрутки при изменении размера */
+.sidebar-left, .sidebar-right {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+    .sidebar-left, .sidebar-right {
+        min-width: 150px;
+        max-width: 300px;
+    }
+    
+    .notes-area {
+        min-width: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar-left, .sidebar-right {
+        position: fixed;
+        top: 36px;
+        bottom: 0;
+        z-index: 100;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        display: none;
+    }
+    
+    .sidebar-left {
+        left: 0;
+    }
+    
+    .sidebar-right {
+        right: 0;
+    }
+    
+    .sidebar-left.active, .sidebar-right.active {
+        display: block;
+    }
+    
+    .sidebar-resizer {
+        display: none;
+    }
+    
+    .notes-area {
+        width: 100%;
+    }
+}
