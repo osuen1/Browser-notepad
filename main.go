@@ -48,6 +48,8 @@ func main() {
 	mux.HandleFunc("/api/profile/get", serv.GetProfileHandler)
 	mux.HandleFunc("/api/ai/chat", serv.AIChatHandler)
 	mux.HandleFunc("/api/ai/summarize-selected", serv.AISummarizeSelectedHandler)
+	mux.HandleFunc("/api/events/get", serv.EventsGetHandler)
+	mux.HandleFunc("/api/events/upload", serv.EventsCreateHandler)
 
 	fmt.Print("Сервер запущен на порту: ", port, "\n")
 	http.ListenAndServe(":"+port, mux) // запускаем сервер, начиная слушать 3030 порт localhost'а

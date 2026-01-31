@@ -85,6 +85,14 @@ CREATE TABLE IF NOT EXISTS profile (
     Foreign Key (user_id) REFERENCES users(user_id)
 );
 
+CREATE TABLE IF NOT EXISTS events (
+    id SERIAL PRIMARY KEY,
+    user_id VARCHAR(50),
+    title VARCHAR(40),
+    time TEXT,
+
+    Foreign Key (user_id) REFERENCES users(user_id)
+)
 
 ALTER TABLE files ADD COLUMN data BYTEA;
 

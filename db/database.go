@@ -401,3 +401,33 @@ func Get_profile(pool *pgxpool.Pool, user_id string) ([]string, error) {
 
 	return []string{email, theme, language, username}, nil
 }
+
+func Add_event(pool *pgxpool.Pool, user_id string, time string, title string) error {
+	if _, err := pool.Exec(context.Background(), "INSERT INTO events (user_id, time, title) VALUES ($1, $2, $3)", user_id, time, title); err != nil {
+		fmt.Print("An error in Add_event: ", err)
+		return err
+	}
+	return nil
+}
+
+func Get_events(pool *pgxpool.Pool, user_id string) ([][]string, error) {
+	rows, err := pool.Query(context.Background(), "SELECT time, title FROM events WHERE user_id = $1", user_id)
+	if err != nil {
+		fmt.Print("An error in Get_events: ", err)
+		return nil, err
+	}
+
+	var eventsArray [][]string
+	var time string
+	var title string
+
+	for rows.Next() {
+		if err := rows.Scan(&time, &title); err != nil {
+			fmt.Print("An error in scan vars (Get_events): ", err)
+			return nil, err
+		}
+		eventsArray = append(eventsArray, []string{time, title})
+	}
+
+	return eventsArray, nil
+}

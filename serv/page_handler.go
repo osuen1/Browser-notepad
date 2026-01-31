@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+
 	// "os"
 	"regexp"
 	"strconv"
@@ -97,6 +98,12 @@ type ProfileResponse struct {
 	Theme    string `json:"Theme"`
 	Language string `json:"Language"`
 	Username string `json:"Username"`
+}
+
+type EventData struct {
+	User_id string `json:"user_id"`
+	Time    string `json:"time"`
+	Title   string `json:"title"`
 }
 
 type Server struct {
@@ -812,7 +819,7 @@ func UpdateProfileHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		respose := Response {
+		respose := Response{
 			Status:  true,
 			Message: "Profile successfully updated",
 		}
@@ -841,7 +848,7 @@ func DeleteProfileHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		respose := Response {
+		respose := Response{
 			Status:  true,
 			Message: "Profile successfully deleted",
 		}
@@ -890,5 +897,66 @@ func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		dashvoardPage.Execute(w, nil)
+	}
+}
+
+func EventsCreateHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		var req EventData
+
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if server.db != nil {
+			if err := db.Add_event(server.db, req.User_id, req.Time, req.Title); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			response := Response{
+				Status:  true,
+				Message: "Event sucssesfuly added",
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+			}
+		}
+	}
+}
+
+func EventsGetHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		var req EventData
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if server.db != nil {
+			var response []EventData
+			events, err := db.Get_events(server.db, req.User_id)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			for _, event := range events {
+				response = append(response, EventData {
+					User_id: req.User_id,
+					Time: event[0],
+					Title: event[1],
+				})
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+		}
 	}
 }
