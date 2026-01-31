@@ -34,20 +34,28 @@ func main() {
 	mux.HandleFunc("/api/folders/create", serv.CreateFolderHandler)
 	mux.HandleFunc("/api/folders/delete", serv.DeleteFolderHandler)
 	mux.HandleFunc("/api/folders/get", serv.GetFoldersHandler)
+
 	mux.HandleFunc("/api/notes/get", serv.GetNotesHandler)
 	mux.HandleFunc("/api/notes/create", serv.CreateNoteHandler)
 	mux.HandleFunc("/api/notes/delete", serv.DeleteNoteHandler)
+
 	mux.HandleFunc("/api/reset-password", serv.ResetApiHandler)
+
 	mux.HandleFunc("/api/todo/create", serv.TodoCreateHadler)
 	mux.HandleFunc("/api/todos/get", serv.GetTodoHandler)
 	mux.HandleFunc("/api/todo/delete", serv.DeleteTodoHandler)
+
 	mux.HandleFunc("/api/files/upload", serv.CreateFileHandler)
 	mux.HandleFunc("/api/files/get", serv.GetFilesHandler)
 	mux.HandleFunc("/api/files/delete", serv.DeleteFileHandler)
+	mux.HandleFunc("/api/files/move", serv.UpdateFileFolder)
+
 	mux.HandleFunc("/api/profile/update", serv.UpdateProfileHandler)
 	mux.HandleFunc("/api/profile/get", serv.GetProfileHandler)
+	
 	mux.HandleFunc("/api/ai/chat", serv.AIChatHandler)
 	mux.HandleFunc("/api/ai/summarize-selected", serv.AISummarizeSelectedHandler)
+	
 	mux.HandleFunc("/api/events/get", serv.EventsGetHandler)
 	mux.HandleFunc("/api/events/upload", serv.EventsCreateHandler)
 

@@ -431,3 +431,30 @@ func Get_events(pool *pgxpool.Pool, user_id string) ([][]string, error) {
 
 	return eventsArray, nil
 }
+
+func Update_folder_id(pool *pgxpool.Pool, newParentId int, folderId int) error {
+	if _, err := pool.Exec(context.Background(), "UPDATE folders SET parent_id = $1 WHERE folder_id = $2", newParentId, folderId); err != nil {
+		fmt.Print("An error in Update_folder_id: ", err)
+		return err
+	}
+
+	return nil
+}
+
+func Update_notes_folder(pool *pgxpool.Pool, noteId string, newFolderId int) error {
+	if _, err := pool.Exec(context.Background(), "UPDATE note SET folder_id = $1 WHERE user_id = $2", newFolderId, noteId); err != nil {
+		fmt.Print("An error in Update_notes_folder: ", err)
+		return err
+	}
+
+	return nil
+}
+
+func Update_file_folder(pool *pgxpool.Pool, file_name string, user_id string, newFolderId int) error {
+	if _, err := pool.Exec(context.Background(), "UPDATE files SET folder_id = $1 WHERE file_name = $2 AND user_id = $3", newFolderId, file_name, user_id); err != nil {
+		fmt.Print("An error in Update_file_folder: ", err)
+		return err
+	}
+	
+	return nil
+}

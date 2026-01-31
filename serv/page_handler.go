@@ -246,10 +246,13 @@ func CreateNoteHandler(w http.ResponseWriter, r *http.Request) {
 
 		if result, err := db.Check_note(server.db, req.ID_note); err != nil {
 			fmt.Print("Ошибка базы даных. Невозможно найти заметку")
+
 		} else if result {
 			err_note := db.Update_note(server.db, req.ID_note, req.Data, tags)
 			err_tag := db.Update_tags_in_note(server.db, req.ID_note, tags)
-			if err_note != nil || err_tag != nil {
+			errUpdateFolder := db.Update_notes_folder(server.db, req.ID_note, req.Folder_id)
+
+			if err_note != nil || err_tag != nil || errUpdateFolder != nil{
 				fmt.Printf("Ошибка записи в БД: %v\n", err_note)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
@@ -799,6 +802,23 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+func UpdateFileFolder(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		var fileToMove FileData
+		if err := json.NewDecoder(r.Body).Decode(&fileToMove); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if server.db != nil {
+			if err := db.Update_file_folder(server.db, fileToMove.File_name, fileToMove.User_id, fileToMove.Folder_id); err != nil {
+				fmt.Print("An error in UpdateFileFolder: ", err)
+				return
+			}
 		}
 	}
 }

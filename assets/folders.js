@@ -76,6 +76,82 @@ function buildFolderTree(flatFolders) {
   return tree;
 }
 
+// === DRAG & DROP ДЛЯ ФАЙЛОВ И ПАПОК ===
+
+let draggedItem = null;
+
+function enableDragAndDrop() {
+  // заметки
+  document.querySelectorAll('.note-item').forEach(note => {
+    note.draggable = true;
+
+    note.addEventListener('dragstart', () => {
+      draggedItem = { type: 'note', id: note.dataset.id };
+    });
+  });
+
+  // файлы
+  document.querySelectorAll('.file-item').forEach(file => {
+    file.draggable = true;
+
+    file.addEventListener('dragstart', () => {
+      draggedItem = { type: 'file', name: file.dataset.filename };
+    });
+  });
+
+  // папки — дроп-зоны
+  document.querySelectorAll('.folder-item').forEach(folder => {
+    folder.addEventListener('dragover', e => e.preventDefault());
+
+    folder.addEventListener('drop', async () => {
+      if (!draggedItem) return;
+
+      const targetFolderId = folder.dataset.id;
+
+      if (draggedItem.type === 'note') {
+        const note = notes.find(n => n.id === draggedItem.id);
+        if (note) {
+          note.folderId = parseInt(targetFolderId);
+          saveNotes();
+          sendNoteToServer(note);
+        }
+      }
+
+      if (draggedItem.type === 'file') {
+        await moveFileOnServer(draggedItem.name, targetFolderId);
+      }
+
+      draggedItem = null;
+      renderFolders();
+    });
+  });
+}
+
+// === ПЕРЕНОС ФАЙЛА НА СЕРВЕРЕ ===
+async function moveFileOnServer(fileName, folderId) {
+  try {
+    await fetch('/api/files/move', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        User_id: getUserId(),
+        fileName,
+        FolderId: parseInt(folderId)
+      })
+    });
+  } catch (e) {
+    console.error('Ошибка переноса файла', e);
+  }
+}
+
+// === ХУК ПОСЛЕ РЕНДЕРА ===
+const _renderFolders = renderFolders;
+renderFolders = function (...args) {
+  _renderFolders.apply(this, args);
+  enableDragAndDrop();
+};
+
+
 // --- Работа с API (Заметки и Папки) ---
 
 async function sendNoteToServer(note) {
@@ -346,6 +422,7 @@ function renderNotesInFolder(folderId, container) {
   folderNotes.forEach((note) => {
     const noteElement = document.createElement("li");
     noteElement.className = "note-item";
+    noteElement.dataset.id = note.id;
     if (note.isCurrent) noteElement.classList.add("active");
 
     // Добавляем иконки тегов к заметке в списке
@@ -394,6 +471,7 @@ function renderFilesInFolder(folderId, container) {
   folderFiles.forEach((file) => {
     const fileElement = document.createElement("li");
     fileElement.className = "file-item";
+    fileElement.dataset.filename = file.fileName;
 
     const fileSizeKB = (file.fileSize / 1024).toFixed(2);
 
