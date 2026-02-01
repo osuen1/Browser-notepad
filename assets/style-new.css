@@ -1956,3 +1956,35 @@ li {
         width: 100%;
     }
 }
+
+.tabs-bar {
+    position: relative;
+}
+
+.top-search {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    background: #2a2d35;
+    border: 1px solid #4a4d56;
+    border-radius: 20px;
+    padding: 6px 14px;
+    min-width: 300px;
+}
+
+.top-search i {
+    color: #7a7d86;
+}
+
+.top-search input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #e0e0e0;
+    width: 100%;
+    font-size: 14px;
+}
