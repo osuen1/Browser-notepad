@@ -247,3 +247,7 @@ document.getElementById("clear-completed-btn").addEventListener("click", () => {
     deleteTodo(completedTodos);
   }
 });
+
+document.getElementById("dashboard").addEventListener("click", () => {
+  window.location.href = "/dashboard";
+});
