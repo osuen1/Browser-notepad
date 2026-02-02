@@ -402,8 +402,10 @@ func Get_profile(pool *pgxpool.Pool, user_id string) ([]string, error) {
 	return []string{email, theme, language, username}, nil
 }
 
-func Add_event(pool *pgxpool.Pool, user_id string, time string, title string, priority string) error {
-	if _, err := pool.Exec(context.Background(), "INSERT INTO events (user_id, time, title, priority) VALUES ($1, $2, $3, $4)", user_id, time, title, priority); err != nil {
+func Add_event(pool *pgxpool.Pool, user_id string, eventDate string, title string, priority string, date string) error {
+	if _, err := pool.Exec(context.Background(), 
+	"INSERT INTO events (user_id, eventdate, title, priority, date) VALUES ($1, $2, $3, $4, $5)", 
+	user_id, eventDate, title, priority, date); err != nil {
 		fmt.Print("An error in Add_event: ", err)
 		return err
 	}
@@ -411,23 +413,24 @@ func Add_event(pool *pgxpool.Pool, user_id string, time string, title string, pr
 }
 
 func Get_events(pool *pgxpool.Pool, user_id string) ([][]string, error) {
-	rows, err := pool.Query(context.Background(), "SELECT time, title, priority FROM events WHERE user_id = $1", user_id)
+	rows, err := pool.Query(context.Background(), "SELECT eventdate, title, priority, date FROM events WHERE user_id = $1", user_id)
 	if err != nil {
 		fmt.Print("An error in Get_events: ", err)
 		return nil, err
 	}
 
 	var eventsArray [][]string
-	var time string
+	var eventDate string
 	var title string
 	var priority string
+	var date string
 
 	for rows.Next() {
-		if err := rows.Scan(&time, &title, &priority); err != nil {
+		if err := rows.Scan(&eventDate, &title, &priority, &date); err != nil {
 			fmt.Print("An error in scan vars (Get_events): ", err)
 			return nil, err
 		}
-		eventsArray = append(eventsArray, []string{time, title, priority})
+		eventsArray = append(eventsArray, []string{eventDate, title, priority, date})
 	}
 
 	return eventsArray, nil

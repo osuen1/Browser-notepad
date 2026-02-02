@@ -1,3 +1,23 @@
+const PRIORITY_ORDER = {
+    "imp": 1,
+    "urg": 2,
+    "ave": 3,
+    "low": 4
+};
+
+function normalizePriority(priority) {
+    if (!priority) return { key: "low", label: "Низкий" };
+
+    const map = {
+        "высокий": { key: "imp", label: "Высший" },
+        "срочный": { key: "urg", label: "Срочный" },
+        "средний": { key: "ave", label: "Средний" },
+        "низкий": { key: "low", label: "Низкий" }
+    };
+
+    return map[priority.toLowerCase()] || { key: "low", label: priority };
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     loadEvents();
 
@@ -28,19 +48,31 @@ async function loadEvents() {
 // рендер
 function renderEvents(events) {
     const eventsSection = document.querySelector(".events-section");
+    const addButton = eventsSection.querySelector(".add-button");
 
     eventsSection.querySelectorAll(".event-item").forEach(el => el.remove());
 
+    // сортировка по приоритету
+    events.sort((a, b) => {
+        const pa = normalizePriority(a.priority).key;
+        const pb = normalizePriority(b.priority).key;
+        return PRIORITY_ORDER[pa] - PRIORITY_ORDER[pb];
+    });
+
     events.forEach(event => {
+        const p = normalizePriority(event.priority);
+
         const eventItem = document.createElement("div");
-        eventItem.className = "event-item";
+        eventItem.className = `event-item priority-${p.key}`;
 
         eventItem.innerHTML = `
             <div class="event-time">${event.time}</div>
-            <div class="event-text">${event.title}</div>
+            <div class="event-content">
+                <div class="event-title">${event.title}</div>
+                <div class="event-priority">${p.label}</div>
+            </div>
         `;
 
-        const addButton = eventsSection.querySelector(".add-button");
         eventsSection.insertBefore(eventItem, addButton);
     });
 }
@@ -53,21 +85,24 @@ async function createEvent() {
     const title = prompt("Название события:");
     if (!title) return;
 
-    const priority = prompt("Добавьте приоритет. Оставьте поле пустым для автоматического назначения");
-    if (!priority) {
-        priority = ""
-    }
+    let priority = prompt("Приоритет (высокий / срочный / средний / низкий):");
+    if (!priority) priority = "низкий";
 
-    const user_id = getUserId()
+    const date = new Date().toISOString();
+    const user_id = getUserId();
 
-    const newEvent = { user_id, time, title, priority };
+    const newEvent = {
+        user_id,
+        time,
+        title,
+        priority,
+        date
+    };
 
     try {
         const response = await fetch("/api/events/upload", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(newEvent)
         });
 
@@ -75,9 +110,7 @@ async function createEvent() {
             throw new Error("Ошибка при создании события");
         }
 
-        // перезагружаем события с сервера
         await loadEvents();
-
     } catch (error) {
         console.error(error);
         alert("Не удалось создать событие");

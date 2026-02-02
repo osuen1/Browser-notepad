@@ -101,10 +101,11 @@ type ProfileResponse struct {
 }
 
 type EventData struct {
-	User_id  string `json:"user_id"`
-	Time     string `json:"time"`
-	Title    string `json:"title"`
-	Priority string `json:"priority"`
+	User_id   string `json:"user_id"`
+	Eventdate string `json:"time"`
+	Title     string `json:"title"`
+	Priority  string `json:"priority"`
+	Date      string `json:"date"`
 }
 
 type Server struct {
@@ -935,10 +936,15 @@ func EventsCreateHandler(w http.ResponseWriter, r *http.Request) {
 			priorityEnam := []string{"imp", "urg", "ave", "low"}
 			if req.Priority == "Важное" {
 				priority = priorityEnam[0]
+			} else if req.Priority == "Срочный" {
+				priority = priorityEnam[1]
+			} else if req.Priority == "Средний" {
+				priority = priorityEnam[2]
+			} else if req.Priority == "Низкий" {
+				priority = priorityEnam[3]
 			}
 
-
-			if err := db.Add_event(server.db, req.User_id, req.Time, req.Title, priority); err != nil {
+			if err := db.Add_event(server.db, req.User_id, req.Eventdate, req.Title, priority, req.Date); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
@@ -974,10 +980,11 @@ func EventsGetHandler(w http.ResponseWriter, r *http.Request) {
 
 			for _, event := range events {
 				response = append(response, EventData{
-					User_id: req.User_id,
-					Time:    event[0],
-					Title:   event[1],
-					Priority: event[2],
+					User_id:   req.User_id,
+					Eventdate: event[0],
+					Title:     event[1],
+					Priority:  event[2],
+					Date:      event[3],
 				})
 			}
 
