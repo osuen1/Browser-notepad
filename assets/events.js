@@ -52,9 +52,15 @@ async function createEvent() {
 
     const title = prompt("Название события:");
     if (!title) return;
+
+    const priority = prompt("Добавьте приоритет. Оставьте поле пустым для автоматического назначения");
+    if (!priority) {
+        priority = ""
+    }
+
     const user_id = getUserId()
 
-    const newEvent = { user_id, time, title };
+    const newEvent = { user_id, time, title, priority };
 
     try {
         const response = await fetch("/api/events/upload", {

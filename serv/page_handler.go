@@ -101,9 +101,10 @@ type ProfileResponse struct {
 }
 
 type EventData struct {
-	User_id string `json:"user_id"`
-	Time    string `json:"time"`
-	Title   string `json:"title"`
+	User_id  string `json:"user_id"`
+	Time     string `json:"time"`
+	Title    string `json:"title"`
+	Priority string `json:"priority"`
 }
 
 type Server struct {
@@ -252,7 +253,7 @@ func CreateNoteHandler(w http.ResponseWriter, r *http.Request) {
 			err_tag := db.Update_tags_in_note(server.db, req.ID_note, tags)
 			errUpdateFolder := db.Update_notes_folder(server.db, req.ID_note, req.Folder_id)
 
-			if err_note != nil || err_tag != nil || errUpdateFolder != nil{
+			if err_note != nil || err_tag != nil || errUpdateFolder != nil {
 				fmt.Printf("Ошибка записи в БД: %v\n", err_note)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
@@ -930,7 +931,14 @@ func EventsCreateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if server.db != nil {
-			if err := db.Add_event(server.db, req.User_id, req.Time, req.Title); err != nil {
+			var priority string
+			priorityEnam := []string{"imp", "urg", "ave", "low"}
+			if req.Priority == "Важное" {
+				priority = priorityEnam[0]
+			}
+
+
+			if err := db.Add_event(server.db, req.User_id, req.Time, req.Title, priority); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
@@ -965,10 +973,11 @@ func EventsGetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			for _, event := range events {
-				response = append(response, EventData {
+				response = append(response, EventData{
 					User_id: req.User_id,
-					Time: event[0],
-					Title: event[1],
+					Time:    event[0],
+					Title:   event[1],
+					Priority: event[2],
 				})
 			}
 
