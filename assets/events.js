@@ -1,8 +1,8 @@
-const PRIORITY_ORDER = {
-    "imp": 1,
-    "urg": 2,
-    "ave": 3,
-    "low": 4
+const PRIORITIES = {
+    imp: { order: 1, label: "Высший" },
+    urg: { order: 2, label: "Срочный" },
+    ave: { order: 3, label: "Средний" },
+    low: { order: 4, label: "Низкий" }
 };
 
 function normalizePriority(priority) {
@@ -52,18 +52,21 @@ function renderEvents(events) {
 
     eventsSection.querySelectorAll(".event-item").forEach(el => el.remove());
 
-    // сортировка по приоритету
+    // сортируем по приоритету
     events.sort((a, b) => {
-        const pa = normalizePriority(a.priority).key;
-        const pb = normalizePriority(b.priority).key;
-        return PRIORITY_ORDER[pa] - PRIORITY_ORDER[pb];
+        const pa = PRIORITIES[a.priority]?.order ?? 999;
+        const pb = PRIORITIES[b.priority]?.order ?? 999;
+        return pa - pb;
     });
 
     events.forEach(event => {
-        const p = normalizePriority(event.priority);
+        const p = PRIORITIES[event.priority] || {
+            order: 999,
+            label: event.priority
+        };
 
         const eventItem = document.createElement("div");
-        eventItem.className = `event-item priority-${p.key}`;
+        eventItem.className = `event-item priority-${event.priority}`;
 
         eventItem.innerHTML = `
             <div class="event-time">${event.time}</div>
