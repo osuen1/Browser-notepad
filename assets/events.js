@@ -47,6 +47,19 @@ async function loadEvents() {
     }
 }
 
+function formatEventDate(isoString) {
+    const date = new Date(isoString);
+
+    return date.toLocaleString("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
+
+
 // рендер
 function renderEvents(events) {
     const eventsSection = document.querySelector(".events-section");
@@ -71,7 +84,7 @@ function renderEvents(events) {
         eventItem.className = `event-item priority-${event.priority}`;
 
         eventItem.innerHTML = `
-            <div class="event-time">${event.eventdate}</div>
+            <div class="event-time">${formatEventDate(event.eventdate)}</div>
             <div class="event-content">
                 <div class="event-title">${event.title}</div>
                 <div class="event-priority">${p.label}</div>
