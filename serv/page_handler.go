@@ -102,7 +102,7 @@ type ProfileResponse struct {
 
 type EventData struct {
 	User_id   string `json:"user_id"`
-	Eventdate string `json:"time"`
+	Eventdate string `json:"eventdate"`
 	Title     string `json:"title"`
 	Priority  string `json:"priority"`
 	Date      string `json:"date"`
@@ -932,19 +932,19 @@ func EventsCreateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if server.db != nil {
-			var priority string
-			priorityEnam := []string{"imp", "urg", "ave", "low"}
-			if req.Priority == "Важное" {
-				priority = priorityEnam[0]
-			} else if req.Priority == "Срочный" {
-				priority = priorityEnam[1]
-			} else if req.Priority == "Средний" {
-				priority = priorityEnam[2]
-			} else if req.Priority == "Низкий" {
-				priority = priorityEnam[3]
-			}
+			// var priority string
+			// priorityEnam := []string{"imp", "urg", "ave", "low"}
+			// if req.Priority == "Важное" {
+			// 	priority = priorityEnam[0]
+			// } else if req.Priority == "Срочный" {
+			// 	priority = priorityEnam[1]
+			// } else if req.Priority == "Средний" {
+			// 	priority = priorityEnam[2]
+			// } else if req.Priority == "Низкий" {
+			// 	priority = priorityEnam[3]
+			// }
 
-			if err := db.Add_event(server.db, req.User_id, req.Eventdate, req.Title, priority, req.Date); err != nil {
+			if err := db.Add_event(server.db, req.User_id, req.Eventdate, req.Title, req.Priority, req.Date); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}

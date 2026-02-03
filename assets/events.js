@@ -5,6 +5,11 @@ const PRIORITIES = {
     low: { order: 4, label: "Низкий" }
 };
 
+const modal = document.getElementById("event-modal");
+const datetimeInput = document.getElementById("event-datetime");
+const titleInput = document.getElementById("event-title");
+const priorityInput = document.getElementById("event-priority");
+
 function normalizePriority(priority) {
     if (!priority) return { key: "low", label: "Низкий" };
 
@@ -20,9 +25,6 @@ function normalizePriority(priority) {
 
 document.addEventListener("DOMContentLoaded", () => {
     loadEvents();
-
-    const addEventBtn = document.querySelector(".events-section .add-button");
-    addEventBtn.addEventListener("click", createEvent);
 });
 
 // загрузка событий
@@ -69,7 +71,7 @@ function renderEvents(events) {
         eventItem.className = `event-item priority-${event.priority}`;
 
         eventItem.innerHTML = `
-            <div class="event-time">${event.time}</div>
+            <div class="event-time">${event.eventdate}</div>
             <div class="event-content">
                 <div class="event-title">${event.title}</div>
                 <div class="event-priority">${p.label}</div>
@@ -80,45 +82,64 @@ function renderEvents(events) {
     });
 }
 
-// создание события
-async function createEvent() {
-    const time = prompt("Время события (например 14:00):");
-    if (!time) return;
+document.querySelector(".events-section .add-button")
+  .addEventListener("click", openEventModal);
 
-    const title = prompt("Название события:");
-    if (!title) return;
+document.getElementById("event-cancel")
+  .addEventListener("click", closeEventModal);
 
-    let priority = prompt("Приоритет (высокий / срочный / средний / низкий):");
-    if (!priority) priority = "низкий";
+document.getElementById("event-save")
+  .addEventListener("click", saveEventFromModal);
 
-    const date = new Date().toISOString();
-    const user_id = getUserId();
+function openEventModal() {
+  modal.classList.remove("hidden");
 
-    const newEvent = {
-        user_id,
-        time,
-        title,
-        priority,
-        date
-    };
-
-    try {
-        const response = await fetch("/api/events/upload", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newEvent)
-        });
-
-        if (!response.ok) {
-            throw new Error("Ошибка при создании события");
-        }
-
-        await loadEvents();
-    } catch (error) {
-        console.error(error);
-        alert("Не удалось создать событие");
-    }
+  // по умолчанию — сейчас + 10 минут
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + 10);
+  datetimeInput.value = now.toISOString().slice(0, 16);
 }
+
+function closeEventModal() {
+  modal.classList.add("hidden");
+  titleInput.value = "";
+}
+
+async function saveEventFromModal() {
+  if (!datetimeInput.value || !titleInput.value) {
+    alert("Заполните дату и название");
+    return;
+  }
+
+  const eventdate = new Date(datetimeInput.value).toISOString();
+  const title = titleInput.value;
+  const priority = priorityInput.value;
+
+  const payload = {
+    user_id: getUserId(),
+    eventdate,
+    title,
+    priority,
+    date: new Date().toISOString()
+  };
+
+  try {
+    const response = await fetch("/api/events/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) throw new Error("Ошибка сервера");
+
+    closeEventModal();
+    loadEvents();
+  } catch (e) {
+    console.error(e);
+    alert("Не удалось сохранить событие");
+  }
+}
+
 
 function getUserId() {
     return localStorage.getItem('user_id')

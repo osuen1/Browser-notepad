@@ -359,6 +359,38 @@
         </div>
     </div>
 
+    <div id="event-modal" class="event-modal hidden">
+        <div class="event-modal-content">
+            <h3>Новое событие</h3>
+
+            <label>
+                Дата и время
+                <input type="datetime-local" id="event-datetime">
+            </label>
+
+            <label>
+                Название
+                <input type="text" id="event-title">
+            </label>
+
+            <label>
+                Приоритет
+                <select id="event-priority">
+                    <option value="imp">Высший</option>
+                    <option value="urg">Срочный</option>
+                    <option value="ave">Средний</option>
+                    <option value="low" selected>Низкий</option>
+                </select>
+            </label>
+
+            <div class="event-modal-actions">
+                <button id="event-save">Сохранить</button>
+                <button id="event-cancel">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+
     <style>
         .ai-chat-content {
             width: 600px;
