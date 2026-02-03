@@ -967,6 +967,26 @@ func EventsGetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			for _, event := range events {
+				dateFinish, _ := time.Parse("2006-01-02T15:04:05.000Z", event[0])
+				dateStart, _ := time.Parse("2006-01-02T15:04:05.000Z", event[3])
+
+				if dateFinish.Sub(dateStart) <= (time.Hour * 12) {
+					event[2] = "imp"
+					if err := db.Update_priority(server.db, "imp", event[1], req.User_id); err != nil {
+						fmt.Print("An error in Update_priority: ", err)
+					}
+				} else if dateFinish.Sub(dateStart) <= (time.Hour * 72) {
+					event[2] = "urg"
+					if err := db.Update_priority(server.db, "urg", event[1], req.User_id); err != nil {
+						fmt.Print("An error in Update_priority: ", err)
+					}
+				} else if dateFinish.Sub(dateStart) <= (time.Hour * 120) {
+					event[2] = "ave"
+					if err := db.Update_priority(server.db, "ave", event[1], req.User_id); err != nil {
+						fmt.Print("An error in Update_priority: ", err)
+					}
+				}
+
 				response = append(response, EventData{
 					User_id:   req.User_id,
 					Eventdate: event[0],
