@@ -967,7 +967,7 @@ func EventsGetHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			for _, event := range events {
-				if err := ParseDate(event[3], event[0], event[1], req.User_id); err != nil {
+				if err := ParseDate(event[0], event[1], req.User_id); err != nil {
 					fmt.Print("An error in Update priority: ", err)
 				}
 

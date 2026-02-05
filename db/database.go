@@ -436,6 +436,15 @@ func Get_events(pool *pgxpool.Pool, user_id string) ([][]string, error) {
 	return eventsArray, nil
 }
 
+func Delete_Event(pool *pgxpool.Pool, user_id string, title string) error {
+	if _, err := pool.Exec(context.Background(), "DELETE FROM events WHERE user_id = $1, title = $2", user_id, title); err != nil {
+		fmt.Print("An error in Delete_Event :", err)
+		return err
+	}
+
+	return nil
+}
+
 func Update_priority(pool *pgxpool.Pool, priority string, title string, user_id string) error {
 	if _, err := pool.Exec(context.Background(), "UPDATE events SET priority = $1 WHERE title = $2 AND user_id = $3", priority, title, user_id); err != nil {
 		fmt.Print("An error in Update_priority: ", err)
