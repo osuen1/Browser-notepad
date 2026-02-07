@@ -9,6 +9,7 @@ const modal = document.getElementById("event-modal");
 const datetimeInput = document.getElementById("event-datetime");
 const titleInput = document.getElementById("event-title");
 const priorityInput = document.getElementById("event-priority");
+const placeInput = document.getElementById("input-place")
 
 function normalizePriority(priority) {
     if (!priority) return { key: "low", label: "Низкий" };
@@ -127,13 +128,15 @@ async function saveEventFromModal() {
   const eventdate = new Date(datetimeInput.value).toISOString();
   const title = titleInput.value;
   const priority = priorityInput.value;
+  const place = placeInput.value;
 
   const payload = {
     user_id: getUserId(),
     eventdate,
     title,
     priority,
-    date: new Date().toISOString()
+    date: new Date().toISOString(),
+    place
   };
 
   try {

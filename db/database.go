@@ -402,10 +402,10 @@ func Get_profile(pool *pgxpool.Pool, user_id string) ([]string, error) {
 	return []string{email, theme, language, username}, nil
 }
 
-func Add_event(pool *pgxpool.Pool, user_id string, eventDate string, title string, priority string, date string) error {
+func Add_event(pool *pgxpool.Pool, user_id string, eventDate string, title string, priority string, date string, place string) error {
 	if _, err := pool.Exec(context.Background(), 
-	"INSERT INTO events (user_id, eventdate, title, priority, date) VALUES ($1, $2, $3, $4, $5)", 
-	user_id, eventDate, title, priority, date); err != nil {
+	"INSERT INTO events (user_id, eventdate, title, priority, date, place) VALUES ($1, $2, $3, $4, $5, $6)", 
+	user_id, eventDate, title, priority, date, place); err != nil {
 		fmt.Print("An error in Add_event: ", err)
 		return err
 	}

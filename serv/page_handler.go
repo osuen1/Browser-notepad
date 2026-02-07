@@ -106,6 +106,7 @@ type EventData struct {
 	Title     string `json:"title"`
 	Priority  string `json:"priority"`
 	Date      string `json:"date"`
+	Place     string `json:"place"`
 }
 
 type Server struct {
@@ -932,7 +933,7 @@ func EventsCreateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if server.db != nil {
-			if err := db.Add_event(server.db, req.User_id, req.Eventdate, req.Title, req.Priority, req.Date); err != nil {
+			if err := db.Add_event(server.db, req.User_id, req.Eventdate, req.Title, req.Priority, req.Date, req.Place); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
