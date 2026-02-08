@@ -422,17 +422,17 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		attempt, exists := loginAttempts[data_json.Login]
 
 		if exists && time.Since(attempt.LastAttempt) < loginAttemptsDuritation && attempt.Count >= maxLoginAttempts {
-			loginAttemptsMutex.Lock()
+			loginAttemptsMutex.Unlock()
 			response := Response{
 				Status:  false,
 				Message: "Too many attempts. Please try again later.",
 			}
-			loginAttemptsMutex.Unlock()
 
 			w.Header().Set("Content-Type", "application/json")
 			if err := json.NewEncoder(w).Encode(response); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
+			return
 		}
 
 		if exists && time.Since(attempt.LastAttempt) >= loginAttemptsDuritation {
