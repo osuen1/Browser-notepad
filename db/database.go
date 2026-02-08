@@ -370,6 +370,17 @@ func Check_profile(pool *pgxpool.Pool, user_id string) (bool, error) {
 }
 
 func Profile_update(pool *pgxpool.Pool, user_id string, field string, value string) error {
+	allowedFields := map[string]struct{}{
+		"email":    struct{}{},
+		"theme":    struct{}{},
+		"language": struct{}{},
+		"username": struct{}{},
+	}
+
+	if _, ok := allowedFields[field]; !ok {
+		return fmt.Errorf("Invalid field name: %s", field)
+	}
+	
 	if _, err := pool.Exec(context.Background(), "UPDATE profile SET "+field+" = $1 WHERE user_id = $2", value, user_id); err != nil {
 		fmt.Print("An error in Profile_update: ", err)
 		return err
