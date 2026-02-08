@@ -7,7 +7,7 @@ import (
 	"html/template"
 	"net/http"
 
-	// "os"
+	"os"
 	"regexp"
 	"strconv"
 	"sync"
@@ -141,8 +141,16 @@ func init_server() {
 	}
 
 	if server.cookie_handler == nil {
-		key, _ := hex.DecodeString(Generate_token())
+		key, _ := hex.DecodeString(os.Getenv("COOKIE_KEY"))
 		server.cookie_handler = sessions.NewCookieStore(key)
+
+		server.cookie_handler.Options = &sessions.Options{
+			Path:     "/",
+			MaxAge:   3600 * 24,
+			HttpOnly: true,
+			Secure:   false,                //os.Getenv("EN") == "production", // ✅ true в prod
+			SameSite: http.SameSiteLaxMode, // ✅ CSRF защита
+		}
 	}
 }
 
@@ -448,13 +456,16 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			response.User_id = user_id
 			w.Header().Set("Content-Type", "application/json")
 
+			session, _ := server.cookie_handler.Get(r, "session-name")
+			session.Values["user_id"] = user_id
+			if err := session.Save(r, w); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
 			if err := json.NewEncoder(w).Encode(response); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-
-			session, _ := server.cookie_handler.Get(r, "session-name")
-			session.Values["user_id"] = user_id
-			session.Save(r, w)
 
 			// Вынести определение mailer в main
 			mailer := mail.New_Dialer()
