@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"embed"
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -120,14 +121,17 @@ const loginAttemptsDuritation = 10 * time.Minute
 var loginAttempts = make(map[string]*LoginAttempt)
 var loginAttemptsMutex sync.Mutex
 
-var lending = template.Must(template.ParseFiles("templates/lending.html"))
-var log_page = template.Must(template.ParseFiles("templates/login.html"))
-var register_page = template.Must(template.ParseFiles("templates/register.html"))
-var new_page = template.Must(template.ParseFiles("templates/ai.html"))
-var forgot_password_page = template.Must(template.ParseFiles("templates/forgot-password.html"))
-var resetPasswordPage = template.Must(template.ParseFiles("templates/reset-password.html"))
-var todoList = template.Must(template.ParseFiles("templates/todo_list.html"))
-var dashvoardPage = template.Must(template.ParseFiles("templates/dashboard.html"))
+//go:embed templates/*
+var templates embed.FS
+
+var lending = template.Must(template.ParseFS(templates, "templates/lending.html"))
+var log_page = template.Must(template.ParseFS(templates, "templates/login.html"))
+var register_page = template.Must(template.ParseFS(templates, "templates/register.html"))
+var new_page = template.Must(template.ParseFS(templates, "templates/ai.html"))
+var forgot_password_page = template.Must(template.ParseFS(templates, "templates/forgot-password.html"))
+var resetPasswordPage = template.Must(template.ParseFS(templates, "templates/reset-password.html"))
+var todoList = template.Must(template.ParseFS(templates, "templates/todo_list.html"))
+var dashvoardPage = template.Must(template.ParseFS(templates, "templates/dashboard.html"))
 
 var server Server
 
@@ -602,7 +606,6 @@ func DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	init_server()
 	var data_json Login_info
 	var responseJson Response
 
@@ -627,6 +630,20 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			user_id, err := Generete_user_id()
 			if err != nil {
 				http.Error(w, "An error in generating user id", http.StatusInternalServerError)
+			}
+
+			if err := ValidateEmail(data_json.Email); err != nil {
+				responseJson.Status = false
+				responseJson.Message = err.Error()
+				responseJson.User_id = user_id
+
+				w.Header().Set("Content-Type", "application/json")
+				encoder := json.NewEncoder(w)
+				if err := encoder.Encode(responseJson); err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
+
+				return
 			}
 
 			db.Add_user(server.db, user_id, data_json.Login, Hash_password(data_json.Password), data_json.Email, Generate_token())
