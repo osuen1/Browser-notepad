@@ -1,12 +1,15 @@
 package serv
 
 import (
-	"fmt"
-	"os"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
-	
+	"fmt"
+	"net/http"
+	"encoding/json"
+
+	"os"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -46,4 +49,21 @@ func Generete_user_id() (string, error) {
 	}
 
 	return hex.EncodeToString(seed), nil
+}
+
+func SendJson(w http.ResponseWriter, s any) error {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(s); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DecodeJson(r *http.Request, v any) error {
+	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
+		return err
+	}
+
+	return nil
 }
