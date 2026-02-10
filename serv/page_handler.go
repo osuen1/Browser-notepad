@@ -7,12 +7,12 @@ import (
 	"html/template"
 	"net/http"
 
+	"embed"
 	"os"
 	"regexp"
 	"strconv"
 	"sync"
 	"time"
-	"embed"
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -152,8 +152,8 @@ func init_server() {
 			Path:     "/",
 			MaxAge:   3600 * 24,
 			HttpOnly: true,
-			Secure:   false,                //os.Getenv("EN") == "production", // ✅ true в prod
-			SameSite: http.SameSiteLaxMode, // ✅ CSRF защита
+			Secure:   false,
+			SameSite: http.SameSiteLaxMode,
 		}
 	}
 }
@@ -180,10 +180,8 @@ func GetNotesHandler(w http.ResponseWriter, r *http.Request) {
 	var response []NoteData
 
 	if r.Method == http.MethodPost {
-		decoder := json.NewDecoder(r.Body)
-		if err := decoder.Decode(&data); err != nil {
-			fmt.Print("An error in Get_notes_handler: ", err)
-			http.Error(w, "Bad Request", http.StatusBadRequest)
+		if err := DecodeJson(r, &data); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -228,10 +226,11 @@ func GetNotesHandler(w http.ResponseWriter, r *http.Request) {
 				})
 			}
 
-			w.Header().Set("Content-Type", "application/json")
-			if err := json.NewEncoder(w).Encode(response); err != nil {
-				fmt.Print("An error in Get_notes_handler: ", err)
+			if err := SendJson(w, response); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
+
 		} else {
 			http.Error(w, "u not login", http.StatusForbidden)
 		}
@@ -246,10 +245,8 @@ func CreateNoteHandler(w http.ResponseWriter, r *http.Request) {
 
 	var req NoteData
 
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		fmt.Printf("Ошибка декодирования: %v\n", err)
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+	if err := DecodeJson(r, req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -294,9 +291,9 @@ func DeleteNoteHandler(w http.ResponseWriter, r *http.Request) {
 	var data NoteData
 
 	if r.Method == http.MethodPost {
-		decoder := json.NewDecoder(r.Body)
-		if err := decoder.Decode(&data); err != nil {
-			fmt.Print("An error in Create_note: ", err.Error(), "\n")
+		if err := DecodeJson(r, &data); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
 		if server.db != nil {
@@ -310,8 +307,9 @@ func DeleteNoteHandler(w http.ResponseWriter, r *http.Request) {
 				Message: "Заметка успешно удалена",
 			}
 
-			if err := json.NewEncoder(w).Encode(response); err != nil {
-				fmt.Print("An error in Delete_note_handler: ", err)
+			if err := SendJson(w, response); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
 
 		} else {
@@ -324,7 +322,7 @@ func CreateFolderHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost && server.db != nil && server.cookie_handler != nil {
 		var req FolderData
 
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := DecodeJson(r, &req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -343,7 +341,7 @@ func GetFoldersHandler(w http.ResponseWriter, r *http.Request) {
 		var response []FolderData
 		var req FolderData
 
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := DecodeJson(r, &req); err != nil {
 			http.Error(w, "An error in GetFoldersHandler", http.StatusBadRequest)
 		}
 
@@ -369,9 +367,9 @@ func GetFoldersHandler(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(response); err != nil {
+		if err := SendJson(w, response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	}
 }
@@ -381,7 +379,7 @@ func DeleteFolderHandler(w http.ResponseWriter, r *http.Request) {
 		var req FolderData
 		var response Response
 
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := DecodeJson(r, &req); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
@@ -395,9 +393,9 @@ func DeleteFolderHandler(w http.ResponseWriter, r *http.Request) {
 			Message: "Папка успешно удалена",
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(response); err != nil {
+		if err := SendJson(w, response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	}
 }
@@ -417,9 +415,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		decoder := json.NewDecoder(r.Body) // декодируем JSON с клиента
-		if err := decoder.Decode(&data_json); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		if err := DecodeJson(r, &data_json); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
 		loginAttemptsMutex.Lock()
@@ -432,9 +430,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				Message: "Too many attempts. Please try again later.",
 			}
 
-			w.Header().Set("Content-Type", "application/json")
-			if err := json.NewEncoder(w).Encode(response); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if err := SendJson(w, response); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
 			}
 			return
 		}
@@ -467,7 +464,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			if err := json.NewEncoder(w).Encode(response); err != nil {
+			if err := SendJson(w, response); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 
@@ -501,9 +498,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				response.Message = "Too many attempts. Please try again later."
 			}
 
-			w.Header().Set("Content-Type", "application/json")
-			if err := json.NewEncoder(w).Encode(response); err != nil {
+			if err := SendJson(w, response); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
 		}
 	}
@@ -513,7 +510,7 @@ func TodoCreateHadler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		var req TodoData
 
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := DecodeJson(r, &req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 
@@ -529,8 +526,7 @@ func TodoCreateHadler(w http.ResponseWriter, r *http.Request) {
 			Message: "Todo успешно создан",
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(response); err != nil {
+		if err := SendJson(w, response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -542,7 +538,7 @@ func GetTodoHandler(w http.ResponseWriter, r *http.Request) {
 		var req Response
 		var response TodoRespose
 
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := DecodeJson(r, &req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -566,8 +562,7 @@ func GetTodoHandler(w http.ResponseWriter, r *http.Request) {
 			response.TodoData = append(response.TodoData, inter)
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(response); err != nil {
+		if err := SendJson(w, response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -578,7 +573,7 @@ func DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		var req TodoDelete
 
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := DecodeJson(r, &req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -597,8 +592,7 @@ func DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
 			Message: "Todo deleted successfully",
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(response); err != nil {
+		if err := SendJson(w, response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -614,9 +608,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		decoder := json.NewDecoder(r.Body)
-		if err := decoder.Decode(&data_json); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := DecodeJson(r, &data_json); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -637,9 +630,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 				responseJson.Message = err.Error()
 				responseJson.User_id = user_id
 
-				w.Header().Set("Content-Type", "application/json")
-				encoder := json.NewEncoder(w)
-				if err := encoder.Encode(responseJson); err != nil {
+				if err := SendJson(w, responseJson); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
 
@@ -652,18 +643,18 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			responseJson.Status = true
 			responseJson.Message = "Registration successful"
 
-			encoder := json.NewEncoder(w)
-			if err := encoder.Encode(responseJson); err != nil {
+			if err := SendJson(w, responseJson); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
 
 		} else {
 			responseJson.Status = false
 			responseJson.Message = "Username already exists"
 
-			encoder := json.NewEncoder(w)
-			if err := encoder.Encode(&responseJson); err != nil {
+			if err := SendJson(w, responseJson); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
 		}
 	}
@@ -678,8 +669,7 @@ func ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		decoder := json.NewDecoder(r.Body)
-		if err := decoder.Decode(&dataJson); err != nil {
+		if err := DecodeJson(r, &dataJson); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -713,9 +703,8 @@ func ResetApiHandler(w http.ResponseWriter, r *http.Request) {
 	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
 	if r.Method == http.MethodPost {
-		decoder := json.NewDecoder(r.Body)
-		if err := decoder.Decode(&dataJson); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		if err := DecodeJson(r, &dataJson); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -725,9 +714,10 @@ func ResetApiHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		response.Status = true
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(response); err != nil {
+
+		if err := SendJson(w, response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	}
 }
@@ -741,7 +731,7 @@ func CreateFileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := DecodeJson(r, &req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -757,8 +747,7 @@ func CreateFileHandler(w http.ResponseWriter, r *http.Request) {
 			Message: "File successfully uploaded",
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(response); err != nil {
+		if err := SendJson(w, response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -770,7 +759,7 @@ func GetFilesHandler(w http.ResponseWriter, r *http.Request) {
 	var response []FileData
 
 	if r.Method == http.MethodPost {
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := DecodeJson(r, &req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -791,8 +780,7 @@ func GetFilesHandler(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(response); err != nil {
+		if err := SendJson(w, response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -804,7 +792,7 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request) {
 	var response Response
 
 	if r.Method == http.MethodPost {
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := DecodeJson(r, &req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -817,8 +805,7 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request) {
 				Message: "An error occurred while deleting the file",
 			}
 
-			w.Header().Set("Content-Type", "application/json")
-			if err := json.NewEncoder(w).Encode(response); err != nil {
+			if err := SendJson(w, response); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 
@@ -830,8 +817,7 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request) {
 			Message: "File successfully deleted",
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(response); err != nil {
+		if err := SendJson(w, response); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -858,7 +844,7 @@ func UpdateProfileHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		var req ProfileRequest
 
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := DecodeJson(r, &req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -875,8 +861,7 @@ func UpdateProfileHandler(w http.ResponseWriter, r *http.Request) {
 			Message: "Profile successfully updated",
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(respose); err != nil {
+		if err := SendJson(w, respose); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -887,7 +872,7 @@ func DeleteProfileHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		var req ProfileRequest
 
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := DecodeJson(r, &req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -904,8 +889,7 @@ func DeleteProfileHandler(w http.ResponseWriter, r *http.Request) {
 			Message: "Profile successfully deleted",
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(respose); err != nil {
+		if err := SendJson(w, respose); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -917,7 +901,7 @@ func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 		var req ProfileRequest
 		var response ProfileResponse
 
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := DecodeJson(r, &req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -936,8 +920,7 @@ func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 				Username: profile[3],
 			}
 
-			w.Header().Set("Content-Type", "application/json")
-			if err := json.NewEncoder(w).Encode(response); err != nil {
+			if err := SendJson(w, response); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -955,7 +938,7 @@ func EventsCreateHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		var req EventData
 
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := DecodeJson(r, &req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -971,9 +954,9 @@ func EventsCreateHandler(w http.ResponseWriter, r *http.Request) {
 				Message: "Event sucssesfuly added",
 			}
 
-			w.Header().Set("Content-Type", "application/json")
-			if err := json.NewEncoder(w).Encode(response); err != nil {
+			if err := SendJson(w, response); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
 			}
 		}
 	}
@@ -982,7 +965,7 @@ func EventsCreateHandler(w http.ResponseWriter, r *http.Request) {
 func EventsGetHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		var req EventData
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if err := DecodeJson(r, &req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -1009,8 +992,7 @@ func EventsGetHandler(w http.ResponseWriter, r *http.Request) {
 				})
 			}
 
-			w.Header().Set("Content-Type", "application/json")
-			if err := json.NewEncoder(w).Encode(response); err != nil {
+			if err := SendJson(w, response); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
