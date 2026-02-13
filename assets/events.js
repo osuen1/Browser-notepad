@@ -89,6 +89,7 @@ function renderEvents(events) {
             <div class="event-content">
                 <div class="event-title">${event.title}</div>
                 <div class="event-priority">${p.label}</div>
+                ${event.place ? `<div class="event-place">${event.place}</div>` : ''}
             </div>
         `;
 

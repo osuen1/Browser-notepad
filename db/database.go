@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -340,7 +339,7 @@ func Add_profile(pool *pgxpool.Pool, email string, theme string, language string
 	if language == "" {
 		language = "ru"
 	}
-	
+
 	user_id := pool.QueryRow(context.Background(), "SELECT user_id FROM users WHERE username = $1", username).Scan()
 	if user_id != nil {
 		if user_id == pgx.ErrNoRows {
@@ -349,9 +348,9 @@ func Add_profile(pool *pgxpool.Pool, email string, theme string, language string
 		}
 	}
 
-	if _, err := pool.Exec(context.Background(), 
-	"INSERT INTO profile (user_id, email, theme, language, username) VALUES ($1, $2, $3, $4, $5)", 
-	user_id, email, theme, language, username); err != nil {
+	if _, err := pool.Exec(context.Background(),
+		"INSERT INTO profile (user_id, email, theme, language, username) VALUES ($1, $2, $3, $4, $5)",
+		user_id, email, theme, language, username); err != nil {
 		fmt.Print("An error in Add_profile: ", err)
 		return err
 	}
@@ -381,7 +380,7 @@ func Profile_update(pool *pgxpool.Pool, user_id string, field string, value stri
 	if _, ok := allowedFields[field]; !ok {
 		return fmt.Errorf("Invalid field name: %s", field)
 	}
-	
+
 	if _, err := pool.Exec(context.Background(), "UPDATE profile SET "+field+" = $1 WHERE user_id = $2", value, user_id); err != nil {
 		fmt.Print("An error in Profile_update: ", err)
 		return err
@@ -395,7 +394,7 @@ func Delete_profile(pool *pgxpool.Pool, user_id string) error {
 		fmt.Print("An error in Delete_profile: ", err)
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -415,9 +414,9 @@ func Get_profile(pool *pgxpool.Pool, user_id string) ([]string, error) {
 }
 
 func Add_event(pool *pgxpool.Pool, user_id string, eventDate string, title string, priority string, date string, place string) error {
-	if _, err := pool.Exec(context.Background(), 
-	"INSERT INTO events (user_id, eventdate, title, priority, date, place) VALUES ($1, $2, $3, $4, $5, $6)", 
-	user_id, eventDate, title, priority, date, place); err != nil {
+	if _, err := pool.Exec(context.Background(),
+		"INSERT INTO events (user_id, eventdate, title, priority, date, place) VALUES ($1, $2, $3, $4, $5, $6)",
+		user_id, eventDate, title, priority, date, place); err != nil {
 		fmt.Print("An error in Add_event: ", err)
 		return err
 	}
@@ -425,7 +424,7 @@ func Add_event(pool *pgxpool.Pool, user_id string, eventDate string, title strin
 }
 
 func Get_events(pool *pgxpool.Pool, user_id string) ([][]string, error) {
-	rows, err := pool.Query(context.Background(), "SELECT eventdate, title, priority, date FROM events WHERE user_id = $1", user_id)
+	rows, err := pool.Query(context.Background(), "SELECT eventdate, title, priority, date, place FROM events WHERE user_id = $1", user_id)
 	if err != nil {
 		fmt.Print("An error in Get_events: ", err)
 		return nil, err
@@ -436,20 +435,22 @@ func Get_events(pool *pgxpool.Pool, user_id string) ([][]string, error) {
 	var title string
 	var priority string
 	var date string
+	var place string
 
 	for rows.Next() {
-		if err := rows.Scan(&eventDate, &title, &priority, &date); err != nil {
+		if err := rows.Scan(&eventDate, &title, &priority, &date, &place); err != nil {
 			fmt.Print("An error in scan vars (Get_events): ", err)
 			return nil, err
 		}
-		eventsArray = append(eventsArray, []string{eventDate, title, priority, date})
+		
+		eventsArray = append(eventsArray, []string{eventDate, title, priority, date, place})
 	}
 
 	return eventsArray, nil
 }
 
 func Delete_Event(pool *pgxpool.Pool, user_id string, title string) error {
-	if _, err := pool.Exec(context.Background(), "DELETE FROM events WHERE user_id = $1, title = $2", user_id, title); err != nil {
+	if _, err := pool.Exec(context.Background(), "DELETE FROM events WHERE user_id = $1 AND title = $2", user_id, title); err != nil {
 		fmt.Print("An error in Delete_Event :", err)
 		return err
 	}
@@ -489,6 +490,6 @@ func Update_file_folder(pool *pgxpool.Pool, file_name string, user_id string, ne
 		fmt.Print("An error in Update_file_folder: ", err)
 		return err
 	}
-	
+
 	return nil
 }
